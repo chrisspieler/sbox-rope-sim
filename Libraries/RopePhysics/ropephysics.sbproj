@@ -1,0 +1,27 @@
+{
+  "Title": "Rope Physics",
+  "Type": "library",
+  "Org": "duccsoft",
+  "Ident": "ropephysics",
+  "Schema": 1,
+  "IncludeSourceFiles": false,
+  "Resources": null,
+  "PackageReferences": [],
+  "EditorReferences": null,
+  "IsWhitelistDisabled": false,
+  "Metadata": {
+    "Compiler": {
+      "RootNamespace": "Duccsoft",
+      "DefineConstants": "SANDBOX;ADDON;DEBUG",
+      "NoWarn": "1701;1702;1591;",
+      "WarningsAsErrors": "",
+      "TreatWarningsAsErrors": false,
+      "Nullables": false,
+      "Whitelist": true,
+      "ReleaseMode": "Debug",
+      "AssemblyReferences": [],
+      "IgnoreFolders": [],
+      "DistinctAssemblyReferences": []
+    }
+  }
+}
