@@ -713,15 +713,6 @@
           "__type": "Duccsoft.RopePhysics",
           "__guid": "dbbc5219-e79b-44ae-b580-ed879151d4fd",
           "SegmentCount": -1
-        },
-        {
-          "__type": "Sandbox.BoxCollider",
-          "__guid": "54a7af88-037d-4b2a-a724-ffc83aae2d24",
-          "Center": "0,0,0",
-          "IsTrigger": true,
-          "Scale": "8,8,8",
-          "Static": false,
-          "SurfaceVelocity": "0,0,0"
         }
       ]
     }

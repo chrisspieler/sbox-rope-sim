@@ -1,5 +1,4 @@
-﻿using Sandbox.Diagnostics;
-using Sandbox.Physics;
+﻿using Sandbox.Physics;
 
 using FixedJoint = Sandbox.Physics.FixedJoint;
 using SpringJoint = Sandbox.Physics.SpringJoint;
