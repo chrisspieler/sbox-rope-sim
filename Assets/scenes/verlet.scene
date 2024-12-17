@@ -36,7 +36,11 @@
       "Components": [
         {
           "__type": "Sandbox.VerletDemo",
-          "__guid": "946c0674-ec85-4579-92de-c7b99408538f"
+          "__guid": "946c0674-ec85-4579-92de-c7b99408538f",
+          "Iterations": 100,
+          "RopeEndOffset": "0,-250,-100",
+          "RopePointCount": 50,
+          "RopeStartOffset": "0,0,100"
         }
       ]
     }
