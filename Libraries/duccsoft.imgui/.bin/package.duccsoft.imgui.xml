@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>package.duccsoft.imgui</name>
+    </assembly>
+    <members>
+        <member name="T:Duccsoft.ImGui.BoundsList">
+            <summary>
+            Represents every widget that is ready to be drawn in a frame.
+            </summary>
+        </member>
+        <member name="P:Duccsoft.ImGui.Elements.Element.CurrentItem">
+            <summary>
+            Returns the element currently being built as a child of this element, or null if 
+            no child is currently being built.
+            </summary>
+        </member>
+        <member name="P:Duccsoft.ImGui.Elements.Element.LastItem">
+            <summary>
+            Returns the last child that has already been built, or null if no child has been built.
+            </summary>
+        </member>
+        <member name="M:Duccsoft.ImGui.Elements.Element.OnBegin">
+            <summary>
+            Add this element to its Parent, updates its input data, and calls ImGui.NewLine.
+            <br/><br/>
+            For any subclass of Element, OnBegin should be called within its constructor, or
+            immediately after the element is constructed.
+            </summary>
+        </member>
+        <member name="M:Duccsoft.ImGui.Elements.Element.OnEnd">
+            <summary>
+            For any subclass of Element that contains no children, OnEnd should be called
+            immediately after OnBegin.
+            </summary>
+        </member>
+        <member name="F:Duccsoft.ImGui.ImGuiCol.WindowBg">
+            <summary>
+            Background of normal windows
+            </summary>
+        </member>
+        <member name="F:Duccsoft.ImGui.ImGuiCol.ChildBg">
+            <summary>
+            Background of child windows
+            </summary>
+        </member>
+        <member name="F:Duccsoft.ImGui.ImGuiCol.PopupBg">
+            <summary>
+            Background of popups, menus, tooltips windows
+            </summary>
+        </member>
+        <member name="F:Duccsoft.ImGui.ImGuiCol.FrameBg">
+            <summary>
+            Background of checkbox, radio button, plot, slider, text input
+            </summary>
+        </member>
+        <member name="F:Duccsoft.ImGui.ImGuiCol.TitleBg">
+            <summary>
+            Title bar
+            </summary>
+        </member>
+        <member name="F:Duccsoft.ImGui.ImGuiCol.TitleBgActive">
+            <summary>
+            Title bar when focused
+            </summary>
+        </member>
+        <member name="F:Duccsoft.ImGui.ImGuiCol.TitleBgCollapsed">
+            <summary>
+            Title bar when collapsed
+            </summary>
+        </member>
+        <member name="F:Duccsoft.ImGui.ImGuiCol.CheckMark">
+            <summary>
+            Checkbox tick and RadioButton circle
+            </summary>
+        </member>
+        <member name="F:Duccsoft.ImGui.ImGuiWindowFlags.NoTitleBar">
+            <summary>
+            The window will have no title bar, which is useful for popups.
+            </summary>
+        </member>
+        <member name="F:Duccsoft.ImGui.ImGuiWindowFlags.NoFocusOnAppearing">
+            <summary>
+            Prevent the window from taking focus when transitioning from hidden to visible state.
+            </summary>
+        </member>
+        <member name="M:Duccsoft.ImGui.ImGui.SetNextWindowFocus">
+            <summary>
+            Causes the next window that is created to start focused. Should be called before Begin().
+            </summary>
+        </member>
+        <member name="P:Duccsoft.ImGui.ImGuiSystem.MouseButton">
+            <summary>
+            Filters in the current mouse state in to the "highest priority" button clicked,
+            returning null if no button is clicked.
+            </summary>
+        </member>
+    </members>
+</doc>
