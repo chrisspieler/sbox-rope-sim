@@ -1,14 +1,13 @@
 ﻿namespace Duccsoft;
 
-public class VerletRope
+public partial class VerletRope
 {
-	public VerletRope( Vector3 startPos, Vector3 endPos, int pointCount, PhysicsWorld physics = null )
+	public VerletRope( Vector3 startPos, Vector3 endPos, int pointCount )
 	{
 		StartPosition = startPos;
 		EndPosition = endPos;
 		PointCount = pointCount;
 
-		Physics = physics;
 		Reset();
 	}
 
@@ -32,7 +31,6 @@ public class VerletRope
 	public int PointCount { get; set; } = 32;
 	public int Iterations { get; set; } = 80;
 	public float SegmentLength { get; private set; }
-	public PhysicsWorld Physics { get; init; }
 
 	private Point[] _points;
 	public IEnumerable<Point> Points => _points;
@@ -57,9 +55,11 @@ public class VerletRope
 	public void Simulate()
 	{
 		UpdatePoints();
+		UpdateCollisions();
 		for ( int i = 0; i < Iterations; i++ )
 		{
 			UpdateSegments();
+			ResolveCollisions();
 		}
 	}
 

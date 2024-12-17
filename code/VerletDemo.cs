@@ -51,7 +51,8 @@ public class VerletDemo : Component
 		{
 			Iterations = Iterations,
 			FixedStart = FixedStart,
-			FixedEnd = FixedEnd
+			FixedEnd = FixedEnd,
+			Physics = Scene.PhysicsWorld,
 		};
 	}
 
@@ -66,12 +67,12 @@ public class VerletDemo : Component
 		for ( int i = 0; i < points.Length; i++ )
 		{
 			var point = points[i];
-			DebugOverlay.Sphere( new Sphere( point.Position, 1f ), color: Color.Red, overlay: true );
+			DebugOverlay.Sphere( new Sphere( point.Position, 1f ), color: Color.Red, overlay: false );
 			if ( i == 0 )
 				continue;
 
 			var lastPoint = points[i - 1];
-			DebugOverlay.Line( lastPoint.Position, point.Position, color: Color.Blue, overlay: true );
+			DebugOverlay.Line( lastPoint.Position, point.Position, color: Color.Blue, overlay: false );
 		}
 	}
 

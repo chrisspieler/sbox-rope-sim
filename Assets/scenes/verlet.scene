@@ -37,10 +37,63 @@
         {
           "__type": "Sandbox.VerletDemo",
           "__guid": "946c0674-ec85-4579-92de-c7b99408538f",
+          "FixedEnd": false,
+          "FixedStart": true,
           "Iterations": 100,
           "RopeEndOffset": "0,-250,-100",
-          "RopePointCount": 50,
+          "RopePointCount": 10,
           "RopeStartOffset": "0,0,100"
+        }
+      ]
+    },
+    {
+      "__guid": "026a08f9-7087-45a8-81a1-d8b9bed6451e",
+      "Flags": 0,
+      "Name": "Sun",
+      "Tags": "light_directional,light",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.DirectionalLight",
+          "__guid": "8c29d492-ff7e-4ab0-a543-9e55ecc5d216",
+          "FogMode": "Enabled",
+          "FogStrength": 1,
+          "LightColor": "0.91373,0.98039,1,1",
+          "Shadows": true,
+          "SkyColor": "0,0,0,0"
+        }
+      ]
+    },
+    {
+      "__guid": "8e1b819c-fd73-454b-ba29-9d6150170b25",
+      "Flags": 0,
+      "Name": "Sphere",
+      "Position": "512,0,0",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "8aec308f-e0c4-4b0d-b43d-27ea790df827",
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "Model": "models/dev/sphere.vmdl",
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.SphereCollider",
+          "__guid": "3d03c146-302a-4601-afa8-2e3cfefcdcde",
+          "Center": "0,0,0",
+          "IsTrigger": false,
+          "Radius": 32,
+          "Static": true,
+          "SurfaceVelocity": "0,0,0"
         }
       ]
     }
