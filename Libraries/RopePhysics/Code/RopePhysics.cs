@@ -1,11 +1,8 @@
-using System;
-using System.Drawing;
-
 namespace Duccsoft;
 
 public partial class RopePhysics : Component
 {
-	[Property] public int SegmentCount => RopePoints.Count - 1;
+	[Property] public int PointCount => RopePoints.Count;
 	[Property] public GameObject RopePointContainer { get; set; }
 	public PhysicsBody PhysicsBody { get; set; }
 	private List<RopePoint> RopePoints { get; set; } = new();
@@ -137,12 +134,6 @@ public partial class RopePhysics : Component
 
 	protected override void OnUpdate()
 	{
-		var scope = new TextRendering.Scope( "Press E to add rope segment", Color.Yellow, Screen.Size.y * 0.02f, "Consolas" );
-		Scene.Camera.Hud.DrawText( scope, new Vector2( Screen.Size.x * 0.5f, Screen.Size.y - Screen.Size.y * 0.05f ) );
-		if ( Input.Pressed("use") )
-		{
-			AddRopePoint( 1 );
-		}
 		UpdateDebug();
 	}
 

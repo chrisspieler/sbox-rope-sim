@@ -703,16 +703,42 @@
       ]
     },
     {
-      "__guid": "ad9fd7c0-f27a-4aa3-8ddb-406f018eb45e",
+      "__guid": "c42f8a47-be0f-42dd-b4ce-cadd5b864d9b",
       "Flags": 0,
-      "Name": "Rope",
+      "Name": "Rope Origin",
       "Position": "128,0,224",
+      "Enabled": true,
+      "Children": [
+        {
+          "__guid": "ad9fd7c0-f27a-4aa3-8ddb-406f018eb45e",
+          "Flags": 0,
+          "Name": "Rope",
+          "Enabled": true,
+          "Components": [
+            {
+              "__type": "Duccsoft.RopePhysics",
+              "__guid": "dbbc5219-e79b-44ae-b580-ed879151d4fd",
+              "PointCount": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "__guid": "6de97713-2a31-4b94-ad1e-e9722ee5c757",
+      "Flags": 0,
+      "Name": "Demo",
       "Enabled": true,
       "Components": [
         {
-          "__type": "Duccsoft.RopePhysics",
-          "__guid": "dbbc5219-e79b-44ae-b580-ed879151d4fd",
-          "SegmentCount": -1
+          "__type": "Sandbox.RopeModificationDemo",
+          "__guid": "2f3bb5b7-f340-438c-90f4-21d0e787fc3b",
+          "TargetRope": {
+            "_type": "component",
+            "component_id": "dbbc5219-e79b-44ae-b580-ed879151d4fd",
+            "go": "ad9fd7c0-f27a-4aa3-8ddb-406f018eb45e",
+            "component_type": "RopePhysics"
+          }
         }
       ]
     }
