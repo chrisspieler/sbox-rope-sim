@@ -41,9 +41,9 @@ public partial class RopePhysics : Component
 		AddRopeEnd();
 	}
 
-	private RopePoint CreateRopePoint( int index )
+	private RopePoint CreateRopePoint()
 	{
-		var go = new GameObject( RopePointContainer, true, $"Rope Point #{index}" );
+		var go = new GameObject( RopePointContainer, true, $"Rope Point" );
 		var ropePoint = go.AddComponent<RopePoint>();
 		ropePoint.Initialize();
 		return ropePoint;
@@ -57,7 +57,7 @@ public partial class RopePhysics : Component
 		if ( RopePoints.Count == 0 )
 			return AddRopeBeginning();
 
-		var point = CreateRopePoint( RopePoints.Count );
+		var point = CreateRopePoint();
 
 		Line GetMidpointFromPrevious( int index )
 		{
@@ -96,13 +96,13 @@ public partial class RopePhysics : Component
 		{
 			return AddRopeEnd();
 		}
-		var point = CreateRopePoint( index );
+		var point = CreateRopePoint();
 		var before = RopePoints[index - 1];
 		var after = RopePoints[index];
 		RopePoints.Insert( index, point );
-		after.LinkTo( point );
-		point.LinkTo( before );
 		point.WorldPosition = new Line( before.WorldPosition, after.WorldPosition ).Center;
+		after.LinkTo( point, after.Length * 0.5f );
+		point.LinkTo( before, after.Length );
 		return index;
 	}
 
@@ -111,7 +111,7 @@ public partial class RopePhysics : Component
 	/// </summary>
 	public int AddRopeBeginning()
 	{
-		var point = CreateRopePoint( 0 );
+		var point = CreateRopePoint();
 		if ( RopePoints.Count > 0 )
 		{
 			var existing = RopePoints[0];

@@ -8,8 +8,32 @@ namespace Duccsoft;
 [Hide]
 internal class RopePoint : Component
 {
-	[Property] public float Thickness { get; set; } = 1f;
-	[Property] public float Length { get; set; } = 20f;
+	[Property] public float Thickness 
+	{
+		get => _thickness;
+		set
+		{
+			_thickness = value;
+			if ( _springJoint.IsValid() )
+			{
+				_springJoint.MinLength = value;
+			}
+		}
+	}
+	private float _thickness = 1f;
+	[Property] public float Length 
+	{
+		get => _length;
+		set
+		{
+			_length = value;
+			if ( _springJoint.IsValid() )
+			{
+				_springJoint.MaxLength = value;
+			}
+		}
+	}
+	private float _length = 20f;
 	[Property] public bool HideSubcomponents
 	{
 		get => _hideSubcomponents;
@@ -96,24 +120,29 @@ internal class RopePoint : Component
 		}
 	}
 
-	public void LinkTo( RopePoint point )
+	public void LinkTo( RopePoint point, float? length = null )
 	{
 		var body1 = _rigidbody?.PhysicsBody;
 		var body2 = point?._rigidbody?.PhysicsBody;
 		if ( !HasReachedFirstUpdate || !body1.IsValid() )
 		{
-			_actionQueue += () => LinkTo( point );
+			_actionQueue += () => LinkTo( point, length );
 			return;
 		}
 
+		if ( length.HasValue )
+		{
+			Length = length.Value;
+		}
+
 		_springJoint?.Remove();
-		if ( !point.IsValid() )
+		if ( !body2.IsValid() )
 			return;
 
 		var point1 = PhysicsPoint.Local( body1 );
 		var point2 = PhysicsPoint.Local( body2 );
 		_springJoint = PhysicsJoint.CreateSpring( point1, point2, Thickness, Length );
-		_springJoint.SpringLinear = new( 2f, 0.9f, -1f );
+		_springJoint.SpringLinear = new( 3f, 0.9f, -1f );
 	}
 
 
