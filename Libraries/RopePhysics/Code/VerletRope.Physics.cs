@@ -16,7 +16,15 @@ public partial class VerletRope
 	}
 
 	public PhysicsWorld Physics { get; init; }
-	public float CollisionRadius { get; set; } = 1f;
+	/// <summary>
+	/// A factor applied to CollisionRadius when finding collisions. Higher values may
+	/// reduce the chance of clipping at the cost of evaluating collisions more often.
+	/// </summary>
+	public float CollisionRadiusScale { get; set; } = 5f;
+	/// <summary>
+	/// A radius in units to search for PhysicsShapes around each point of the rope.
+	/// </summary>
+	public float CollisionRadius => SegmentLength * 0.5f * CollisionRadiusScale;
 	private Dictionary<int, SphereCollisionInfo> _sphereCollisions = new();
 
 	private void UpdateCollisions()
