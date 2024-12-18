@@ -76,7 +76,7 @@ public class VerletDemo : Component
 		for ( int i = 0; i < points.Length; i++ )
 		{
 			var point = points[i];
-			DebugOverlay.Sphere( new Sphere( point.Position, 1f ), color: Color.Red, overlay: false );
+			DebugOverlay.Sphere( new Sphere( point.Position, Rope.SolidRadius ), color: Color.Red, overlay: false );
 			if ( RopePhysics.DebugMode == 2 )
 			{
 				DebugOverlay.Sphere( new Sphere( point.Position, Rope.CollisionRadius ), color: Color.Green.WithAlpha( 0.2f ) );

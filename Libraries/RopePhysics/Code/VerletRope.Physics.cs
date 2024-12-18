@@ -39,7 +39,9 @@ public partial class VerletRope
 	/// <summary>
 	/// A radius in units to search for PhysicsShapes around each point of the rope.
 	/// </summary>
-	public float CollisionRadius => SegmentLength * 0.5f * CollisionRadiusScale;
+	public float CollisionRadius => SolidRadius * 2f + SegmentLength * 0.5f * CollisionRadiusScale;
+	public float SolidRadius => 0.5f;
+
 	private Dictionary<int, SphereCollisionInfo> _sphereCollisions = new();
 	private Dictionary<int, BoxCollisionInfo> _boxCollisions = new();
 
@@ -96,6 +98,10 @@ public partial class VerletRope
 					}
 					ci.CollidingPoints.Add( i );
 				}
+				else if ( tr.Shape.IsHullShape && tr.Shape.Collider is HullCollider collider )
+				{
+					// Log.Info( "Hull collider!" );
+				}
 			}
 		}
 	}
@@ -114,11 +120,11 @@ public partial class VerletRope
 				var point = _points[pointId];
 				var pointPos = ci.Transform.PointToLocal( point.Position );
 				var distance = Vector3.DistanceBetween( ci.Center, pointPos );
-				if ( distance - radius > 0 )
+				if ( distance - radius > SolidRadius )
 					continue;
 
 				var direction = ( pointPos - ci.Center ).Normal;
-				var hitPosition = ci.Center + direction * radius;
+				var hitPosition = ci.Center + direction * ( radius + SolidRadius );
 				hitPosition = ci.Transform.PointToWorld( hitPosition );
 				_points[pointId] = point with { Position = hitPosition };
 			}
@@ -129,24 +135,28 @@ public partial class VerletRope
 			{
 				var point = _points[pointId];
 				var pointPos = ci.Transform.PointToLocal( point.Position );
-
 				var halfSize = ci.Size * 0.5f;
 				var scale = ci.Transform.Scale;
 				var pointAbs = halfSize - pointPos.Abs();
-				if ( pointAbs.x <= 0 || pointAbs.y <= 0 || pointAbs.z <= 0 )
+				if ( pointAbs.x <= -SolidRadius || pointAbs.y <= -SolidRadius || pointAbs.z <= -SolidRadius )
 					continue;
 
 				var pointScaled = pointAbs * scale;
+				var signs = new Vector3( MathF.Sign( pointPos.x ), MathF.Sign( pointPos.y ), MathF.Sign( pointPos.z ) );
 				if ( pointScaled.x < pointScaled.y )
 				{
 					if ( pointScaled.x < pointScaled.z )
-						pointPos.x = halfSize.x * MathF.Sign( pointPos.x );
+					{
+						pointPos.x = halfSize.x * signs.x + SolidRadius * signs.x;
+					}
 					else
-						pointPos.z = halfSize.z * MathF.Sign( pointPos.z );
+					{
+						pointPos.z = halfSize.z * signs.z + SolidRadius * signs.z;
+					}
 				}
 				else
 				{
-					pointPos.y = halfSize.y * MathF.Sign( pointPos.y );
+					pointPos.y = halfSize.y * signs.y + SolidRadius * signs.y;
 				}
 
 				var hitPos = ci.Transform.PointToWorld( pointPos );

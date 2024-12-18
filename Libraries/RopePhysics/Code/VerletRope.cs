@@ -24,6 +24,7 @@ public partial class VerletRope
 	}
 
 	public Vector3 Gravity { get; set; } = Vector3.Down * 800f;
+	public float GravityScale => 1f;
 	public Vector3 StartPosition { get; set; } = Vector3.Zero;
 	public Vector3 EndPosition { get; set; } = Vector3.Down * 100f;
 	public bool FixedStart { get; set; }
@@ -31,6 +32,7 @@ public partial class VerletRope
 	public int PointCount { get; set; } = 32;
 	public int Iterations { get; set; } = 80;
 	public float SegmentLength { get; private set; }
+	
 
 	private Point[] _points;
 	public IEnumerable<Point> Points => _points;
@@ -65,6 +67,8 @@ public partial class VerletRope
 
 	private void UpdatePoints()
 	{
+		var gravity = Physics.IsValid() ? Physics.Gravity : Gravity;
+
 		for ( int i = 0; i < PointCount; i++ )
 		{
 			var point = _points[i];
@@ -85,7 +89,7 @@ public partial class VerletRope
 
 			var temp = point.Position;
 			point.Position += point.Position - point.LastPosition;
-			point.Position += Gravity * ( Time.Delta * Time.Delta );
+			point.Position += gravity * ( Time.Delta * Time.Delta ) * GravityScale;
 			point.LastPosition = temp;
 			_points[i] = point;
 		}

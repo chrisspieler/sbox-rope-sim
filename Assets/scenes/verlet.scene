@@ -141,7 +141,7 @@
       "__guid": "36ffa464-ba62-4c24-856c-1e9dbf0d0e31",
       "Flags": 0,
       "Name": "Back Wall",
-      "Position": "600,0,-23.99999",
+      "Position": "598,0,-23.99999",
       "Scale": "0.5,20,2",
       "Enabled": true,
       "Components": [
