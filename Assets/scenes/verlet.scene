@@ -45,7 +45,7 @@
           "OscillateEndOffset": "100,0",
           "OscillateEndPeriod": 1,
           "RopeEndOffset": "0,-250,-100",
-          "RopePointCount": 10,
+          "RopePointCount": 32,
           "RopeStartOffset": "0,0,100"
         }
       ]
@@ -129,6 +129,74 @@
         {
           "__type": "Sandbox.BoxCollider",
           "__guid": "860c0dc6-6371-44bb-a791-8192efdb1ca7",
+          "Center": "0,0,0",
+          "IsTrigger": false,
+          "Scale": "50,50,50",
+          "Static": true,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ]
+    },
+    {
+      "__guid": "36ffa464-ba62-4c24-856c-1e9dbf0d0e31",
+      "Flags": 0,
+      "Name": "Back Wall",
+      "Position": "600,0,-23.99999",
+      "Scale": "0.5,20,2",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "135878d1-2e67-4a24-b80d-38492efaf56b",
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "Model": "models/dev/box.vmdl",
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.BoxCollider",
+          "__guid": "e25bab69-3316-4e75-a326-e5de3fa460b9",
+          "Center": "0,0,0",
+          "IsTrigger": false,
+          "Scale": "50,50,50",
+          "Static": true,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ]
+    },
+    {
+      "__guid": "cb6be802-072c-4eb5-8ecf-f6d4a0702006",
+      "Flags": 0,
+      "Name": "Floor",
+      "Position": "512,0,-64",
+      "Scale": "3,20,0.5",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "f88c8e21-a860-451e-82f3-7a70cd6a4e41",
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "Model": "models/dev/box.vmdl",
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.BoxCollider",
+          "__guid": "807f69c6-b3a5-41f6-b2c6-b5500568a5be",
           "Center": "0,0,0",
           "IsTrigger": false,
           "Scale": "50,50,50",

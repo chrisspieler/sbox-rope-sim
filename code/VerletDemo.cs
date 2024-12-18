@@ -41,7 +41,7 @@ public class VerletDemo : Component
 			}
 		}
 	}
-	private int _ropePointCount = 10;
+	private int _ropePointCount = 32;
 	[Property] public bool FixedStart { get; set; } = true;
 	[Property] public bool FixedEnd { get; set; } = false;
 	[Property] public bool OscillateEnd { get; set; } = false;
@@ -155,7 +155,7 @@ public class VerletDemo : Component
 				ImGui.Text( $"Start Pos:" ); ImGui.SameLine();
 				var startOffset = new Vector2( -RopeStartOffset.y, RopeStartOffset.z );
 				ImGui.PushID( 1 );
-				ImGui.SliderFloat2( "Start Offset", ref startOffset, -300f, 300f );
+				ImGui.SliderFloat2( "Start Offset", ref startOffset, -200f, 200f );
 				ImGui.PopID();
 				RopeStartOffset = new Vector3( 0f, -startOffset.x, startOffset.y );
 			}
@@ -184,7 +184,7 @@ public class VerletDemo : Component
 				ImGui.Text( $"End Pos:" ); ImGui.SameLine();
 				var endOffset = new Vector2( -RopeEndOffset.y, RopeEndOffset.z );
 				ImGui.PushID( 2 );
-				ImGui.SliderFloat2( "End Offset", ref endOffset, -300f, 300f );
+				ImGui.SliderFloat2( "End Offset", ref endOffset, -200f, 200f );
 				ImGui.PopID();
 				RopeEndOffset = new Vector3( 0f, -endOffset.x, endOffset.y );
 			}
@@ -193,7 +193,7 @@ public class VerletDemo : Component
 				var oscEndOffset = OscillateEndOffset;
 				ImGui.Text( nameof( oscEndOffset ) + ":" ); ImGui.SameLine();
 				ImGui.PushID( nameof(oscEndOffset) );
-				ImGui.SliderFloat2( nameof( oscEndOffset ), ref oscEndOffset, -300, 300 );
+				ImGui.SliderFloat2( nameof( oscEndOffset ), ref oscEndOffset, -200, 200 );
 				ImGui.PopID();
 				OscillateEndOffset = oscEndOffset;
 				var oscEndAmplitude = OscillateEndAmplitude;
