@@ -7,12 +7,22 @@ public partial class VerletRope
 		public int Id;
 		public float Radius;
 		public Vector3 Center;
+		public Transform Transform;
 		public List<int> CollidingPoints;
 
 		public SphereCollisionInfo()
 		{
 			CollidingPoints = new();
 		}
+	}
+
+	private struct BoxCollisionInfo
+	{
+		public int Id;
+		public Vector3 Mins;
+		public Vector3 Maxs;
+		public Transform Transform;
+		public List<int> CollidingPoints;
 	}
 
 	public PhysicsWorld Physics { get; init; }
@@ -26,6 +36,7 @@ public partial class VerletRope
 	/// </summary>
 	public float CollisionRadius => SegmentLength * 0.5f * CollisionRadiusScale;
 	private Dictionary<int, SphereCollisionInfo> _sphereCollisions = new();
+	private Dictionary<int, BoxCollisionInfo> _boxCollisions = new();
 
 	private void UpdateCollisions()
 	{
@@ -33,6 +44,7 @@ public partial class VerletRope
 			return;
 
 		_sphereCollisions.Clear();
+		_boxCollisions.Clear();
 
 		for ( int i = 0; i < _points.Length; i++ )
 		{
@@ -50,12 +62,23 @@ public partial class VerletRope
 						collisionInfo = new SphereCollisionInfo()
 						{
 							Id = id,
-							Center = sphere.WorldPosition,
+							Transform = sphere.WorldTransform,
+							Center = sphere.Center,
 							Radius = sphere.Radius,
 						};
 						_sphereCollisions[id] = collisionInfo;
 					}
 					collisionInfo.CollidingPoints.Add( i );
+				}
+				else if ( tr.Shape.IsCapsuleShape && tr.Shape.Collider is CapsuleCollider capsule )
+				{
+					var id = capsule.GetHashCode();
+					// Log.Info( "capsule" );
+				}
+				else if ( tr.Shape.IsHullShape && tr.Shape.Collider is BoxCollider box )
+				{
+					var id = box.GetHashCode();
+					// Log.Info( "box" );
 				}
 			}
 		}
@@ -73,12 +96,14 @@ public partial class VerletRope
 			foreach( var pointId in collisionInfo.CollidingPoints )
 			{
 				var point = _points[pointId];
-				var distance = Vector3.DistanceBetween( collisionInfo.Center, point.Position );
+				var pointPos = collisionInfo.Transform.PointToLocal( point.Position );
+				var distance = Vector3.DistanceBetween( collisionInfo.Center, pointPos );
 				if ( distance - radius > 0 )
 					continue;
 
-				var direction = ( point.Position - collisionInfo.Center ).Normal;
+				var direction = ( pointPos - collisionInfo.Center ).Normal;
 				var hitPosition = collisionInfo.Center + direction * radius;
+				hitPosition = collisionInfo.Transform.PointToWorld( hitPosition );
 				_points[pointId] = point with { Position = hitPosition };
 			}
 		}

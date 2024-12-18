@@ -40,6 +40,10 @@
           "FixedEnd": false,
           "FixedStart": true,
           "Iterations": 100,
+          "OscillateEnd": false,
+          "OscillateEndAmplitude": "0,100",
+          "OscillateEndOffset": "100,0",
+          "OscillateEndPeriod": 1,
           "RopeEndOffset": "0,-250,-100",
           "RopePointCount": 10,
           "RopeStartOffset": "0,0,100"
@@ -50,6 +54,7 @@
       "__guid": "026a08f9-7087-45a8-81a1-d8b9bed6451e",
       "Flags": 0,
       "Name": "Sun",
+      "Rotation": "0.1464466,0.3535534,-0.3535534,0.8535534",
       "Tags": "light_directional,light",
       "Enabled": true,
       "Components": [
@@ -69,6 +74,7 @@
       "Flags": 0,
       "Name": "Sphere",
       "Position": "512,0,0",
+      "Rotation": "-0.7071068,-0.00000003090862,0.7071068,-0.00000003090862",
       "Enabled": true,
       "Components": [
         {
@@ -94,6 +100,125 @@
           "Radius": 32,
           "Static": true,
           "SurfaceVelocity": "0,0,0"
+        }
+      ]
+    },
+    {
+      "__guid": "f789d734-7482-4bac-9d19-2f0807233415",
+      "Flags": 0,
+      "Name": "Cube",
+      "Position": "512,-96,0",
+      "Rotation": "-0.0713402,0.2487928,0.2662452,0.9285075",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "8eb1da99-d4c1-42e3-b4ba-0fa0f811b389",
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "Model": "models/dev/box.vmdl",
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.BoxCollider",
+          "__guid": "860c0dc6-6371-44bb-a791-8192efdb1ca7",
+          "Center": "0,0,0",
+          "IsTrigger": false,
+          "Scale": "50,50,50",
+          "Static": true,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ]
+    },
+    {
+      "__guid": "6810bd97-1b29-4855-bd22-4632345f44d0",
+      "Flags": 0,
+      "Name": "Capsule",
+      "Position": "512,96.00001,64",
+      "Rotation": "0.3696437,0.09904575,0.2391176,0.8923991",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "1a2b62a4-cb31-4487-a6ac-9c25b1eb9951",
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "Model": "models/dev/sphere.vmdl",
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.CapsuleCollider",
+          "__guid": "594f9500-5d5e-44eb-9b23-1ea912830dbf",
+          "End": "0,0,32",
+          "IsTrigger": false,
+          "Radius": 32,
+          "Start": "0,0,-32",
+          "Static": true,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ],
+      "Children": [
+        {
+          "__guid": "2edeeaf5-df61-43e1-8a0d-a6abf3c6588e",
+          "Flags": 0,
+          "Name": "Object",
+          "Position": "-0.00005745888,0.0000007748604,32.5136",
+          "Enabled": true,
+          "Components": [
+            {
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "29968e8c-5871-46b4-8f95-e5d37fea0bc2",
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "Model": "models/dev/sphere.vmdl",
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "1,1,1,1"
+            }
+          ]
+        },
+        {
+          "__guid": "70cf4b2c-3deb-4ab9-b8a4-f46d2a6db668",
+          "Flags": 0,
+          "Name": "Object",
+          "Position": "-0.00009012222,-0.000009357929,-31.48641",
+          "Enabled": true,
+          "Components": [
+            {
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "0e60175a-21f4-4697-b536-da53ef6a2bfe",
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "Model": "models/dev/sphere.vmdl",
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "1,1,1,1"
+            }
+          ]
         }
       ]
     }
