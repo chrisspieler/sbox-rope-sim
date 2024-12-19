@@ -30,6 +30,24 @@ public partial class VerletRope
         }
     }
 
+	private struct GenericCollisionInfo
+	{
+		public struct Point
+		{
+			public int Id;
+			public Vector3 HitPosition, Normal;
+		}
+		
+		public int Id;
+		public Transform Transform;
+		public List<Point> CollidingPoints;
+
+        public GenericCollisionInfo()
+        {
+			CollidingPoints = new();
+        }
+    }
+
 	public PhysicsWorld Physics { get; init; }
 	/// <summary>
 	/// A factor applied to CollisionRadius when finding collisions. Higher values may
@@ -44,6 +62,7 @@ public partial class VerletRope
 
 	private Dictionary<int, SphereCollisionInfo> _sphereCollisions = new();
 	private Dictionary<int, BoxCollisionInfo> _boxCollisions = new();
+	private Dictionary<int, GenericCollisionInfo> _genericCollisions = new();
 
 	private void UpdateCollisions()
 	{
@@ -52,6 +71,7 @@ public partial class VerletRope
 
 		_sphereCollisions.Clear();
 		_boxCollisions.Clear();
+		_genericCollisions.Clear();
 
 		for ( int i = 0; i < _points.Length; i++ )
 		{
@@ -98,9 +118,52 @@ public partial class VerletRope
 					}
 					ci.CollidingPoints.Add( i );
 				}
-				else if ( tr.Shape.IsHullShape && tr.Shape.Collider is HullCollider collider )
+				else if ( tr.Shape.IsHullShape && tr.Shape.Collider is HullCollider hull )
 				{
 					// Log.Info( "Hull collider!" );
+				}
+				else if ( tr.Shape.IsMeshShape && tr.Shape.Collider is MeshComponent mesh )
+				{
+					var dir = (point.Position - point.LastPosition).Normal;
+					
+					var startPos = point.LastPosition + (-dir) * 5f;
+					var distance = startPos.Distance( point.Position );
+					var ray = new Ray( startPos, dir );
+					var meshTrs = Physics.Trace
+						.Ray( ray, distance )
+						.RunAll();
+					PhysicsTraceResult? meshTr = null;
+					foreach( var maybeTr in meshTrs )
+					{
+						if ( maybeTr.Hit && maybeTr.Shape?.Collider == mesh )
+						{
+							meshTr = maybeTr;
+							break;
+						}
+					}
+					if ( !meshTr.HasValue )
+						continue;
+
+					// If the start and end are coplanar with the surface, don't squiggle around.
+					if ( MathF.Abs( meshTr.Value.Direction.Dot( meshTr.Value.Normal ) ) < 0.1f )
+						continue;
+
+					var id = mesh.GetHashCode();
+					if ( !_genericCollisions.TryGetValue( id, out var ci ) )
+					{
+						ci = new GenericCollisionInfo()
+						{
+							Id = id,
+							Transform = mesh.WorldTransform,
+						};
+						_genericCollisions[id] = ci;
+					}
+					ci.CollidingPoints.Add( new GenericCollisionInfo.Point()
+					{
+						Id			= i,
+						Normal		= mesh.WorldTransform.NormalToLocal( meshTr.Value.Normal ),
+						HitPosition = mesh.WorldTransform.PointToLocal( meshTr.Value.HitPosition ),
+					});
 				}
 			}
 		}
@@ -111,11 +174,18 @@ public partial class VerletRope
 		if ( !Physics.IsValid() )
 			return;
 
-		foreach( (_, var ci ) in _sphereCollisions )
+		ResolveSphereCollisions();
+		ResolveBoxCollisions();
+		ResolveGenericCollisions();
+	}
+
+	private void ResolveSphereCollisions()
+	{
+		foreach ( (_, var ci) in _sphereCollisions )
 		{
 			var radius = ci.Radius;
 
-			foreach( var pointId in ci.CollidingPoints )
+			foreach ( var pointId in ci.CollidingPoints )
 			{
 				var point = _points[pointId];
 				var pointPos = ci.Transform.PointToLocal( point.Position );
@@ -123,15 +193,19 @@ public partial class VerletRope
 				if ( distance - radius > SolidRadius )
 					continue;
 
-				var direction = ( pointPos - ci.Center ).Normal;
-				var hitPosition = ci.Center + direction * ( radius + SolidRadius );
+				var direction = (pointPos - ci.Center).Normal;
+				var hitPosition = ci.Center + direction * (radius + SolidRadius);
 				hitPosition = ci.Transform.PointToWorld( hitPosition );
 				_points[pointId] = point with { Position = hitPosition };
 			}
 		}
-		foreach( (_, var ci ) in _boxCollisions )
+	}
+
+	private void ResolveBoxCollisions()
+	{
+		foreach ( (_, var ci) in _boxCollisions )
 		{
-			foreach( var pointId in ci.CollidingPoints )
+			foreach ( var pointId in ci.CollidingPoints )
 			{
 				var point = _points[pointId];
 				var pointPos = ci.Transform.PointToLocal( point.Position );
@@ -161,6 +235,22 @@ public partial class VerletRope
 
 				var hitPos = ci.Transform.PointToWorld( pointPos );
 				_points[pointId] = point with { Position = hitPos };
+			}
+		}
+	}
+
+	private void ResolveGenericCollisions()
+	{
+		foreach( (_, var ci ) in _genericCollisions )
+		{
+			foreach ( var collision in ci.CollidingPoints )
+			{
+				var point = _points[collision.Id];
+				var localPos = ci.Transform.PointToLocal( point.Position );
+
+				var currentPos = collision.HitPosition + collision.Normal * SolidRadius;
+				currentPos = ci.Transform.PointToWorld( currentPos );
+				_points[collision.Id] = point with { Position = currentPos };
 			}
 		}
 	}

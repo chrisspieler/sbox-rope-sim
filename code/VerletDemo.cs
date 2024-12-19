@@ -48,6 +48,7 @@ public class VerletDemo : Component
 	[Property] public Vector2 OscillateEndOffset { get; set; } = new Vector2( 100f, 0f );
 	[Property] public Vector2 OscillateEndAmplitude { get; set; } = new Vector2( 0f, 100f );
 	[Property] public float OscillateEndPeriod { get; set; } = 1f;
+	[Property] public RopeRenderer Renderer { get; set; }
 	public VerletRope Rope { get; set; }
 
 	protected override void OnStart()
@@ -60,6 +61,9 @@ public class VerletDemo : Component
 			FixedEnd = FixedEnd,
 			Physics = Scene.PhysicsWorld,
 		};
+		Renderer ??= AddComponent<RopeRenderer>();
+		Renderer.Line ??= GetComponent<LineRenderer>();
+		Renderer.Rope = Rope;
 	}
 
 	protected override void OnFixedUpdate()
@@ -69,6 +73,7 @@ public class VerletDemo : Component
 		Rope.FixedStart = FixedStart;
 		Rope.FixedEnd = FixedEnd || OscillateEnd;
 		Rope.Simulate();
+
 		if ( RopePhysics.DebugMode < 1 )
 			return;
 
