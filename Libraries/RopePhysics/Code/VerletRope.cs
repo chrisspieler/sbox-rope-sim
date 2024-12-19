@@ -61,8 +61,8 @@ public partial class VerletRope
 		for ( int i = 0; i < Iterations; i++ )
 		{
 			UpdateSegments();
+			ResolveCollisions();
 		}
-		ResolveCollisions();
 	}
 
 	private void UpdatePoints()

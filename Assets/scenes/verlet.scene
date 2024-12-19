@@ -171,7 +171,6 @@
       "Flags": 0,
       "Name": "Cube",
       "Position": "512,-96,0",
-      "Rotation": "-0.0713402,0.2487928,0.2662452,0.9285075",
       "Enabled": true,
       "Components": [
         {

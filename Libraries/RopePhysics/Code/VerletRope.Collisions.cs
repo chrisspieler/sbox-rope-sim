@@ -209,28 +209,28 @@ public partial class VerletRope
 			{
 				var point = _points[pointId];
 				var pointPos = ci.Transform.PointToLocal( point.Position );
+				pointPos += ci.Center;
 				var halfSize = ci.Size * 0.5f;
 				var scale = ci.Transform.Scale;
-				var pointAbs = halfSize - pointPos.Abs();
-				if ( pointAbs.x <= -SolidRadius || pointAbs.y <= -SolidRadius || pointAbs.z <= -SolidRadius )
+				// Figure out how deep the point is inside in the box.
+				var pointDepth = halfSize - pointPos.Abs();
+				// If the point is entirely outside one of the axes, continue.
+				if ( pointDepth.x <= -SolidRadius || pointDepth.y <= -SolidRadius || pointDepth.z <= -SolidRadius )
 					continue;
 
-				var pointScaled = pointAbs * scale;
+				var pointScaled = pointDepth * scale;
 				var signs = new Vector3( MathF.Sign( pointPos.x ), MathF.Sign( pointPos.y ), MathF.Sign( pointPos.z ) );
-				if ( pointScaled.x < pointScaled.y )
+				if ( pointScaled.x < pointScaled.y && pointScaled.x < pointScaled.z )
 				{
-					if ( pointScaled.x < pointScaled.z )
-					{
-						pointPos.x = halfSize.x * signs.x + SolidRadius * signs.x;
-					}
-					else
-					{
-						pointPos.z = halfSize.z * signs.z + SolidRadius * signs.z;
-					}
+					pointPos.x = halfSize.x * signs.x + SolidRadius * signs.x;
+				}
+				else if ( pointScaled.y < pointScaled.x && pointScaled.y < pointScaled.z )
+				{
+					pointPos.y = halfSize.y * signs.y + SolidRadius * signs.y;
 				}
 				else
 				{
-					pointPos.y = halfSize.y * signs.y + SolidRadius * signs.y;
+					pointPos.z = halfSize.z * signs.z + SolidRadius * signs.z;
 				}
 
 				var hitPos = ci.Transform.PointToWorld( pointPos );
@@ -246,8 +246,6 @@ public partial class VerletRope
 			foreach ( var collision in ci.CollidingPoints )
 			{
 				var point = _points[collision.Id];
-				var localPos = ci.Transform.PointToLocal( point.Position );
-
 				var currentPos = collision.HitPosition + collision.Normal * SolidRadius;
 				currentPos = ci.Transform.PointToWorld( currentPos );
 				_points[collision.Id] = point with { Position = currentPos };

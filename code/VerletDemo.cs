@@ -81,7 +81,7 @@ public class VerletDemo : Component
 		for ( int i = 0; i < points.Length; i++ )
 		{
 			var point = points[i];
-			DebugOverlay.Sphere( new Sphere( point.Position, Rope.SolidRadius ), color: Color.Red, overlay: false );
+			DebugOverlay.Sphere( new Sphere( point.Position, Rope.SolidRadius ), color: Color.Red, overlay: true );
 			if ( RopePhysics.DebugMode == 2 )
 			{
 				DebugOverlay.Sphere( new Sphere( point.Position, Rope.CollisionRadius ), color: Color.Green.WithAlpha( 0.2f ) );
@@ -90,7 +90,7 @@ public class VerletDemo : Component
 				continue;
 
 			var lastPoint = points[i - 1];
-			DebugOverlay.Line( lastPoint.Position, point.Position, color: Color.Blue, overlay: false );
+			DebugOverlay.Line( lastPoint.Position, point.Position, color: Color.Blue, overlay: true );
 		}
 	}
 
