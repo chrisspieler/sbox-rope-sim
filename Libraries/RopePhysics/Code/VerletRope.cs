@@ -32,7 +32,6 @@ public partial class VerletRope
 	public int PointCount { get; set; } = 32;
 	public int Iterations { get; set; } = 80;
 	public float SegmentLength { get; private set; }
-	
 
 	private Point[] _points;
 	public IEnumerable<Point> Points => _points;

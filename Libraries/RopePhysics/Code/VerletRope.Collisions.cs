@@ -64,10 +64,14 @@ public partial class VerletRope
 	private Dictionary<int, BoxCollisionInfo> _boxCollisions = new();
 	private Dictionary<int, GenericCollisionInfo> _genericCollisions = new();
 
+	private bool _shouldUpdateCollisions;
+
 	private void UpdateCollisions()
 	{
-		if ( !Physics.IsValid() )
+		if ( !Physics.IsValid() || !_shouldUpdateCollisions )
 			return;
+
+		_shouldUpdateCollisions = false;
 
 		_sphereCollisions.Clear();
 		_boxCollisions.Clear();
@@ -177,6 +181,8 @@ public partial class VerletRope
 		ResolveSphereCollisions();
 		ResolveBoxCollisions();
 		ResolveGenericCollisions();
+
+		_shouldUpdateCollisions = true;
 	}
 
 	private void ResolveSphereCollisions()

@@ -6,6 +6,11 @@ namespace Sandbox;
 
 public class VerletDemo : Component
 {
+	[Property] public bool ShowWindow { get; set; } = true;
+	[Property] public Vector3Int Duplicates { get; set; } = 0;
+	[Property] public Vector3 DuplicateOffset { get; set; } = 16f;
+	public BBox DuplicateBounds => BBox.FromPositionAndSize( WorldPosition, DuplicateOffset * Duplicates );
+
 	[Property, Range(0, 200)]
 	public int Iterations 
 	{
@@ -53,7 +58,6 @@ public class VerletDemo : Component
 
 	protected override void OnStart()
 	{
-		RopePhysics.DebugMode = 1;
 		Rope = new( RopeStart, RopeEnd, RopePointCount )
 		{
 			Iterations = Iterations,
@@ -64,9 +68,33 @@ public class VerletDemo : Component
 		Renderer ??= AddComponent<RopeRenderer>();
 		Renderer.Line ??= GetComponent<LineRenderer>();
 		Renderer.Rope = Rope;
+		SpawnDuplicates();
 	}
 
-	protected override void OnFixedUpdate()
+	private void SpawnDuplicates()
+	{
+		for ( int x = 0; x < Duplicates.x; x++ ) 
+		{ 
+			for ( int y = 0; y < Duplicates.y; y++ ) 
+			{ 
+				for ( int z = 0; z < Duplicates.z; z++ ) 
+				{ 
+					SpawnDuplicate( x, y, z );
+				}
+			}
+		}
+	}
+
+	private void SpawnDuplicate( int x, int y, int z )
+	{
+		var pos = DuplicateBounds.Mins + DuplicateOffset * new Vector3( x, y, z );
+		var clone = GameObject.Clone( pos );
+		var demo = clone.GetComponent<VerletDemo>();
+		demo.Duplicates = Vector3Int.Zero;
+		demo.ShowWindow = false;
+	}
+
+	private void Simulate()
 	{
 		Rope.StartPosition = RopeStart;
 		Rope.EndPosition = RopeEnd;
@@ -94,9 +122,19 @@ public class VerletDemo : Component
 		}
 	}
 
+	protected override void OnFixedUpdate()
+	{
+		Simulate();
+	}
+
 	protected override void OnUpdate()
 	{
 		if ( Rope is null )
+			return;
+
+		// Simulate();
+
+		if ( !ShowWindow )
 			return;
 
 		if ( ImGui.Begin( "Verlet Demo" ) )
