@@ -60,117 +60,133 @@ public partial class VerletRope
 	public float CollisionRadius => SolidRadius * 2f + SegmentLength * 0.5f * CollisionRadiusScale;
 	public float SolidRadius => 0.5f;
 
-	private Dictionary<int, SphereCollisionInfo> _sphereCollisions = new();
-	private Dictionary<int, BoxCollisionInfo> _boxCollisions = new();
-	private Dictionary<int, GenericCollisionInfo> _genericCollisions = new();
+	private Dictionary<int, SphereCollisionInfo> _sphereColliders = new();
+	private Dictionary<int, BoxCollisionInfo> _boxColliders = new();
+	private Dictionary<int, GenericCollisionInfo> _genericColliders = new();
 
 	private bool _shouldUpdateCollisions;
 
-	private void UpdateCollisions()
+	private void CapturePossibleCollisions()
 	{
 		if ( !Physics.IsValid() || !_shouldUpdateCollisions )
 			return;
 
 		_shouldUpdateCollisions = false;
 
-		_sphereCollisions.Clear();
-		_boxCollisions.Clear();
-		_genericCollisions.Clear();
+		_sphereColliders.Clear();
+		_boxColliders.Clear();
+		_genericColliders.Clear();
 
 		for ( int i = 0; i < _points.Length; i++ )
 		{
 			var point = _points[i];
+			// TODO: Filter trace using tags.
 			var trs = Physics.Trace
 				.Sphere( CollisionRadius, point.Position, point.Position )
 				.RunAll();
 			foreach ( var tr in trs )
 			{
-				if ( tr.Shape.IsSphereShape && tr.Shape.Collider is SphereCollider sphere )
+				// Spheres
+				if ( (tr.Shape.IsHullShape || tr.Shape.IsSphereShape) && tr.Shape.Collider is SphereCollider sphere )
 				{
-					var id = sphere.GetHashCode();
-					if ( !_sphereCollisions.TryGetValue( id, out var ci ) )
-					{
-						ci = new SphereCollisionInfo()
-						{
-							Id = id,
-							Transform = sphere.WorldTransform,
-							Center = sphere.Center,
-							Radius = sphere.Radius,
-						};
-						_sphereCollisions[id] = ci;
-					}
-					ci.CollidingPoints.Add( i );
+					CaptureSphereCollision( i, tr, sphere );
 				}
+				// Capsules
 				else if ( tr.Shape.IsCapsuleShape && tr.Shape.Collider is CapsuleCollider capsule )
 				{
-					var id = capsule.GetHashCode();
-					// Log.Info( "capsule" );
+					CaptureGenericCollision( i, tr, capsule );
 				}
+				// Boxes
 				else if ( tr.Shape.IsHullShape && tr.Shape.Collider is BoxCollider box )
 				{
-					var id = box.GetHashCode();
-					if ( !_boxCollisions.TryGetValue( id, out var ci ) )
-					{
-						ci = new BoxCollisionInfo()
-						{
-							Id = id,
-							Transform = box.WorldTransform,
-							Center = box.Center,
-							Size = box.Scale
-						};
-						_boxCollisions[id] = ci;
-					}
-					ci.CollidingPoints.Add( i );
+					CaptureBoxCollision( i, tr, box );
 				}
-				else if ( tr.Shape.IsHullShape && tr.Shape.Collider is HullCollider hull )
+				// Meshes, Hulls, and Terrain
+				else if ( tr.Shape.IsMeshShape || tr.Shape.IsHullShape || tr.Shape.IsHeightfieldShape )
 				{
-					// Log.Info( "Hull collider!" );
-				}
-				else if ( tr.Shape.IsMeshShape && tr.Shape.Collider is MeshComponent mesh )
-				{
-					var dir = (point.Position - point.LastPosition).Normal;
-					
-					var startPos = point.LastPosition + (-dir) * 5f;
-					var distance = startPos.Distance( point.Position );
-					var ray = new Ray( startPos, dir );
-					var meshTrs = Physics.Trace
-						.Ray( ray, distance )
-						.RunAll();
-					PhysicsTraceResult? meshTr = null;
-					foreach( var maybeTr in meshTrs )
-					{
-						if ( maybeTr.Hit && maybeTr.Shape?.Collider == mesh )
-						{
-							meshTr = maybeTr;
-							break;
-						}
-					}
-					if ( !meshTr.HasValue )
-						continue;
-
-					// If the start and end are coplanar with the surface, don't squiggle around.
-					if ( MathF.Abs( meshTr.Value.Direction.Dot( meshTr.Value.Normal ) ) < 0.1f )
-						continue;
-
-					var id = mesh.GetHashCode();
-					if ( !_genericCollisions.TryGetValue( id, out var ci ) )
-					{
-						ci = new GenericCollisionInfo()
-						{
-							Id = id,
-							Transform = mesh.WorldTransform,
-						};
-						_genericCollisions[id] = ci;
-					}
-					ci.CollidingPoints.Add( new GenericCollisionInfo.Point()
-					{
-						Id			= i,
-						Normal		= mesh.WorldTransform.NormalToLocal( meshTr.Value.Normal ),
-						HitPosition = mesh.WorldTransform.PointToLocal( meshTr.Value.HitPosition ),
-					});
+					CaptureGenericCollision( i, tr, tr.Shape.Collider as Collider );
 				}
 			}
 		}
+	}
+
+	private void CaptureSphereCollision( int pointIndex, PhysicsTraceResult tr, SphereCollider sphere )
+	{
+		var colliderId = sphere.GetHashCode();
+		if ( !_sphereColliders.TryGetValue( colliderId, out var ci ) )
+		{
+			ci = new SphereCollisionInfo()
+			{
+				Id = colliderId,
+				Transform = sphere.WorldTransform,
+				Center = sphere.Center,
+				Radius = sphere.Radius,
+			};
+			_sphereColliders[colliderId] = ci;
+		}
+		ci.CollidingPoints.Add( pointIndex );
+	}
+
+	private void CaptureBoxCollision( int pointIndex, PhysicsTraceResult tr, BoxCollider box )
+	{
+		var colliderId = box.GetHashCode();
+		if ( !_boxColliders.TryGetValue( colliderId, out var ci ) )
+		{
+			ci = new BoxCollisionInfo()
+			{
+				Id = colliderId,
+				Transform = box.WorldTransform,
+				Center = box.Center,
+				Size = box.Scale
+			};
+			_boxColliders[colliderId] = ci;
+		}
+		ci.CollidingPoints.Add( pointIndex );
+	}
+
+	private void CaptureGenericCollision( int pointIndex, PhysicsTraceResult tr, Collider collider )
+	{
+		var point = _points[pointIndex];
+		var dir = (point.Position - point.LastPosition).Normal;
+
+		var startPos = point.LastPosition + (-dir) * 5f;
+		var distance = startPos.Distance( point.Position );
+		var ray = new Ray( startPos, dir );
+		var meshTrs = Physics.Trace
+			.Ray( ray, distance )
+			.RunAll();
+		PhysicsTraceResult? meshTr = null;
+		foreach ( var maybeTr in meshTrs )
+		{
+			if ( maybeTr.Hit && maybeTr.Shape?.Collider == collider )
+			{
+				meshTr = maybeTr;
+				break;
+			}
+		}
+		if ( !meshTr.HasValue )
+			return;
+
+		// If the start and end are coplanar with the surface, don't squiggle around.
+		if ( MathF.Abs( meshTr.Value.Direction.Dot( meshTr.Value.Normal ) ) < 0.1f )
+			return;
+
+		var id = collider.GetHashCode();
+		if ( !_genericColliders.TryGetValue( id, out var ci ) )
+		{
+			ci = new GenericCollisionInfo()
+			{
+				Id = id,
+				Transform = collider.WorldTransform,
+			};
+			_genericColliders[id] = ci;
+		}
+		ci.CollidingPoints.Add( new GenericCollisionInfo.Point()
+		{
+			Id = pointIndex,
+			Normal = collider.WorldTransform.NormalToLocal( meshTr.Value.Normal ),
+			HitPosition = collider.WorldTransform.PointToLocal( meshTr.Value.HitPosition ),
+		} );
 	}
 
 	private void ResolveCollisions()
@@ -187,7 +203,7 @@ public partial class VerletRope
 
 	private void ResolveSphereCollisions()
 	{
-		foreach ( (_, var ci) in _sphereCollisions )
+		foreach ( (_, var ci) in _sphereColliders )
 		{
 			var radius = ci.Radius;
 
@@ -209,7 +225,7 @@ public partial class VerletRope
 
 	private void ResolveBoxCollisions()
 	{
-		foreach ( (_, var ci) in _boxCollisions )
+		foreach ( (_, var ci) in _boxColliders )
 		{
 			foreach ( var pointId in ci.CollidingPoints )
 			{
@@ -247,7 +263,7 @@ public partial class VerletRope
 
 	private void ResolveGenericCollisions()
 	{
-		foreach( (_, var ci ) in _genericCollisions )
+		foreach( (_, var ci ) in _genericColliders )
 		{
 			foreach ( var collision in ci.CollidingPoints )
 			{

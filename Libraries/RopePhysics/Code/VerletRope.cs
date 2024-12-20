@@ -56,7 +56,7 @@ public partial class VerletRope
 	public void Simulate()
 	{
 		UpdatePoints();
-		UpdateCollisions();
+		CapturePossibleCollisions();
 		for ( int i = 0; i < Iterations; i++ )
 		{
 			UpdateSegments();

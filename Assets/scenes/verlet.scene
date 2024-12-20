@@ -41,14 +41,14 @@
           "Duplicates": "1,0,1",
           "FixedEnd": false,
           "FixedStart": true,
-          "Iterations": 8,
+          "Iterations": 80,
           "OscillateEnd": false,
           "OscillateEndAmplitude": "0,100",
           "OscillateEndOffset": "100,0",
           "OscillateEndPeriod": 1,
-          "RopeEndOffset": "0,-250,-100",
-          "RopePointCount": 32,
-          "RopeStartOffset": "0,0,100",
+          "RopeEndOffset": "0,-200,0",
+          "RopePointCount": 64,
+          "RopeStartOffset": "0,100,50",
           "ShowWindow": true
         },
         {
