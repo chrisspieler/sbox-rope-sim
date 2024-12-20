@@ -30,6 +30,20 @@ public partial class VerletRope
         }
     }
 
+	private struct CapsuleCollisionInfo
+	{
+		public int Id;
+		public Vector3 Start, End;
+		public float Radius;
+		public Transform Transform;
+		public List<int> CollidingPoints;
+
+		public CapsuleCollisionInfo()
+		{
+			CollidingPoints = new();
+		}
+	}
+
 	private struct GenericCollisionInfo
 	{
 		public struct Point
@@ -62,6 +76,7 @@ public partial class VerletRope
 
 	private Dictionary<int, SphereCollisionInfo> _sphereColliders = new();
 	private Dictionary<int, BoxCollisionInfo> _boxColliders = new();
+	private Dictionary<int, CapsuleCollisionInfo> _capsuleColliders = new();
 	private Dictionary<int, GenericCollisionInfo> _genericColliders = new();
 
 	private bool _shouldUpdateCollisions;
@@ -75,6 +90,7 @@ public partial class VerletRope
 
 		_sphereColliders.Clear();
 		_boxColliders.Clear();
+		_capsuleColliders.Clear();
 		_genericColliders.Clear();
 
 		for ( int i = 0; i < _points.Length; i++ )
@@ -89,28 +105,28 @@ public partial class VerletRope
 				// Spheres
 				if ( (tr.Shape.IsHullShape || tr.Shape.IsSphereShape) && tr.Shape.Collider is SphereCollider sphere )
 				{
-					CaptureSphereCollision( i, tr, sphere );
+					CaptureSphereCollision( i, sphere );
 				}
 				// Capsules
 				else if ( tr.Shape.IsCapsuleShape && tr.Shape.Collider is CapsuleCollider capsule )
 				{
-					CaptureGenericCollision( i, tr, capsule );
+					CaptureCapsuleCollision( i, capsule );
 				}
 				// Boxes
 				else if ( tr.Shape.IsHullShape && tr.Shape.Collider is BoxCollider box )
 				{
-					CaptureBoxCollision( i, tr, box );
+					CaptureBoxCollision( i, box );
 				}
 				// Meshes, Hulls, and Terrain
 				else if ( tr.Shape.IsMeshShape || tr.Shape.IsHullShape || tr.Shape.IsHeightfieldShape )
 				{
-					CaptureGenericCollision( i, tr, tr.Shape.Collider as Collider );
+					CaptureGenericCollision( i, tr.Shape.Collider as Collider );
 				}
 			}
 		}
 	}
 
-	private void CaptureSphereCollision( int pointIndex, PhysicsTraceResult tr, SphereCollider sphere )
+	private void CaptureSphereCollision( int pointIndex, SphereCollider sphere )
 	{
 		var colliderId = sphere.GetHashCode();
 		if ( !_sphereColliders.TryGetValue( colliderId, out var ci ) )
@@ -127,7 +143,7 @@ public partial class VerletRope
 		ci.CollidingPoints.Add( pointIndex );
 	}
 
-	private void CaptureBoxCollision( int pointIndex, PhysicsTraceResult tr, BoxCollider box )
+	private void CaptureBoxCollision( int pointIndex, BoxCollider box )
 	{
 		var colliderId = box.GetHashCode();
 		if ( !_boxColliders.TryGetValue( colliderId, out var ci ) )
@@ -144,7 +160,25 @@ public partial class VerletRope
 		ci.CollidingPoints.Add( pointIndex );
 	}
 
-	private void CaptureGenericCollision( int pointIndex, PhysicsTraceResult tr, Collider collider )
+	private void CaptureCapsuleCollision( int pointindex, CapsuleCollider capsule )
+	{
+		var colliderId = capsule.GetHashCode();
+		if ( !_capsuleColliders.TryGetValue( colliderId, out var ci ) )
+		{
+			ci = new CapsuleCollisionInfo()
+			{
+				Id = colliderId,
+				Transform = capsule.WorldTransform,
+				Start = capsule.Start,
+				End = capsule.End,
+				Radius = capsule.Radius,
+			};
+			_capsuleColliders[colliderId] = ci;
+		}
+		ci.CollidingPoints.Add( pointindex );
+	}
+
+	private void CaptureGenericCollision( int pointIndex, Collider collider )
 	{
 		var point = _points[pointIndex];
 		var dir = (point.Position - point.LastPosition).Normal;
@@ -196,6 +230,7 @@ public partial class VerletRope
 
 		ResolveSphereCollisions();
 		ResolveBoxCollisions();
+		ResolveCapsuleCollisions();
 		ResolveGenericCollisions();
 
 		_shouldUpdateCollisions = true;
@@ -257,6 +292,44 @@ public partial class VerletRope
 
 				var hitPos = ci.Transform.PointToWorld( pointPos );
 				_points[pointId] = point with { Position = hitPos };
+			}
+		}
+	}
+
+	private void ResolveCapsuleCollisions()
+	{
+		foreach ( (_, var ci) in _capsuleColliders )
+		{
+			// Adapted from: https://iquilezles.org/articles/distfunctions/
+			float CapsuleSdf( Vector3 p )
+			{
+				var pa = p - ci.Start;
+				var ba = ci.End - ci.Start;
+				var h = MathX.Clamp( pa.Dot( ba ) / ba.Dot( ba ), 0f, 1f );
+				return (pa - ba * h).Length - ci.Radius;
+			}
+
+			foreach ( var collision in ci.CollidingPoints )
+			{
+				var point = _points[collision];
+				var localPos = ci.Transform.PointToLocal( point.Position );
+				var sdf = CapsuleSdf( localPos );
+				if ( sdf > SolidRadius )
+					continue;
+
+				var xOffset = new Vector3( 0.0001f, 0f, 0f );
+				var yOffset = new Vector3( 0f, 0.0001f, 0f );
+				var zOffset = new Vector3( 0f, 0f, 0.0001f );
+				var gradient = new Vector3()
+				{
+					x = CapsuleSdf( localPos + xOffset ) - CapsuleSdf( localPos - xOffset ),
+					y = CapsuleSdf( localPos + yOffset ) - CapsuleSdf( localPos - yOffset ),
+					z = CapsuleSdf( localPos + zOffset ) - CapsuleSdf( localPos - zOffset ),
+				};
+				gradient = gradient.Normal;
+				var currentPos = localPos + gradient * ( -sdf + SolidRadius );
+				currentPos = ci.Transform.PointToWorld( currentPos );
+				_points[collision] = point with { Position = currentPos };
 			}
 		}
 	}
