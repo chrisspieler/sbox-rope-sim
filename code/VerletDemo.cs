@@ -47,6 +47,18 @@ public class VerletDemo : Component
 		}
 	}
 	private int _ropePointCount = 32;
+	[Property] public bool FollowMouse
+	{
+		get => _followMouse;
+		set
+		{
+			_followMouse = value;
+			FixedStart = true;
+			FixedEnd = false;
+			OscillateEnd = false;
+		}
+	}
+	private bool _followMouse = true;
 	[Property] public bool FixedStart { get; set; } = true;
 	[Property] public bool FixedEnd { get; set; } = false;
 	[Property] public bool OscillateEnd { get; set; } = false;
@@ -141,6 +153,34 @@ public class VerletDemo : Component
 		if ( Rope is null )
 			return;
 
+		if ( FollowMouse )
+		{
+			var ropePos = RopeStart;
+			var mouseRay = Scene.Camera.ScreenPixelToRay( Mouse.Position );
+			var tr = Scene.Trace
+				.Ray( mouseRay, 2000f )
+				.WithAnyTags( Rope.CollisionInclude )
+				.WithoutTags( Rope.CollisionExclude )
+				.Run();
+			if ( tr.Hit )
+			{
+				ropePos = tr.HitPosition + tr.Normal * Rope.SolidRadius;
+			}
+			else
+			{
+				var plane = new Plane( WorldPosition, (Scene.Camera.WorldPosition - WorldPosition).Normal );
+				var hit = plane.Trace( mouseRay, twosided: true );
+				if ( hit.HasValue )
+				{
+					ropePos = hit.Value;
+				}
+			}
+			var delta = ropePos - RopeStart;
+			delta = delta.SubtractDirection( Scene.Camera.WorldRotation.Forward, 0.8f );
+			ropePos = RopeStart.ExpDecayTo( RopeStart + delta, 16f );
+			RopeStartOffset = WorldTransform.PointToLocal( ropePos );
+		}
+
 		// Simulate();
 
 		if ( !ShowWindow )
@@ -148,142 +188,173 @@ public class VerletDemo : Component
 
 		if ( ImGui.Begin( "Verlet Demo" ) )
 		{
-			// Debug info
-			ImGui.Text( $"Points: {Rope.PointCount}" );
-			ImGui.NewLine();
-			ImGui.Text( "Colliders" );
-			ImGui.Text( "---" );
-			ImGui.Text( $"Sphere: {Rope.SphereColliderCount}, Box: {Rope.BoxColliderCount}, Capsule: {Rope.CapsuleColliderCount}, Mesh: {Rope.MeshColliderCount}" );
-			ImGui.NewLine();
-
-			ImGui.Text( "Debug Mode" );
-			var debugMode1 = RopePhysics.DebugMode > 0;
-			ImGui.PushID( nameof( debugMode1 ) );
-			if ( ImGui.Checkbox( "Default", ref debugMode1 ) )
-			{
-				RopePhysics.DebugMode = RopePhysics.DebugMode switch
-				{
-					1 => 0,
-					_ => 1,
-				};
-			}
-			ImGui.PopID();
-			ImGui.SameLine();
-			var debugMode2 = RopePhysics.DebugMode > 1;
-			ImGui.PushID( nameof( debugMode2 ) );
-			if ( ImGui.Checkbox( "Collision Radius", ref debugMode2 ) )
-			{
-				RopePhysics.DebugMode = RopePhysics.DebugMode switch
-				{
-					2 => 1,
-					_ => 2,
-				};
-			}
-			ImGui.PopID();
-			ImGui.NewLine();
-
-			ImGui.Text( "Simulation Parameters" );
-			var iterations = Iterations;
-			ImGui.Text( "Iterations:" ); ImGui.SameLine();
-			ImGui.PushID( 0 );
-			ImGui.SliderInt( "Iterations", ref iterations, 0, 200 );
-			ImGui.PopID();
-			Iterations = iterations;
-			ImGui.Text( "Collision Search Radius:" );
-			var collisionRadiusScale = Rope.CollisionSearchRadius;
-			ImGui.PushID( "CollisionRadiusScale" );
-			ImGui.SliderFloat( "CollisionRadiusScale", ref collisionRadiusScale, 0.1f, 50f );
-			ImGui.PopID();
-			Rope.CollisionSearchRadius = collisionRadiusScale;
-			ImGui.NewLine();
-
-			ImGui.Text( $"Rope Generation" );
-
-			// Fixed Start
-			var fixedStart = FixedStart;
-			ImGui.PushID( "Fixed Start" );
-			ImGui.Checkbox( "Fixed Start", ref fixedStart );
-			ImGui.PopID();
-			FixedStart = fixedStart;
-			if ( FixedStart )
-			{
-				// Start Pos
-				ImGui.Text( $"Start Pos:" ); ImGui.SameLine();
-				var startOffset = new Vector2( -RopeStartOffset.y, RopeStartOffset.z );
-				ImGui.PushID( 1 );
-				ImGui.SliderFloat2( "Start Offset", ref startOffset, -200f, 200f );
-				ImGui.PopID();
-				RopeStartOffset = new Vector3( 0f, -startOffset.x, startOffset.y );
-			}
-
-			// Fixed End
-			var fixedEnd = FixedEnd;
-			ImGui.PushID( "FixedEnd" );
-			if ( ImGui.Checkbox( "Fixed End", ref fixedEnd ) )
-			{
-				OscillateEnd = false;
-			} 
-			ImGui.SameLine();
-			ImGui.PopID();
-			FixedEnd = fixedEnd;
-			var oscillateEnd = OscillateEnd;
-			ImGui.PushID( "OscillateEnd" );
-			if ( ImGui.Checkbox( "Oscillate End", ref oscillateEnd ) )
-			{
-				FixedEnd = false;
-			}
-			ImGui.PopID();
-			OscillateEnd = oscillateEnd;
-			if ( FixedEnd )
-			{
-				// End Pos
-				ImGui.Text( $"End Pos:" ); ImGui.SameLine();
-				var endOffset = new Vector2( -RopeEndOffset.y, RopeEndOffset.z );
-				ImGui.PushID( 2 );
-				ImGui.SliderFloat2( "End Offset", ref endOffset, -200f, 200f );
-				ImGui.PopID();
-				RopeEndOffset = new Vector3( 0f, -endOffset.x, endOffset.y );
-			}
-			if ( OscillateEnd )
-			{
-				var oscEndOffset = OscillateEndOffset;
-				ImGui.Text( nameof( oscEndOffset ) + ":" ); ImGui.SameLine();
-				ImGui.PushID( nameof(oscEndOffset) );
-				ImGui.SliderFloat2( nameof( oscEndOffset ), ref oscEndOffset, -200, 200 );
-				ImGui.PopID();
-				OscillateEndOffset = oscEndOffset;
-				var oscEndAmplitude = OscillateEndAmplitude;
-				ImGui.Text( nameof( oscEndAmplitude ) + ":" ); ImGui.SameLine();
-				ImGui.PushID( nameof( oscEndAmplitude ) );
-				ImGui.SliderFloat2( nameof( oscEndAmplitude ), ref oscEndAmplitude, 0, 500 );
-				ImGui.PopID();
-				OscillateEndAmplitude = oscEndAmplitude;
-				var oscEndPeriod = OscillateEndPeriod;
-				ImGui.Text( nameof( oscEndPeriod ) + ":" ); ImGui.SameLine();
-				ImGui.PushID( nameof( oscEndPeriod ) );
-				ImGui.SliderFloat( nameof( oscEndPeriod ), ref oscEndPeriod, 0.01f, 5 );
-				ImGui.PopID();
-				OscillateEndPeriod = oscEndPeriod;
-				var offset = new Vector3( 0, -OscillateEndOffset.x, OscillateEndOffset.y );
-				var maxAmplitudes = new Vector3( 0f, -OscillateEndAmplitude.x, OscillateEndAmplitude.y );
-				var currentAmplitude = MathF.Sin( MathF.Abs( Time.Now * MathF.PI / OscillateEndPeriod ) );
-				RopeEndOffset = offset + maxAmplitudes * currentAmplitude;
-			}
-
-			// Point Count
-			var numPoints = RopePointCount;
-			ImGui.Text( "Point Count:" ); ImGui.SameLine();
-			ImGui.PushID( 3 );
-			ImGui.SliderInt( "Point Count", ref numPoints, 0, 200 );
-			ImGui.PopID();
-			RopePointCount = numPoints;
-
-			// Reset Rope
-			if ( ImGui.Button( $"Reset Rope" ) )
-			{
-				Rope.Reset();
-			}
+			DrawWindow();
 		}
 		ImGui.End();
+	}
+
+	private bool _collapseWindow = true;
+
+	private void DrawWindow()
+	{
+		var collapse = _collapseWindow;
+		ImGui.Checkbox( "Collapse", ref collapse );
+		_collapseWindow = collapse;
+		if ( _collapseWindow )
+			return;
+
+
+		ImGui.NewLine();
+		// Debug info
+		ImGui.Text( $"Points: {Rope.PointCount}" );
+		ImGui.NewLine();
+		ImGui.Text( "Colliders" );
+		ImGui.Text( "---" );
+		ImGui.Text( $"Sphere: {Rope.SphereColliderCount}, Box: {Rope.BoxColliderCount}, Capsule: {Rope.CapsuleColliderCount}, Mesh: {Rope.MeshColliderCount}, Generic: {Rope.GenericColliderCount}" );
+		ImGui.NewLine();
+
+		ImGui.Text( "Debug Mode" );
+		var debugMode1 = RopePhysics.DebugMode > 0;
+		ImGui.PushID( nameof( debugMode1 ) );
+		if ( ImGui.Checkbox( "Default", ref debugMode1 ) )
+		{
+			RopePhysics.DebugMode = RopePhysics.DebugMode switch
+			{
+				1 => 0,
+				_ => 1,
+			};
+		}
+		ImGui.PopID();
+		ImGui.SameLine();
+		var debugMode2 = RopePhysics.DebugMode > 1;
+		ImGui.PushID( nameof( debugMode2 ) );
+		if ( ImGui.Checkbox( "Collision Radius", ref debugMode2 ) )
+		{
+			RopePhysics.DebugMode = RopePhysics.DebugMode switch
+			{
+				2 => 1,
+				_ => 2,
+			};
+		}
+		ImGui.PopID();
+		ImGui.NewLine();
+
+		ImGui.Text( "Simulation Parameters" );
+		var iterations = Iterations;
+		ImGui.Text( "Iterations:" ); ImGui.SameLine();
+		ImGui.PushID( 0 );
+		ImGui.SliderInt( "Iterations", ref iterations, 0, 200 );
+		ImGui.PopID();
+		Iterations = iterations;
+		ImGui.Text( "Collision Search Radius:" );
+		var collisionRadiusScale = Rope.CollisionSearchRadius;
+		ImGui.PushID( "CollisionRadiusScale" );
+		ImGui.SliderFloat( "CollisionRadiusScale", ref collisionRadiusScale, 0.1f, 50f );
+		ImGui.PopID();
+		Rope.CollisionSearchRadius = collisionRadiusScale;
+		ImGui.NewLine();
+
+		if ( !FollowMouse )
+		{
+			if ( ImGui.Button( "Follow Mouse" ) )
+			{
+				FollowMouse = true;
+			}
+		}
+		else
+		{
+			if ( ImGui.Button( "Stop Following Mouse" ) )
+			{
+				FollowMouse = false;
+			}
+			return;
+		}
+
+		ImGui.Text( $"Rope Generation" );
+
+		// Fixed Start
+		var fixedStart = FixedStart;
+		ImGui.PushID( "Fixed Start" );
+		ImGui.Checkbox( "Fixed Start", ref fixedStart );
+		ImGui.PopID();
+		FixedStart = fixedStart;
+		if ( FixedStart )
+		{
+			// Start Pos
+			ImGui.Text( $"Start Pos:" ); ImGui.SameLine();
+			var startOffset = new Vector2( -RopeStartOffset.y, RopeStartOffset.z );
+			ImGui.PushID( 1 );
+			ImGui.SliderFloat2( "Start Offset", ref startOffset, -200f, 200f );
+			ImGui.PopID();
+			RopeStartOffset = new Vector3( 0f, -startOffset.x, startOffset.y );
+		}
+
+		// Fixed End
+		var fixedEnd = FixedEnd;
+		ImGui.PushID( "FixedEnd" );
+		if ( ImGui.Checkbox( "Fixed End", ref fixedEnd ) )
+		{
+			OscillateEnd = false;
+		}
+		ImGui.SameLine();
+		ImGui.PopID();
+		FixedEnd = fixedEnd;
+		var oscillateEnd = OscillateEnd;
+		ImGui.PushID( "OscillateEnd" );
+		if ( ImGui.Checkbox( "Oscillate End", ref oscillateEnd ) )
+		{
+			FixedEnd = false;
+		}
+		ImGui.PopID();
+		OscillateEnd = oscillateEnd;
+		if ( FixedEnd )
+		{
+			// End Pos
+			ImGui.Text( $"End Pos:" ); ImGui.SameLine();
+			var endOffset = new Vector2( -RopeEndOffset.y, RopeEndOffset.z );
+			ImGui.PushID( 2 );
+			ImGui.SliderFloat2( "End Offset", ref endOffset, -200f, 200f );
+			ImGui.PopID();
+			RopeEndOffset = new Vector3( 0f, -endOffset.x, endOffset.y );
+		}
+		if ( OscillateEnd )
+		{
+			var oscEndOffset = OscillateEndOffset;
+			ImGui.Text( nameof( oscEndOffset ) + ":" ); ImGui.SameLine();
+			ImGui.PushID( nameof( oscEndOffset ) );
+			ImGui.SliderFloat2( nameof( oscEndOffset ), ref oscEndOffset, -200, 200 );
+			ImGui.PopID();
+			OscillateEndOffset = oscEndOffset;
+			var oscEndAmplitude = OscillateEndAmplitude;
+			ImGui.Text( nameof( oscEndAmplitude ) + ":" ); ImGui.SameLine();
+			ImGui.PushID( nameof( oscEndAmplitude ) );
+			ImGui.SliderFloat2( nameof( oscEndAmplitude ), ref oscEndAmplitude, 0, 500 );
+			ImGui.PopID();
+			OscillateEndAmplitude = oscEndAmplitude;
+			var oscEndPeriod = OscillateEndPeriod;
+			ImGui.Text( nameof( oscEndPeriod ) + ":" ); ImGui.SameLine();
+			ImGui.PushID( nameof( oscEndPeriod ) );
+			ImGui.SliderFloat( nameof( oscEndPeriod ), ref oscEndPeriod, 0.01f, 5 );
+			ImGui.PopID();
+			OscillateEndPeriod = oscEndPeriod;
+			var offset = new Vector3( 0, -OscillateEndOffset.x, OscillateEndOffset.y );
+			var maxAmplitudes = new Vector3( 0f, -OscillateEndAmplitude.x, OscillateEndAmplitude.y );
+			var currentAmplitude = MathF.Sin( MathF.Abs( Time.Now * MathF.PI / OscillateEndPeriod ) );
+			RopeEndOffset = offset + maxAmplitudes * currentAmplitude;
+		}
+
+		// Point Count
+		var numPoints = RopePointCount;
+		ImGui.Text( "Point Count:" ); ImGui.SameLine();
+		ImGui.PushID( 3 );
+		ImGui.SliderInt( "Point Count", ref numPoints, 0, 200 );
+		ImGui.PopID();
+		RopePointCount = numPoints;
+
+		// Reset Rope
+		if ( ImGui.Button( $"Reset Rope" ) )
+		{
+			Rope.Reset();
+		}
 	}
 }

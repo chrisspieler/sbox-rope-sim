@@ -43,6 +43,18 @@ public partial class VerletRope
 		}
 	}
 
+	private struct MeshCollisionInfo
+	{
+		public int Id;
+		public Transform Transform;
+		public List<int> CollidingPoints;
+
+		public MeshCollisionInfo()
+		{
+			CollidingPoints = new();
+		}
+	}
+
 	private struct GenericCollisionInfo
 	{
 		public struct Point
@@ -60,6 +72,9 @@ public partial class VerletRope
 			CollidingPoints = new();
         }
     }
+
+	[ConVar( "rope_collision_mdf_enable" )]
+	public static bool UseMeshDistanceFields { get; set; } = true;
 
 	public PhysicsWorld Physics { get; init; }
 	public TagSet CollisionInclude { get; set; } = [];
@@ -85,10 +100,10 @@ public partial class VerletRope
 	private Dictionary<int, BoxCollisionInfo> _boxColliders = new();
 	public int CapsuleColliderCount => _capsuleColliders.Count;
 	private Dictionary<int, CapsuleCollisionInfo> _capsuleColliders = new();
-	public int MeshColliderCount => _genericColliders.Count;
+	public int MeshColliderCount => _meshColliders.Count;
+	private Dictionary<int, MeshCollisionInfo> _meshColliders = new();
+	public int GenericColliderCount => _genericColliders.Count;
 	private Dictionary<int, GenericCollisionInfo> _genericColliders = new();
-
-
 
 	private bool _shouldUpdateCollisions;
 
@@ -102,6 +117,7 @@ public partial class VerletRope
 		_sphereColliders.Clear();
 		_boxColliders.Clear();
 		_capsuleColliders.Clear();
+		_meshColliders.Clear();
 		_genericColliders.Clear();
 
 		if ( _points.Length < 1 )
@@ -112,7 +128,7 @@ public partial class VerletRope
 		for ( int i = 0; i < _points.Length; i++ )
 		{
 			var point = _points[i];
-			var pointBounds = BBox.FromPositionAndSize( point.Position, CollisionRadius );
+			var pointBounds = BBox.FromPositionAndSize( point.Position, CollisionRadius * 2 );
 			if ( i == 0 )
 			{
 				CollisionBounds = pointBounds;
@@ -124,7 +140,6 @@ public partial class VerletRope
 		}
 
 		var trs = Physics.Trace
-			// TODO: Filter trace using tags.
 			.Box( CollisionBounds.Size, CollisionBounds.Center, CollisionBounds.Center )
 			.WithoutTags( CollisionExclude )
 			.WithAnyTags( CollisionInclude )
@@ -165,7 +180,14 @@ public partial class VerletRope
 		// Meshes, Hulls, and Terrain
 		else if ( tr.Shape.IsMeshShape || tr.Shape.IsHullShape || tr.Shape.IsHeightfieldShape )
 		{
-			CaptureGenericCollision( pointIndex, tr.Shape.Collider as Collider );
+			if ( UseMeshDistanceFields && MeshDistanceSystem.Current.TryGetMdf( tr.Shape, out _ ) )
+			{
+				CaptureMeshCollision( pointIndex, tr.Shape );
+			}
+			else
+			{
+				CaptureGenericCollision( pointIndex, tr.Shape );
+			}
 		}
 	}
 
@@ -245,11 +267,26 @@ public partial class VerletRope
 		ci.CollidingPoints.Add( pointindex );
 	}
 
-	private void CaptureGenericCollision( int pointIndex, Collider collider )
+	private void CaptureMeshCollision( int pointIndex, PhysicsShape shape )
 	{
+		var id = shape.GetHashCode();
+		if ( !_meshColliders.TryGetValue( id, out var ci ) )
+		{
+			ci = new MeshCollisionInfo()
+			{
+				Id = id,
+				Transform = shape.Body.Transform,
+			};
+			_meshColliders[id] = ci;
+		}
+		ci.CollidingPoints.Add( pointIndex );
+	}
+
+	private void CaptureGenericCollision( int pointIndex, PhysicsShape shape )
+	{
+		var collider = shape.Collider as Collider;
 		var point = _points[pointIndex];
 		var dir = (point.Position - point.LastPosition).Normal;
-
 		var startPos = point.LastPosition + (-dir) * 5f;
 		var distance = startPos.Distance( point.Position );
 		var ray = new Ray( startPos, dir );
