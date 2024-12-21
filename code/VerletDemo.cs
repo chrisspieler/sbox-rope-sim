@@ -176,12 +176,12 @@ public class VerletDemo : Component
 			ImGui.SliderInt( "Iterations", ref iterations, 0, 200 );
 			ImGui.PopID();
 			Iterations = iterations;
-			ImGui.Text( "Collision Radius Scale:" );
-			var collisionRadiusScale = Rope.CollisionRadiusScale;
+			ImGui.Text( "Collision Search Radius:" );
+			var collisionRadiusScale = Rope.CollisionSearchRadius;
 			ImGui.PushID( "CollisionRadiusScale" );
 			ImGui.SliderFloat( "CollisionRadiusScale", ref collisionRadiusScale, 0.1f, 50f );
 			ImGui.PopID();
-			Rope.CollisionRadiusScale = collisionRadiusScale;
+			Rope.CollisionSearchRadius = collisionRadiusScale;
 			ImGui.NewLine();
 
 			ImGui.Text( $"Rope Generation" );

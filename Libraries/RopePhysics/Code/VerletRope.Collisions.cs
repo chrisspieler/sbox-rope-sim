@@ -19,7 +19,6 @@ public partial class VerletRope
 	private struct BoxCollisionInfo
 	{
 		public int Id;
-		public Vector3 Center;
 		public Vector3 Size;
 		public Transform Transform;
 		public List<int> CollidingPoints;
@@ -64,14 +63,14 @@ public partial class VerletRope
 
 	public PhysicsWorld Physics { get; init; }
 	/// <summary>
-	/// A factor applied to CollisionRadius when finding collisions. Higher values may
-	/// reduce the chance of clipping at the cost of evaluating collisions more often.
+	/// A bias applied to CollisionRadius that is used when finding colliders that are near to
+	/// a rope node. Higher values will reduce the chance of clipping.
 	/// </summary>
-	public float CollisionRadiusScale { get; set; } = 5f;
+	public float CollisionSearchRadius { get; set; } = 10f;
 	/// <summary>
 	/// A radius in units to search for PhysicsShapes around each point of the rope.
 	/// </summary>
-	public float CollisionRadius => SolidRadius * 2f + SegmentLength * 0.5f * CollisionRadiusScale;
+	public float CollisionRadius => SolidRadius * 2f + SegmentLength * 0.5f + CollisionSearchRadius;
 	public float SolidRadius => 0.5f;
 
 	private Dictionary<int, SphereCollisionInfo> _sphereColliders = new();
@@ -117,6 +116,11 @@ public partial class VerletRope
 				{
 					CaptureBoxCollision( i, box );
 				}
+				// Planes
+				else if ( tr.Shape.IsMeshShape && tr.Shape.Collider is PlaneCollider plane )
+				{
+					CapturePlaneCollision( i, plane );
+				}
 				// Meshes, Hulls, and Terrain
 				else if ( tr.Shape.IsMeshShape || tr.Shape.IsHullShape || tr.Shape.IsHeightfieldShape )
 				{
@@ -151,9 +155,33 @@ public partial class VerletRope
 			ci = new BoxCollisionInfo()
 			{
 				Id = colliderId,
-				Transform = box.WorldTransform,
-				Center = box.Center,
+				Transform = box.WorldTransform.WithPosition( box.WorldPosition + box.Center ),
 				Size = box.Scale
+			};
+			_boxColliders[colliderId] = ci;
+		}
+		ci.CollidingPoints.Add( pointIndex );
+	}
+
+	/// <summary>
+	/// All PlaneColliders are treated as BoxColliders with of this thickness.
+	/// If the thickness is too low, the rope particles may clip through planes.
+	/// </summary>
+	[ConVar( "rope_collision_plane_thickness" )]
+	public static float PlaneColliderThickness { get; set; } = 16f;
+
+	private void CapturePlaneCollision( int pointIndex, PlaneCollider plane )
+	{
+		var colliderId = plane.GetHashCode();
+		if ( !_boxColliders.TryGetValue( colliderId, out var ci ) )
+		{
+			var center = new Vector3( plane.Center.x, plane.Center.y, -PlaneColliderThickness * 0.5f );
+
+			ci = new BoxCollisionInfo()
+			{
+				Id = colliderId,
+				Transform = plane.WorldTransform.WithPosition( plane.WorldPosition + center ),
+				Size = new Vector3( plane.Scale.x, plane.Scale.y, PlaneColliderThickness )
 			};
 			_boxColliders[colliderId] = ci;
 		}
@@ -266,7 +294,6 @@ public partial class VerletRope
 			{
 				var point = _points[pointId];
 				var pointPos = ci.Transform.PointToLocal( point.Position );
-				pointPos += ci.Center;
 				var halfSize = ci.Size * 0.5f;
 				var scale = ci.Transform.Scale;
 				// Figure out how deep the point is inside in the box.

@@ -93,7 +93,7 @@
           "Texturing": {
             "Texture": "textures/rope_color.vtex",
             "WorldSpace": true,
-            "UnitsPerTexture": 10,
+            "UnitsPerTexture": 50,
             "Scale": 1,
             "Offset": 0,
             "Scroll": 0
@@ -101,7 +101,7 @@
           "UseVectorPoints": true,
           "VectorPoints": [],
           "Width": {
-            "rangey": "0,0.1",
+            "rangey": "0,0.5",
             "frames": [
               {
                 "x": 0.5,
@@ -139,7 +139,7 @@
       "__guid": "8e1b819c-fd73-454b-ba29-9d6150170b25",
       "Flags": 0,
       "Name": "Sphere",
-      "Position": "512,0,0",
+      "Position": "512,-32,0",
       "Rotation": "-0.7071068,-0.00000003090862,0.7071068,-0.00000003090862",
       "Enabled": true,
       "Components": [
@@ -173,7 +173,7 @@
       "__guid": "f789d734-7482-4bac-9d19-2f0807233415",
       "Flags": 0,
       "Name": "Cube",
-      "Position": "512,-96,0",
+      "Position": "512,-136,-8",
       "Enabled": true,
       "Components": [
         {
@@ -303,10 +303,12 @@
       ]
     },
     {
-      "__guid": "6810bd97-1b29-4855-bd22-4632345f44d0",
+      "__guid": "aae3d53a-597b-4af9-932a-19febc3cc6ae",
       "Flags": 0,
-      "Name": "Capsule",
-      "Position": "512,96.00001,-10",
+      "Name": "Gumby",
+      "Position": "529.4786,203.1224,-60.00001",
+      "Rotation": "0.09985625,-0.7000203,0.5655984,0.4243803",
+      "Scale": "3,3,3",
       "Enabled": true,
       "Components": [
         {
@@ -314,7 +316,7 @@
           "__guid": "1a2b62a4-cb31-4487-a6ac-9c25b1eb9951",
           "BodyGroups": 18446744073709551615,
           "CreateAttachments": false,
-          "Model": "models/dev/sphere.vmdl",
+          "Model": "models/gumby.vmdl",
           "RenderOptions": {
             "GameLayer": true,
             "OverlayLayer": false,
@@ -323,64 +325,60 @@
           },
           "RenderType": "On",
           "Tint": "1,1,1,1"
-        },
-        {
-          "__type": "Sandbox.CapsuleCollider",
-          "__guid": "594f9500-5d5e-44eb-9b23-1ea912830dbf",
-          "End": "0,0,32",
-          "IsTrigger": false,
-          "Radius": 32,
-          "Start": "0,0,-32",
-          "Static": true,
-          "SurfaceVelocity": "0,0,0"
         }
       ],
       "Children": [
         {
-          "__guid": "2edeeaf5-df61-43e1-8a0d-a6abf3c6588e",
+          "__guid": "032f18f0-efed-4e0b-bf4d-03fe7febd487",
           "Flags": 0,
-          "Name": "Object",
-          "Position": "-0.00005745888,0.0000007748604,32.5136",
+          "Name": "Capsule",
           "Enabled": true,
           "Components": [
             {
-              "__type": "Sandbox.ModelRenderer",
-              "__guid": "29968e8c-5871-46b4-8f95-e5d37fea0bc2",
-              "BodyGroups": 18446744073709551615,
-              "CreateAttachments": false,
-              "Model": "models/dev/sphere.vmdl",
-              "RenderOptions": {
-                "GameLayer": true,
-                "OverlayLayer": false,
-                "BloomLayer": false,
-                "AfterUILayer": false
-              },
-              "RenderType": "On",
-              "Tint": "1,1,1,1"
+              "__type": "Sandbox.CapsuleCollider",
+              "__guid": "2a99e5c3-670e-4208-be3c-a40f2f0d1552",
+              "End": "0,0,29.5",
+              "IsTrigger": false,
+              "Radius": 7.5,
+              "Start": "0,0,7.5",
+              "Static": false,
+              "SurfaceVelocity": "0,0,0"
             }
           ]
         },
         {
-          "__guid": "70cf4b2c-3deb-4ab9-b8a4-f46d2a6db668",
+          "__guid": "7c10d41c-9d8d-43a3-93cf-558fb7d3449e",
           "Flags": 0,
-          "Name": "Object",
-          "Position": "-0.00009012222,-0.000009357929,-31.48641",
+          "Name": "Sphere",
+          "Position": "6.666631,-2.666659,27.99998",
           "Enabled": true,
           "Components": [
             {
-              "__type": "Sandbox.ModelRenderer",
-              "__guid": "0e60175a-21f4-4697-b536-da53ef6a2bfe",
-              "BodyGroups": 18446744073709551615,
-              "CreateAttachments": false,
-              "Model": "models/dev/sphere.vmdl",
-              "RenderOptions": {
-                "GameLayer": true,
-                "OverlayLayer": false,
-                "BloomLayer": false,
-                "AfterUILayer": false
-              },
-              "RenderType": "On",
-              "Tint": "1,1,1,1"
+              "__type": "Sandbox.SphereCollider",
+              "__guid": "14c49c11-3436-4910-b741-a196dc40fede",
+              "Center": "0,0,0",
+              "IsTrigger": false,
+              "Radius": 3,
+              "Static": false,
+              "SurfaceVelocity": "0,0,0"
+            }
+          ]
+        },
+        {
+          "__guid": "a69538f4-7b4d-4ae3-b940-eb94051928f0",
+          "Flags": 0,
+          "Name": "Sphere",
+          "Position": "6.666631,3.333341,27.99998",
+          "Enabled": true,
+          "Components": [
+            {
+              "__type": "Sandbox.SphereCollider",
+              "__guid": "52e15546-2c18-453d-b2ad-5addcb126008",
+              "Center": "0,0,0",
+              "IsTrigger": false,
+              "Radius": 3,
+              "Static": false,
+              "SurfaceVelocity": "0,0,0"
             }
           ]
         }
@@ -1421,6 +1419,39 @@
           "ZNear": 16
         }
       ]
+    },
+    {
+      "__guid": "2a464cb3-8cc6-473a-9263-043f859acbcd",
+      "Flags": 0,
+      "Name": "Plane",
+      "Position": "512,32,-16",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "0c79aa40-8eac-41c0-a857-f13249ac726e",
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "Model": "models/dev/plane.vmdl",
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.PlaneCollider",
+          "__guid": "d0d0ad73-e545-4098-a89c-3686eccfbbff",
+          "Center": "0,0,0",
+          "IsTrigger": false,
+          "Scale": "100,100",
+          "Static": true,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ]
     }
   ],
   "SceneProperties": {
@@ -1449,6 +1480,8 @@
   "ResourceVersion": 2,
   "Title": null,
   "Description": null,
-  "__references": [],
+  "__references": [
+    "gumby.gumby_capsule#1097"
+  ],
   "__version": 2
 }
