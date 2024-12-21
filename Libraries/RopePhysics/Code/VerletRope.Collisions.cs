@@ -62,21 +62,33 @@ public partial class VerletRope
     }
 
 	public PhysicsWorld Physics { get; init; }
+	public TagSet CollisionInclude { get; set; } = [];
+	public TagSet CollisionExclude { get; set; } = [];
 	/// <summary>
 	/// A bias applied to CollisionRadius that is used when finding colliders that are near to
 	/// a rope node. Higher values will reduce the chance of clipping.
 	/// </summary>
 	public float CollisionSearchRadius { get; set; } = 10f;
 	/// <summary>
-	/// A radius in units to search for PhysicsShapes around each point of the rope.
+	/// The total area to search for collisions, encompassing the entire rpoe.
+	/// </summary>
+	public BBox CollisionBounds { get; set; }
+	/// <summary>
+	/// A radius in units that defines the contribution of each node to CollisionBounds.
 	/// </summary>
 	public float CollisionRadius => SolidRadius * 2f + SegmentLength * 0.5f + CollisionSearchRadius;
 	public float SolidRadius => 0.5f;
 
+	public int SphereColliderCount => _sphereColliders.Count;
 	private Dictionary<int, SphereCollisionInfo> _sphereColliders = new();
+	public int BoxColliderCount => _boxColliders.Count;
 	private Dictionary<int, BoxCollisionInfo> _boxColliders = new();
+	public int CapsuleColliderCount => _capsuleColliders.Count;
 	private Dictionary<int, CapsuleCollisionInfo> _capsuleColliders = new();
+	public int MeshColliderCount => _genericColliders.Count;
 	private Dictionary<int, GenericCollisionInfo> _genericColliders = new();
+
+
 
 	private bool _shouldUpdateCollisions;
 
@@ -92,41 +104,68 @@ public partial class VerletRope
 		_capsuleColliders.Clear();
 		_genericColliders.Clear();
 
+		if ( _points.Length < 1 )
+			return;
+
+		CollisionBounds = default;
+
 		for ( int i = 0; i < _points.Length; i++ )
 		{
 			var point = _points[i];
+			var pointBounds = BBox.FromPositionAndSize( point.Position, CollisionRadius );
+			if ( i == 0 )
+			{
+				CollisionBounds = pointBounds;
+			}
+			else
+			{
+				CollisionBounds = CollisionBounds.AddBBox( pointBounds );
+			}
+		}
+
+		var trs = Physics.Trace
 			// TODO: Filter trace using tags.
-			var trs = Physics.Trace
-				.Sphere( CollisionRadius, point.Position, point.Position )
-				.RunAll();
+			.Box( CollisionBounds.Size, CollisionBounds.Center, CollisionBounds.Center )
+			.WithoutTags( CollisionExclude )
+			.WithAnyTags( CollisionInclude )
+			.RunAll();
+
+		for ( int i = 0; i < _points.Length; i++ )
+		{
 			foreach ( var tr in trs )
 			{
-				// Spheres
-				if ( (tr.Shape.IsHullShape || tr.Shape.IsSphereShape) && tr.Shape.Collider is SphereCollider sphere )
-				{
-					CaptureSphereCollision( i, sphere );
-				}
-				// Capsules
-				else if ( tr.Shape.IsCapsuleShape && tr.Shape.Collider is CapsuleCollider capsule )
-				{
-					CaptureCapsuleCollision( i, capsule );
-				}
-				// Boxes
-				else if ( tr.Shape.IsHullShape && tr.Shape.Collider is BoxCollider box )
-				{
-					CaptureBoxCollision( i, box );
-				}
-				// Planes
-				else if ( tr.Shape.IsMeshShape && tr.Shape.Collider is PlaneCollider plane )
-				{
-					CapturePlaneCollision( i, plane );
-				}
-				// Meshes, Hulls, and Terrain
-				else if ( tr.Shape.IsMeshShape || tr.Shape.IsHullShape || tr.Shape.IsHeightfieldShape )
-				{
-					CaptureGenericCollision( i, tr.Shape.Collider as Collider );
-				}
+				CaptureCollision( i, tr );
 			}
+		}
+		
+	}
+
+	private void CaptureCollision( int pointIndex, PhysicsTraceResult tr )
+	{
+		// Spheres
+		if ( (tr.Shape.IsHullShape || tr.Shape.IsSphereShape) && tr.Shape.Collider is SphereCollider sphere )
+		{
+			CaptureSphereCollision( pointIndex, sphere );
+		}
+		// Capsules
+		else if ( tr.Shape.IsCapsuleShape && tr.Shape.Collider is CapsuleCollider capsule )
+		{
+			CaptureCapsuleCollision( pointIndex, capsule );
+		}
+		// Boxes
+		else if ( tr.Shape.IsHullShape && tr.Shape.Collider is BoxCollider box )
+		{
+			CaptureBoxCollision( pointIndex, box );
+		}
+		// Planes
+		else if ( tr.Shape.IsMeshShape && tr.Shape.Collider is PlaneCollider plane )
+		{
+			CapturePlaneCollision( pointIndex, plane );
+		}
+		// Meshes, Hulls, and Terrain
+		else if ( tr.Shape.IsMeshShape || tr.Shape.IsHullShape || tr.Shape.IsHeightfieldShape )
+		{
+			CaptureGenericCollision( pointIndex, tr.Shape.Collider as Collider );
 		}
 	}
 

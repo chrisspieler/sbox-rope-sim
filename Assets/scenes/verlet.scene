@@ -37,6 +37,8 @@
         {
           "__type": "Sandbox.VerletDemo",
           "__guid": "946c0674-ec85-4579-92de-c7b99408538f",
+          "CollisionExclude": "",
+          "CollisionInclude": "",
           "DuplicateOffset": "8,4,16",
           "Duplicates": "1,0,1",
           "FixedEnd": false,
@@ -141,6 +143,7 @@
       "Name": "Sphere",
       "Position": "512,-32,0",
       "Rotation": "-0.7071068,-0.00000003090862,0.7071068,-0.00000003090862",
+      "Tags": "sphere",
       "Enabled": true,
       "Components": [
         {
@@ -174,6 +177,7 @@
       "Flags": 0,
       "Name": "Cube",
       "Position": "512,-136,-8",
+      "Tags": "box",
       "Enabled": true,
       "Components": [
         {
@@ -309,6 +313,7 @@
       "Position": "529.4786,203.1224,-60.00001",
       "Rotation": "0.09985625,-0.7000203,0.5655984,0.4243803",
       "Scale": "3,3,3",
+      "Tags": "capsule,gumby",
       "Enabled": true,
       "Components": [
         {
@@ -389,6 +394,7 @@
       "Flags": 0,
       "Name": "Box",
       "Position": "512,0,-96",
+      "Tags": "mesh",
       "Enabled": true,
       "Components": [
         {
@@ -1425,6 +1431,7 @@
       "Flags": 0,
       "Name": "Plane",
       "Position": "512,32,-16",
+      "Tags": "plane",
       "Enabled": true,
       "Components": [
         {

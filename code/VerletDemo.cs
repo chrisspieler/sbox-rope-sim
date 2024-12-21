@@ -53,6 +53,8 @@ public class VerletDemo : Component
 	[Property] public Vector2 OscillateEndOffset { get; set; } = new Vector2( 100f, 0f );
 	[Property] public Vector2 OscillateEndAmplitude { get; set; } = new Vector2( 0f, 100f );
 	[Property] public float OscillateEndPeriod { get; set; } = 1f;
+	[Property] public TagSet CollisionInclude { get; set; } = [];
+	[Property] public TagSet CollisionExclude { get; set; } = [];
 	[Property] public RopeRenderer Renderer { get; set; }
 	public VerletRope Rope { get; set; }
 
@@ -100,6 +102,8 @@ public class VerletDemo : Component
 		Rope.EndPosition = RopeEnd;
 		Rope.FixedStart = FixedStart;
 		Rope.FixedEnd = FixedEnd || OscillateEnd;
+		Rope.CollisionInclude = CollisionInclude;
+		Rope.CollisionExclude = CollisionExclude;
 		Rope.Simulate();
 
 		if ( RopePhysics.DebugMode < 1 )
@@ -112,13 +116,18 @@ public class VerletDemo : Component
 			DebugOverlay.Sphere( new Sphere( point.Position, Rope.SolidRadius ), color: Color.Red, overlay: true );
 			if ( RopePhysics.DebugMode == 2 )
 			{
-				DebugOverlay.Sphere( new Sphere( point.Position, Rope.CollisionRadius ), color: Color.Green.WithAlpha( 0.2f ) );
+				DebugOverlay.Sphere( new Sphere( point.Position, Rope.CollisionRadius ), color: Color.Green.WithAlpha( 0.05f ) );
 			}
 			if ( i == 0 )
 				continue;
 
 			var lastPoint = points[i - 1];
 			DebugOverlay.Line( lastPoint.Position, point.Position, color: Color.Blue, overlay: true );
+		}
+
+		if ( RopePhysics.DebugMode == 2 )
+		{
+			DebugOverlay.Box( Rope.CollisionBounds, color: Color.Green.WithAlpha( 0.2f ) );
 		}
 	}
 
@@ -141,6 +150,10 @@ public class VerletDemo : Component
 		{
 			// Debug info
 			ImGui.Text( $"Points: {Rope.PointCount}" );
+			ImGui.NewLine();
+			ImGui.Text( "Colliders" );
+			ImGui.Text( "---" );
+			ImGui.Text( $"Sphere: {Rope.SphereColliderCount}, Box: {Rope.BoxColliderCount}, Capsule: {Rope.CapsuleColliderCount}, Mesh: {Rope.MeshColliderCount}" );
 			ImGui.NewLine();
 
 			ImGui.Text( "Debug Mode" );
