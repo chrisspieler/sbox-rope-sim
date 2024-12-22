@@ -1,5 +1,6 @@
 ﻿using Duccsoft;
 using Duccsoft.ImGui;
+using System;
 
 namespace Sandbox;
 
@@ -43,7 +44,7 @@ public class MeshDistanceFieldDemo : Component
 
 	private void UpdateUI()
 	{
-		if ( ImGui.Begin( "Mesh Distance Field Demo" ) )
+		if ( ImGui.Begin( "???" ) )
 		{
 			if ( _mdf is null )
 			{
@@ -61,7 +62,7 @@ public class MeshDistanceFieldDemo : Component
 			}
 			ImGui.Image( _copiedTex, _copiedTex.Size * 4 * ImGuiStyle.UIScale, Color.Transparent, ImGui.GetColorU32( ImGuiCol.Border ) );
 			ImGui.Text( $"Size: {_mdf.VolumeTexture.Size.x}x{_mdf.VolumeTexture.Size.y}x{_mdf.VolumeTexture.Depth}" );
-			if ( ImGui.Button( "Remove MDF" ) )
+			if ( ImGui.Button( "Regenerate" ) )
 			{
 				MeshDistanceSystem.Current.RemoveMdf( _mdf.Id );
 			}
@@ -71,14 +72,15 @@ public class MeshDistanceFieldDemo : Component
 
 	private Texture CopyMdfTexture( int slice )
 	{
-		var source = _mdf.VolumeTexture;
-		var tex = Texture.Create( source.Width, source.Height, ImageFormat.RGBA8888 )
+		var input = _mdf.VolumeTexture;
+		var output = Texture.Create( input.Width, input.Height, ImageFormat.RGBA8888 )
 			.WithUAVBinding()
 			.Finish();
-		_textureSliceCs.Attributes.Set( "InputTexture", source );
-		_textureSliceCs.Attributes.Set( "OutputTexture", tex );
+
+		_textureSliceCs.Attributes.Set( "InputTexture", input );
+		_textureSliceCs.Attributes.Set( "OutputTexture", output );
 		_textureSliceCs.Attributes.Set( "Slice", slice );
-		_textureSliceCs.Dispatch( source.Width, source.Height );
-		return tex;
+		_textureSliceCs.Dispatch( output.Width, output.Height );
+		return output;
 	}
 }

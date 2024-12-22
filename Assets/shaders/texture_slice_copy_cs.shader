@@ -14,6 +14,6 @@ CS
 	[numthreads( 8, 8, 1 )]
 	void MainCs( uint3 id : SV_DispatchThreadID )
 	{
-		OutputTexture[ id.xy ] = InputTexture[ uint3( id.xy, Slice )];
+		OutputTexture[ id.xy ] = InputTexture[ uint3( id.xy, Slice )];;
 	}	
 }
