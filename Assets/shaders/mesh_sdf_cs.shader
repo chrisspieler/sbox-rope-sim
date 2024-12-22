@@ -71,26 +71,16 @@ CS
 		return determinant( matOrient );
 	}
 
-	float4 Load( uint3 texel )
-	{
-		float4 voxel = OutputTexture[texel];
-		float3 pos = voxel.rgb;
-		pos *= Maxs - Mins;
-		pos += Mins;
-		float dist = voxel.a;
-		dist *= distance( Mins, Maxs );
-		return float4( pos.rgb, dist );
-	}
-
 	void Store( uint3 texel, float4 voxel )
 	{
-		float3 pos = voxel.rgb;
-		pos -= Mins;
-		pos /= Maxs - Mins;
-		float dist = voxel.a;
-		dist /= distance( Mins, Maxs );
-		OutputTexture[texel] = float4( pos.rgb, dist );
+		OutputTexture[texel] = voxel;
 	}
+	
+	float4 Load( uint3 texel )
+	{
+		return OutputTexture[texel];
+	}
+
 
 	void AddSeedPoints( uint3 DTid, float3 dims )
 	{
@@ -100,7 +90,7 @@ CS
 		float3 localPos = TexelToLocal( DTid, dims );
 		
 		// Treat any distance greater than the bounds of the mesh as undefined.
-		Store( DTid, float4( 0, 0, 0, distance( Mins, Maxs ) + 1 ) );
+		Store( DTid, float4( 0, 0, 0, distance( Mins, Maxs ) ) );
 
 		for( uint i = 0; i < IndexCount; i += 3 )
 		{
@@ -237,11 +227,22 @@ CS
 		Flood( DTid, DTid + int3(  1,  1,  1 ) * JumpStep, dims );
 	}
 
-	void DebugDenormalize( uint3 DTid, uint3 dims )
+	void DebugNormalized( uint3 DTid, uint3 dims )
 	{
 		float4 denormalized = Load( DTid );
-		denormalized.a = 1;
-		OutputTexture[DTid] = denormalized;
+		float3 triPos = denormalized.rgb;
+		triPos -= Mins;
+		triPos /= abs( Maxs - Mins );
+		float sdf = denormalized.a;
+		if ( sdf < 0 )
+		{
+			sdf = 0;
+		}
+		else 
+		{
+			sdf /= distance( Maxs, Mins );
+		}
+		OutputTexture[DTid] = float4( triPos.rgb, sdf );
 	}
 
 	DynamicCombo( D_STAGE, 0..2, Sys( All ) );
@@ -257,7 +258,7 @@ CS
 		#elif D_STAGE == 1
 			JumpFlood( id, dims );
 		#elif D_STAGE == 2
-			DebugDenormalize( id, dims );
+			DebugNormalized( id, dims );
 		#endif
 	}
 }

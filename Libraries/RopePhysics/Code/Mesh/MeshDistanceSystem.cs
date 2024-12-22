@@ -60,7 +60,7 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 	{
 		AddSeedPoints,
 		JumpFlood,
-		DebugDenormalize
+		DebugNormalized
 	}
 
 	private void BuildMdf( int id, MeshData data )
@@ -71,7 +71,7 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		var max = MathF.Max( size.x, size.y );
 		max = MathF.Max( max, size.z );
 		var volume = Texture
-			.CreateVolume( (int)max, (int)max, (int)max, ImageFormat.RGBA8888 )
+			.CreateVolume( (int)max, (int)max, (int)max, ImageFormat.RGBA32323232F )
 			.WithUAVBinding()
 			.Finish();
 
@@ -105,8 +105,8 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 			_meshSdfCs.Dispatch( volume.Width, volume.Height, volume.Depth );
 		}
 
-		//_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.DebugDenormalize );
-		//_meshSdfCs.Dispatch( volume.Width, volume.Height, volume.Depth );
+		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.DebugNormalized );
+		_meshSdfCs.Dispatch( volume.Width, volume.Height, volume.Depth );
 	}
 
 	public bool TryGetMdf( PhysicsShape shape, out MeshDistanceField meshDistanceField )

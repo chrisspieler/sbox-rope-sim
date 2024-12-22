@@ -73,7 +73,7 @@ public class MeshDistanceFieldDemo : Component
 	private Texture CopyMdfTexture( int slice )
 	{
 		var input = _mdf.VolumeTexture;
-		var output = Texture.Create( input.Width, input.Height, ImageFormat.RGBA8888 )
+		var output = Texture.Create( input.Width, input.Height, ImageFormat.RGBA32323232F )
 			.WithUAVBinding()
 			.Finish();
 
