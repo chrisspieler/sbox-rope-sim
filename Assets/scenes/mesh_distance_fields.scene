@@ -1,0 +1,218 @@
+{
+  "__guid": "0cd61252-fdda-4617-8442-bc16c27fa5df",
+  "GameObjects": [
+    {
+      "__guid": "d77570fb-a0f5-4759-9ad0-9004fb893986",
+      "Flags": 0,
+      "Name": "Camera",
+      "Position": "-300,0,72",
+      "Rotation": "0,0.1305262,0,0.9914449",
+      "Tags": "maincamera",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.CameraComponent",
+          "__guid": "79f6a608-08ff-4051-a91f-18931a892eba",
+          "BackgroundColor": "0,0,0,1",
+          "ClearFlags": "All",
+          "FieldOfView": 60,
+          "IsMainCamera": true,
+          "Orthographic": false,
+          "OrthographicHeight": 1204,
+          "Priority": 1,
+          "RenderExcludeTags": "",
+          "RenderTags": "",
+          "TargetEye": "None",
+          "Viewport": "0,0,1,1",
+          "ZFar": 10000,
+          "ZNear": 10
+        }
+      ]
+    },
+    {
+      "__guid": "2fc7e88c-ffa2-401d-a9c7-20f1d7fcbc0e",
+      "Flags": 0,
+      "Name": "Sun",
+      "Position": "-136,-0.0000385046,72",
+      "Rotation": "0.09904577,0.3696438,-0.2391176,0.8923991",
+      "Tags": "light_directional,light",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.DirectionalLight",
+          "__guid": "2393e171-0a97-4f75-a024-ea5f6690d7e2",
+          "FogMode": "Enabled",
+          "FogStrength": 1,
+          "LightColor": "0.91373,0.98039,1,1",
+          "Shadows": true,
+          "SkyColor": "0,0,0,0"
+        }
+      ]
+    },
+    {
+      "__guid": "2221799a-d92e-4680-b4dd-df820040da7e",
+      "Flags": 0,
+      "Name": "Envmap Probe",
+      "Position": "-100,0,72",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.EnvmapProbe",
+          "__guid": "14b9324a-4dfb-44aa-aea0-4401c52d35a0",
+          "Bounds": {
+            "Mins": "-1000,-1000,-1000",
+            "Maxs": "1000,1000,1000"
+          },
+          "DelayBetweenUpdates": 0.1,
+          "Feathering": 0.02,
+          "FrameInterval": 5,
+          "MaxDistance": 512,
+          "MultiBounce": true,
+          "Projection": "Box",
+          "RenderDynamically": true,
+          "Texture": "textures/cubemaps/default2.vtex",
+          "TintColor": "1,1,1,1",
+          "UpdateStrategy": "OnEnabled",
+          "ZFar": 4096,
+          "ZNear": 16
+        }
+      ]
+    },
+    {
+      "__guid": "d4f7ba46-0bf9-4754-8865-5a191dd78bab",
+      "Flags": 0,
+      "Name": "Cube",
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "ecf1ce2c-4672-481d-a949-665fe29afeb7",
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "Model": "models/dev/box.vmdl",
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.BoxCollider",
+          "__guid": "077398c8-2fbe-46f7-a885-a6f1e1f9e8f4",
+          "Center": "0,0,0",
+          "IsTrigger": false,
+          "Scale": "50,50,50",
+          "Static": false,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ]
+    },
+    {
+      "__guid": "ab3d85b6-7d7b-4b14-b598-380b906e8998",
+      "Flags": 0,
+      "Name": "Demo",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.MeshDistanceFieldDemo",
+          "__guid": "19ca5ef3-424c-405c-bd32-afa8ce3d91c0"
+        }
+      ]
+    },
+    {
+      "__guid": "76846831-4292-49e6-a3a6-2f54a7850d1c",
+      "Flags": 0,
+      "Name": "Sphere",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "57372167-3905-4872-9c11-c893bc4132ec",
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "Model": "models/dev/sphere.vmdl",
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.SphereCollider",
+          "__guid": "dde3d123-c5df-4520-98c2-03aada734442",
+          "Center": "0,0,0",
+          "IsTrigger": false,
+          "Radius": 32,
+          "Static": false,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ]
+    },
+    {
+      "__guid": "522c3749-018a-4680-9b6f-4377bcbcaf57",
+      "Flags": 0,
+      "Name": "duck_decoration",
+      "Scale": "5,5,5",
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "43ee8a5f-f3a0-4f4d-820d-a4bd1a10f86b",
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "Model": "models/duck_decoration/duck_decoration.vmdl",
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.ModelCollider",
+          "__guid": "f237d989-610f-43c5-bc7a-27876489efef",
+          "IsTrigger": false,
+          "Model": "models/duck_decoration/duck_decoration.vmdl",
+          "Static": false,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ]
+    }
+  ],
+  "SceneProperties": {
+    "FixedUpdateFrequency": 50,
+    "MaxFixedUpdates": 5,
+    "NetworkFrequency": 30,
+    "NetworkInterpolation": true,
+    "PhysicsSubSteps": 1,
+    "ThreadedAnimation": true,
+    "TimeScale": 1,
+    "UseFixedUpdate": true,
+    "Metadata": {},
+    "NavMesh": {
+      "Enabled": false,
+      "IncludeStaticBodies": true,
+      "IncludeKeyframedBodies": true,
+      "EditorAutoUpdate": true,
+      "AgentHeight": 64,
+      "AgentRadius": 16,
+      "AgentStepSize": 18,
+      "AgentMaxSlope": 40,
+      "ExcludedBodies": "",
+      "IncludedBodies": ""
+    }
+  },
+  "ResourceVersion": 2,
+  "Title": null,
+  "Description": null,
+  "__references": [
+    "duccsoft.duck_decoration#16326"
+  ],
+  "__version": 2
+}

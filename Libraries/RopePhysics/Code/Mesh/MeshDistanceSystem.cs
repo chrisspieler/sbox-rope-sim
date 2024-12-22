@@ -1,6 +1,6 @@
 ﻿namespace Duccsoft;
 
-internal class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
+public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 {
 	[ConVar( "rope_collision_mdf_build_rate" )]
 	public static int MaxBuildsPerUpdate { get; set; } = 10;
@@ -30,13 +30,19 @@ internal class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 			{
 				bbox = bbox.AddPoint( vertices[i] );
 			}
-			return bbox;
+			return bbox.Grow( 1f );
 		}
 	}
 
 	private readonly Dictionary<int, MeshDistanceField> _meshDistanceFields = new();
 
 	private readonly Dictionary<int, MeshData> _mdfBuildQueue = new();
+	private readonly ComputeShader _meshSdfCs = new ComputeShader( "mesh_sdf_cs" );
+
+	public void RemoveMdf( int id )
+	{
+		_meshDistanceFields.Remove( id );
+	}
 
 	private void BuildAllMdfs()
 	{
@@ -50,18 +56,56 @@ internal class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		}
 	}
 
+	private enum MdfBuildStage
+	{
+		AddSeedPoints,
+		JumpFlood
+	}
+
 	private void BuildMdf( int id, MeshData data )
 	{
 		var bounds = data.CalculateMeshBounds();
+		// var size = bounds.Size * 1f;
+		var size = new Vector3( 64 );
+		var max = MathF.Max( size.x, size.y );
+		max = MathF.Max( max, size.z );
 		var volume = Texture
-			// TODO: Calculate texture size appropriate for VoxelsPerWorldUnit.
-			// TODO: Do the texture dimensions need to each be a power of two?
-			.CreateArray( 32, 32, 32, ImageFormat.RGBA8888 )
+			.CreateVolume( (int)max, (int)max, (int)max )
 			.WithUAVBinding()
 			.Finish();
 		Log.Info( $"Build MDF ID {id}! Bounds: {bounds}, Volume: {volume.Size.x}x{volume.Size.y}x{volume.Depth}" );
+		_meshSdfCs.Attributes.Set( "Mins", bounds.Mins );
+		_meshSdfCs.Attributes.Set( "Maxs", bounds.Maxs );
+		_meshSdfCs.Attributes.Set( "Vertices", data.Vertices );
+		_meshSdfCs.Attributes.Set( "VertexCount", data.Vertices.ElementCount );
+		_meshSdfCs.Attributes.Set( "Indices", data.Indices );
+		_meshSdfCs.Attributes.Set( "IndexCount", data.Indices.ElementCount );
+		_meshSdfCs.Attributes.Set( "OutputTexture", volume );
+		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.AddSeedPoints );
+		//var dims = (Vector3Int)new Vector3()
+		//{
+		//	x = MathF.Ceiling( volume.Width / 8.0f ),
+		//	y = MathF.Ceiling( volume.Height / 8.0f ),
+		//	z = MathF.Ceiling( volume.Depth / 8.0f ),
+		//};
+		//_meshSdfCs.Dispatch( dims.x, dims.y, dims.z );
+		_meshSdfCs.Dispatch( volume.Width, volume.Height, volume.Depth );
+
+		for ( int step = (int)(max / 2 ); step > 0; step /= 2 )
+		{
+			Log.Info( "jump step " + step );
+			_meshSdfCs.Attributes.Set( "JumpStep", step );
+			_meshSdfCs.Attributes.Set( "Mins", bounds.Mins );
+			_meshSdfCs.Attributes.Set( "Maxs", bounds.Maxs );
+			_meshSdfCs.Attributes.Set( "Vertices", data.Vertices );
+			_meshSdfCs.Attributes.Set( "VertexCount", data.Vertices.ElementCount );
+			_meshSdfCs.Attributes.Set( "Indices", data.Indices );
+			_meshSdfCs.Attributes.Set( "IndexCount", data.Indices.ElementCount );
+			_meshSdfCs.Attributes.Set( "OutputTexture", volume );
+			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.JumpFlood );
+			_meshSdfCs.Dispatch( volume.Width, volume.Height, volume.Depth );
+		}
 		var mdf = new MeshDistanceField( id, volume, bounds );
-		// TODO: Dispatch JFA compute shader to fill texture.
 		_meshDistanceFields[id] = mdf;
 	}
 
@@ -96,5 +140,4 @@ internal class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		};
 		_mdfBuildQueue[id] = meshData;
 	}
-
 }

@@ -1,6 +1,6 @@
 ﻿namespace Duccsoft;
 
-internal class MeshDistanceField
+public class MeshDistanceField
 {
 	public struct MeshDistanceSample
 	{
