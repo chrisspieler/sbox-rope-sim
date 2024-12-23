@@ -58,6 +58,7 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 
 	private enum MdfBuildStage
 	{
+		InitializeVolume,
 		AddSeedPoints,
 		JumpFlood,
 		DebugNormalized
@@ -75,7 +76,7 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 			.WithUAVBinding()
 			.Finish();
 
-		Log.Info( $"Build MDF ID {id}! Bounds: {bounds}, Volume: {volume.Size.x}x{volume.Size.y}x{volume.Depth}" );
+		// Log.Info( $"Build MDF ID {id}! Bounds: {bounds}, Volume: {volume.Size.x}x{volume.Size.y}x{volume.Depth}" );
 		DispatchBuildShader( volume, data, bounds );
 		var mdf = new MeshDistanceField( id, volume, bounds );
 		_meshDistanceFields[id] = mdf;
@@ -83,28 +84,32 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 
 	private void DispatchBuildShader( Texture volume, MeshData data, BBox bounds )
 	{
-		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.AddSeedPoints );
+		// Initialize each texel of the volume texture.
+		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeVolume );
 		_meshSdfCs.Attributes.Set( "Mins", bounds.Mins );
 		_meshSdfCs.Attributes.Set( "Maxs", bounds.Maxs );
+		_meshSdfCs.Attributes.Set( "OutputTexture", volume );
+		_meshSdfCs.Dispatch( volume.Width, volume.Height, volume.Depth );
+
+		// For each triangle, write a seed to the volume texture.
+		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.AddSeedPoints );
 		_meshSdfCs.Attributes.Set( "Vertices", data.Vertices );
 		_meshSdfCs.Attributes.Set( "VertexCount", data.Vertices.ElementCount );
 		_meshSdfCs.Attributes.Set( "Indices", data.Indices );
 		_meshSdfCs.Attributes.Set( "IndexCount", data.Indices.ElementCount );
-		_meshSdfCs.Attributes.Set( "OutputTexture", volume );
-		_meshSdfCs.Dispatch( volume.Width, volume.Height, volume.Depth );
+		_meshSdfCs.Dispatch( threadsX: data.Indices.ElementCount / 3 );
 
-		// The max step size will be half of the size of the largest dimension of the volume texture.
+		// Run a jump flooding algorithm to disperse information about the mesh to each texel/voxel.
 		var max = Math.Max( volume.Width, volume.Height );
 		max = Math.Max( max, volume.Depth );
-
 		for ( int step = max / 2; step > 0; step /= 2 )
 		{
-			Log.Info( "jump step " + step );
 			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.JumpFlood );
 			_meshSdfCs.Attributes.Set( "JumpStep", step );
 			_meshSdfCs.Dispatch( volume.Width, volume.Height, volume.Depth );
 		}
 
+		// Debug visualization - uncomment to see the data normalized for display.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.DebugNormalized );
 		_meshSdfCs.Dispatch( volume.Width, volume.Height, volume.Depth );
 	}
@@ -127,7 +132,7 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 	private void AddPhysicsShape( int id, PhysicsShape shape )
 	{
 		shape.Triangulate( out Vector3[] vertices, out uint[] indices );
-		Log.Info( $"Queue MDF ID {id}! v: {vertices.Length}, i: {indices.Length}, t: {indices.Length / 3}" );
+		// Log.Info( $"Queue MDF ID {id}! v: {vertices.Length}, i: {indices.Length}, t: {indices.Length / 3}" );
 		// DebugLogMesh( vertices, indices, shape );
 		var vtxBuffer = new GpuBuffer<Vector3>( vertices.Length, GpuBuffer.UsageFlags.Structured | GpuBuffer.UsageFlags.Vertex );
 		vtxBuffer.SetData( vertices, 0 );
