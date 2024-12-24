@@ -30,14 +30,14 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 			{
 				bbox = bbox.AddPoint( vertices[i] );
 			}
-			return bbox.Grow( 1f );
+			return bbox.Grow( 2f );
 		}
 	}
 
 	private readonly Dictionary<int, MeshDistanceField> _meshDistanceFields = new();
 
 	private readonly Dictionary<int, MeshData> _mdfBuildQueue = new();
-	private readonly ComputeShader _meshSdfCs = new ComputeShader( "mesh_sdf_cs" );
+	private readonly ComputeShader _meshSdfCs = new( "mesh_sdf_cs" );
 
 	public void RemoveMdf( int id )
 	{
@@ -59,7 +59,8 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 	private enum MdfBuildStage
 	{
 		InitializeVolume,
-		AddSeedPoints,
+		FindSeeds,
+		InitializeSeeds,
 		JumpFlood,
 		DebugNormalized
 	}
@@ -84,27 +85,39 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 
 	private void DispatchBuildShader( Texture volume, MeshData data, BBox bounds )
 	{
-		// Initialize each texel of the volume texture.
+		int triCount = data.Indices.ElementCount / 3;
+		int voxelCount = volume.Width * volume.Height * volume.Depth;
+
+		var cellDataSize = 2;
+		var cellData = new GpuBuffer<Vector4>( cellDataSize * voxelCount, GpuBuffer.UsageFlags.Structured );
+		// Initialize each voxel of the volume texture and cell data.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeVolume );
 		_meshSdfCs.Attributes.Set( "Mins", bounds.Mins );
 		_meshSdfCs.Attributes.Set( "Maxs", bounds.Maxs );
+		_meshSdfCs.Attributes.Set( "Data", cellData );
 		_meshSdfCs.Attributes.Set( "OutputTexture", volume );
 		_meshSdfCs.Dispatch( volume.Width, volume.Height, volume.Depth );
 
-		// For each triangle, write a seed to the volume texture.
-		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.AddSeedPoints );
+		var seedCount = triCount;// * 4;
+		var seedDataSize = 2;
+		var seedData = new GpuBuffer<Vector4>( seedDataSize * seedCount, GpuBuffer.UsageFlags.Structured );
+		// For each triangle, find a seed value.
+		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.FindSeeds );
 		_meshSdfCs.Attributes.Set( "Vertices", data.Vertices );
-		_meshSdfCs.Attributes.Set( "VertexCount", data.Vertices.ElementCount );
 		_meshSdfCs.Attributes.Set( "Indices", data.Indices );
-		_meshSdfCs.Attributes.Set( "IndexCount", data.Indices.ElementCount );
-		_meshSdfCs.Dispatch( threadsX: data.Indices.ElementCount / 3 );
+		_meshSdfCs.Attributes.Set( "Seeds", seedData );
+		_meshSdfCs.Dispatch( threadsX: triCount );
+
+		// For each seed we found, write it to the volume data.
+		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeSeeds );
+		_meshSdfCs.Dispatch( threadsX: seedCount );
 
 		// Run a jump flooding algorithm to disperse information about the mesh to each texel/voxel.
+		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.JumpFlood );
 		var max = Math.Max( volume.Width, volume.Height );
 		max = Math.Max( max, volume.Depth );
 		for ( int step = max / 2; step > 0; step /= 2 )
 		{
-			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.JumpFlood );
 			_meshSdfCs.Attributes.Set( "JumpStep", step );
 			_meshSdfCs.Dispatch( volume.Width, volume.Height, volume.Depth );
 		}
