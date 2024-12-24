@@ -14,13 +14,13 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 
 	private struct MeshData
 	{
-		public GpuBuffer<Vector3> Vertices;
+		public GpuBuffer<Vector4> Vertices;
 		public GpuBuffer<uint> Indices;
 		public Transform Transform;
 
 		public readonly BBox CalculateMeshBounds()
 		{
-			var vertices = new Vector3[Vertices.ElementCount];
+			var vertices = new Vector4[Vertices.ElementCount];
 			Vertices.GetData( vertices );
 			if ( vertices.Length < 1 )
 				return default;
@@ -112,6 +112,16 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeSeeds );
 		_meshSdfCs.Dispatch( threadsX: seedCount );
 
+		//var retData = new Vector4[seedData.ElementCount];
+		//seedData.GetData( retData );
+		//for ( int i = 0; i < retData.Length; i += 2 )
+		//{
+		//	Vector4 positionOs = retData[i];
+		//	Vector4 normal = retData[i + 1];
+		//	DebugOverlaySystem.Current.Sphere( new Sphere( bounds.Center + positionOs, 1f ), color: Color.Cyan, duration: 5f, transform: data.Transform, overlay: true );
+		//	Log.Info( $"# {i / 2} pOs: {positionOs}, nor: {normal}" );
+		//}
+
 		// Run a jump flooding algorithm to disperse information about the mesh to each texel/voxel.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.JumpFlood );
 		var max = Math.Max( volume.Width, volume.Height );
@@ -121,6 +131,7 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 			_meshSdfCs.Attributes.Set( "JumpStep", step );
 			_meshSdfCs.Dispatch( volume.Width, volume.Height, volume.Depth );
 		}
+
 
 		// Debug visualization - uncomment to see the data normalized for display.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.DebugNormalized );
@@ -144,13 +155,14 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 
 	private void AddPhysicsShape( int id, PhysicsShape shape )
 	{
-		shape.Triangulate( out Vector3[] vertices, out uint[] indices );
+		shape.Triangulate( out Vector3[] vtx3, out uint[] indices );
+		var vertices = vtx3.Select( v => new Vector4( v.x, v.y, v.z, 0 ) ).ToArray();
 		// Log.Info( $"Queue MDF ID {id}! v: {vertices.Length}, i: {indices.Length}, t: {indices.Length / 3}" );
 		// DebugLogMesh( vertices, indices, shape );
-		var vtxBuffer = new GpuBuffer<Vector3>( vertices.Length, GpuBuffer.UsageFlags.Structured | GpuBuffer.UsageFlags.Vertex );
-		vtxBuffer.SetData( vertices, 0 );
+		var vtxBuffer = new GpuBuffer<Vector4>( vertices.Length, GpuBuffer.UsageFlags.Structured | GpuBuffer.UsageFlags.Vertex );
+		vtxBuffer.SetData( vertices );
 		var idxBuffer = new GpuBuffer<uint>( indices.Length, GpuBuffer.UsageFlags.Structured | GpuBuffer.UsageFlags.Index );
-		idxBuffer.SetData( indices, 0 );
+		idxBuffer.SetData( indices );
 		var meshData = new MeshData()
 		{
 			Vertices = vtxBuffer,
@@ -160,7 +172,7 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		_mdfBuildQueue[id] = meshData;
 	}
 
-	private void DebugLogMesh( Vector3[] vertices, uint[] indices, PhysicsShape shape )
+	private void DebugLogMesh( Vector4[] vertices, uint[] indices, PhysicsShape shape )
 	{
 		for ( int i = 0; i < indices.Length; i += 3 )
 		{
@@ -174,10 +186,11 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 			DebugOverlaySystem.Current.Sphere( new Sphere( v0, 1f ), color: Color.Red, duration: 5f, transform: shape.Body.Transform, overlay: true );
 			DebugOverlaySystem.Current.Sphere( new Sphere( v1, 1f ), color: Color.Red, duration: 5f, transform: shape.Body.Transform, overlay: true );
 			DebugOverlaySystem.Current.Sphere( new Sphere( v2, 1f ), color: Color.Red, duration: 5f, transform: shape.Body.Transform, overlay: true );
+			DebugOverlaySystem.Current.Sphere( new Sphere( ( v0 + v1 + v2 ) / 3.0f, 1f ), color: Color.Orange, duration: 5f, transform: shape.Body.Transform, overlay: true );
 			DebugOverlaySystem.Current.Line( v0, v1, color: Color.Green, duration: 5f, transform: shape.Body.Transform, overlay: true );
 			DebugOverlaySystem.Current.Line( v1, v2, color: Color.Green, duration: 5f, transform: shape.Body.Transform, overlay: true );
 			DebugOverlaySystem.Current.Line( v2, v0, color: Color.Green, duration: 5f, transform: shape.Body.Transform, overlay: true );
-			Log.Info( $"i ({i0},{i1},{i2}), v: ({v0},{v1},{v2})" );
+			Log.Info( $"i (0:{i0} 1:{i1} 2:{i2}), v: (0:{v0} 1:{v1} 2:{v2})" );
 		}
 	}
 }
