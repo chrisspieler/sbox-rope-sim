@@ -86,10 +86,14 @@ CS
 		float3 triCenter = ( v0 + v1 + v2 ) / 3.0;
 		float3 surfaceNormal = TriangleSurfaceNormal( v0, v1, v2 );
 
-		StoreSeed( triIndex, triCenter, surfaceNormal );
-		// StoreSeed( i * 4 + 1, v0, surfaceNormal );
-		// StoreSeed( i * 4 + 2, v0, surfaceNormal );
-		// StoreSeed( i * 4 + 3, v0, surfaceNormal );
+		v0 += ( triCenter - v0 ) * 0.1;
+		v1 += ( triCenter - v1 ) * 0.1;
+		v2 += ( triCenter - v2 ) * 0.1;
+
+		StoreSeed( triIndex * 4, triCenter, surfaceNormal );
+		StoreSeed( triIndex * 4 + 1, v0, surfaceNormal );
+		StoreSeed( triIndex * 4 + 2, v1, surfaceNormal );
+		StoreSeed( triIndex * 4 + 3, v2, surfaceNormal );
 	}
 
 	void InitializeSeedPoints( uint3 DTid, float3 dims )
@@ -152,10 +156,10 @@ CS
 					float sign = 1;
 
 					float3 qToLocalDir = normalize( localPos - q );
-					bool qFacesAway = dot( qToLocalDir, qSeed.Normal.xyz ) < 0;
+					bool qFacesAway = dot( qToLocalDir, qSeed.Normal.xyz ) <= 0;
 					if ( qFacesAway )
 					{
-						// sign = -1;
+						sign = -1;
 					}
 
 					pData.x = qData.x;
@@ -167,23 +171,35 @@ CS
 		OutputTexture[DTid] = pData;
 	}
 
+	void FinalizeOutput( uint3 DTid, uint3 dims )
+	{
+		float4 cellData = OutputTexture[DTid];
+		SeedData seedData = Seeds[(int)cellData.x];
+		OutputTexture[DTid] = float4( seedData.PositionOs.xyz, cellData.y );
+	}
+
 	void DebugNormalized( uint3 DTid, uint3 dims )
 	{
 		float4 data = OutputTexture[DTid];
-		SeedData seed = Seeds[(int)data.x];
-		float3 positionOs = seed.PositionOs.xyz;
+		float3 positionOs = data.rgb;
 		positionOs -= Mins;
 		positionOs /= abs( Maxs - Mins );
+		float sdf = data.a;
+		sdf /= distance( Maxs, Mins );
+		if ( sdf < 0 )
+		{
+			sdf *= 0.1;
+		}
+		sdf = abs( sdf );
+		SeedData seed = Seeds[(int)data.x];
 		float3 normal = seed.Normal.xyz;
 		normal += 1;
 		normal *= 0.5;
-		float sdf = data.y;
-		sdf /= distance( Maxs, Mins );
 		// OutputTexture[DTid] = float4( normal.rgb, 1 );
 		OutputTexture[DTid] = float4( positionOs.rgb, sdf );
 	}
 
-	DynamicCombo( D_STAGE, 0..4, Sys( All ) );
+	DynamicCombo( D_STAGE, 0..5, Sys( All ) );
 
 	#if D_STAGE == 1 || D_STAGE == 2
 	[numthreads( 1024, 1, 1 )]
@@ -203,6 +219,8 @@ CS
 		#elif D_STAGE == 3
 			JumpFlood( id, dims );
 		#elif D_STAGE == 4
+			FinalizeOutput( id, dims );
+		#elif D_STAGE == 5
 			DebugNormalized( id, dims );
 		#endif
 	}

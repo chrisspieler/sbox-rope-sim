@@ -1,4 +1,6 @@
-﻿namespace Duccsoft;
+﻿using static System.Runtime.InteropServices.JavaScript.JSType;
+
+namespace Duccsoft;
 
 public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 {
@@ -30,7 +32,7 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 			{
 				bbox = bbox.AddPoint( vertices[i] );
 			}
-			return bbox.Grow( 2f );
+			return bbox.Grow( 4f );
 		}
 	}
 
@@ -62,6 +64,7 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		FindSeeds,
 		InitializeSeeds,
 		JumpFlood,
+		FinalizeOutput,
 		DebugNormalized
 	}
 
@@ -90,7 +93,7 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 
 		var cellDataSize = 2;
 		var cellData = new GpuBuffer<Vector4>( cellDataSize * voxelCount, GpuBuffer.UsageFlags.Structured );
-		// Initialize each voxel of the volume texture and cell data.
+		// Initialize each texel of the volume texture as having no associated seed index.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeVolume );
 		_meshSdfCs.Attributes.Set( "Mins", bounds.Mins );
 		_meshSdfCs.Attributes.Set( "Maxs", bounds.Maxs );
@@ -98,31 +101,24 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		_meshSdfCs.Attributes.Set( "OutputTexture", volume );
 		_meshSdfCs.Dispatch( volume.Width, volume.Height, volume.Depth );
 
-		var seedCount = triCount;// * 4;
+		var seedCount = triCount * 4;
 		var seedDataSize = 2;
 		var seedData = new GpuBuffer<Vector4>( seedDataSize * seedCount, GpuBuffer.UsageFlags.Structured );
-		// For each triangle, find a seed value.
+		// For each triangle, write its object space position and normal to the seed data.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.FindSeeds );
 		_meshSdfCs.Attributes.Set( "Vertices", data.Vertices );
 		_meshSdfCs.Attributes.Set( "Indices", data.Indices );
 		_meshSdfCs.Attributes.Set( "Seeds", seedData );
 		_meshSdfCs.Dispatch( threadsX: triCount );
 
-		// For each seed we found, write it to the volume data.
+		// For each seed we found, write it to the seed data.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeSeeds );
 		_meshSdfCs.Dispatch( threadsX: seedCount );
 
-		//var retData = new Vector4[seedData.ElementCount];
-		//seedData.GetData( retData );
-		//for ( int i = 0; i < retData.Length; i += 2 )
-		//{
-		//	Vector4 positionOs = retData[i];
-		//	Vector4 normal = retData[i + 1];
-		//	DebugOverlaySystem.Current.Sphere( new Sphere( bounds.Center + positionOs, 1f ), color: Color.Cyan, duration: 5f, transform: data.Transform, overlay: true );
-		//	Log.Info( $"# {i / 2} pOs: {positionOs}, nor: {normal}" );
-		//}
+		// DebugLogSeedData( seedData, data, bounds );
 
-		// Run a jump flooding algorithm to disperse information about the mesh to each texel/voxel.
+		// Run a jump flooding algorithm to find the nearest seed index for each texel/voxel
+		// and calculate the signed distance to that seed's object space position.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.JumpFlood );
 		var max = Math.Max( volume.Width, volume.Height );
 		max = Math.Max( max, volume.Depth );
@@ -132,6 +128,9 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 			_meshSdfCs.Dispatch( volume.Width, volume.Height, volume.Depth );
 		}
 
+		// A final pass replaces the reference to each seed with the object space position of that seed.
+		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.FinalizeOutput );
+		_meshSdfCs.Dispatch( volume.Width, volume.Height, volume.Depth );
 
 		// Debug visualization - uncomment to see the data normalized for display.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.DebugNormalized );
@@ -191,6 +190,19 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 			DebugOverlaySystem.Current.Line( v1, v2, color: Color.Green, duration: 5f, transform: shape.Body.Transform, overlay: true );
 			DebugOverlaySystem.Current.Line( v2, v0, color: Color.Green, duration: 5f, transform: shape.Body.Transform, overlay: true );
 			Log.Info( $"i (0:{i0} 1:{i1} 2:{i2}), v: (0:{v0} 1:{v1} 2:{v2})" );
+		}
+	}
+
+	private void DebugLogSeedData( GpuBuffer<Vector4> seedData, MeshData data, BBox bounds )
+	{
+		var retData = new Vector4[seedData.ElementCount];
+		seedData.GetData( retData );
+		for ( int i = 0; i < retData.Length; i += 2 )
+		{
+			Vector4 positionOs = retData[i];
+			Vector4 normal = retData[i + 1];
+			DebugOverlaySystem.Current.Sphere( new Sphere( positionOs, 1f ), color: Color.Cyan, duration: 5f, transform: data.Transform, overlay: true );
+			Log.Info( $"# {i / 2} pOs: {positionOs}, nor: {normal}" );
 		}
 	}
 }
