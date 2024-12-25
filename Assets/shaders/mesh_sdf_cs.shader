@@ -19,6 +19,7 @@ CS
 	StructuredBuffer<float4> Vertices < Attribute("Vertices"); >;
 	StructuredBuffer<uint> Indices < Attribute("Indices"); >;
 	RWStructuredBuffer<SeedData> Seeds < Attribute( "Seeds" ); >;
+	RWStructuredBuffer<int> OutputData < Attribute( "OutputData" ); >;
 	RWTexture3D<float4> OutputTexture < Attribute( "OutputTexture" ); >;
 
 	int JumpStep < Attribute( "JumpStep" ); >;
@@ -60,14 +61,76 @@ CS
 		Seeds[i] = data;
 	}
 
+	struct Cell
+	{
+		int3 Voxel;
+		float3 VolumeDims;
+
+		float SignedDistance;
+
+		int SeedId;
+		float3 SeedPositionOs;
+		float3 SeedNormalOs;
+
+		static int GetIndex( int3 voxel, float3 volumeDims )
+		{
+			return ( voxel.z * volumeDims.y * volumeDims.z ) + ( voxel.y * volumeDims.x ) + voxel.x;
+		}
+
+		static void Initialize( int3 voxel, float3 volumeDims )
+		{
+			int i = Cell::GetIndex(voxel, volumeDims);
+			OutputData[i] = -1;
+			OutputTexture[voxel] = float4( 0, 0, 0, 0 );
+		}
+
+		static Cell Load( int3 voxel, float3 volumeDims )
+		{
+			Cell cell;
+			cell.Voxel = voxel;
+			cell.VolumeDims = volumeDims;
+
+			float4 tex = OutputTexture[cell.Voxel];
+			cell.SignedDistance = tex.a;
+			int i = Cell::GetIndex(cell.Voxel, cell.VolumeDims);
+			cell.SeedId = OutputData[i];
+
+			if ( cell.SeedId < 0 && cell.SignedDistance >= 0 )
+				return cell;
+
+			SeedData seed = Seeds[abs( cell.SeedId )];
+			cell.SeedPositionOs = seed.PositionOs.xyz;
+			cell.SeedNormalOs = seed.Normal.xyz;
+			return cell;
+		}
+
+		void StoreSeedId()
+		{
+			int i = Cell::GetIndex(Voxel, VolumeDims);
+			int iOut;
+			InterlockedExchange( OutputData[i], SeedId, iOut );
+		}
+
+		void StoreTexture()
+		{
+			OutputTexture[Voxel] = float4( SeedPositionOs.xyz, SignedDistance );
+		}
+	};
+
+//------------------------------------------------------------------
+// Stages
+//------------------------------------------------------------------
+
+	// Stage 0, 3D (Voxels)
 	void InitializeVolume( uint3 DTid, float3 dims )
 	{
-		if ( any( DTid >= dims ) )
+		if ( any( DTid < 0 ) || any( DTid >= dims ) )
 			return;
 
-		OutputTexture[DTid] = float4( -1, 0, 0, 0 );
+		Cell::Initialize( DTid, dims );
 	}
 
+	// Stage 1, 1D (Triangles)
 	void FindSeedPoints( uint3 DTid, float3 dims )
 	{
 		uint triIndex = DTid.x;
@@ -96,26 +159,29 @@ CS
 		StoreSeed( triIndex * 4 + 3, v2, surfaceNormal );
 	}
 
+	// Stage 2, 1D (Seeds)
 	void InitializeSeedPoints( uint3 DTid, float3 dims )
 	{
 		SeedData seedData = Seeds[DTid.x];
 		uint3 voxel = PositionOsToTexel( seedData.PositionOs.xyz, dims );
-		float3 positionOs = TexelCenterToPositionOs( voxel, dims );
-		int previousSeed = (int)OutputTexture[voxel].x;
-		if ( previousSeed >= 0 )
+		Cell cell = Cell::Load( voxel, dims );
+		if ( cell.SeedId >= 0 )
 		{
-			SeedData previousSeedData = Seeds[previousSeed];
-			float previousDist = distance( positionOs, previousSeedData.PositionOs.xyz );
+			float3 positionOs = TexelCenterToPositionOs( voxel, dims );
+			SeedData previousSeedData = Seeds[cell.SeedId];
+			float previousDist = distance( positionOs, cell.SeedPositionOs );
 			float currentDist = distance( positionOs, seedData.PositionOs.xyz );
 			if ( currentDist > previousDist )
 				return;
 		}
-		OutputTexture[voxel] = float4( DTid.x, 0, 0, 0 );
+		cell.SeedId = DTid.x;
+		cell.StoreSeedId();
 	}
 
+	// Stage 3, 3D (Voxels)
 	void JumpFlood( uint3 DTid, float3 dims )
 	{
-		float4 pData = OutputTexture[DTid];
+		Cell pCell = Cell::Load( DTid, dims );
 
 		for ( int z = -1; z <= 1; z++ )
 		{
@@ -130,74 +196,83 @@ CS
 					if ( any( neighbor < 0 ) || any( neighbor >= dims ) )
 						continue;
 					
-					float4 qData = OutputTexture[neighbor];
+					Cell qCell = Cell::Load( neighbor, dims );
 
 					// If the neighboring voxel is undefined, we can't get anything useful from it.
-					if ( (int)qData.x < 0 )
+					if ( qCell.SeedId < 0 )
 						continue;
 
-					SeedData qSeed = Seeds[max( 0, (int)qData.x )];
-					SeedData pSeed = Seeds[max( 0, (int)pData.x )];
-
-					float3 p = pSeed.PositionOs.xyz;
-					float3 q = qSeed.PositionOs.xyz;
-
 					float3 localPos = TexelCenterToPositionOs( DTid, dims );
-					float pDist = distance( localPos, p );
-					float qDist = distance( localPos, q );
+					float pDist = distance( localPos, pCell.SeedPositionOs );
+					float qDist = distance( localPos, qCell.SeedPositionOs );
 
 					// If this voxel is already defined and given a seed cell that is
 					// nearer than this neighbor, don't update this voxel at all.
-					if ( (int)pData.x > -1 && pDist < qDist )
+					if ( pCell.SeedId >= 0 && pDist < qDist )
 						continue;
+
+					// We will use our neighbor's seed, as it is nearer to this voxel.
+					pCell.SeedId = qCell.SeedId;
+					pCell.SeedPositionOs = qCell.SeedPositionOs;
+					pCell.StoreSeedId();
 
 					// If we've copied a triangle point from a neighbor, we should evaluate whether
 					// our new distance should be positive or negative.
 					float sign = 1;
 
-					float3 qToLocalDir = normalize( localPos - q );
-					bool qFacesAway = dot( qToLocalDir, qSeed.Normal.xyz ) <= 0;
+					float3 qToLocalDir = normalize( localPos - qCell.SeedPositionOs );
+					bool qFacesAway = dot( qToLocalDir, qCell.SeedNormalOs ) <= 0;
 					if ( qFacesAway )
 					{
 						sign = -1;
 					}
 
-					pData.x = qData.x;
-					pData.y = qDist * sign;
+					pCell.SignedDistance = qDist * sign;
+					pCell.StoreTexture();
 				}
 			}
 		}
-
-		OutputTexture[DTid] = pData;
 	}
 
+	// Stage 4, 3D (Voxels)
 	void FinalizeOutput( uint3 DTid, uint3 dims )
 	{
-		float4 cellData = OutputTexture[DTid];
-		SeedData seedData = Seeds[(int)cellData.x];
-		OutputTexture[DTid] = float4( seedData.PositionOs.xyz, cellData.y );
+		Cell cell = Cell::Load( DTid, dims );
+		if ( cell.SignedDistance < 0 )
+		{
+			cell.SeedId = -cell.SeedId;
+		}
+		cell.StoreSeedId();
 	}
 
+	// Stage 5, 3D (Voxels)
 	void DebugNormalized( uint3 DTid, uint3 dims )
 	{
-		float4 data = OutputTexture[DTid];
-		float3 positionOs = data.rgb;
-		positionOs -= Mins;
-		positionOs /= abs( Maxs - Mins );
-		float sdf = data.a;
+		bool useNormal = false;
+
+		Cell cell = Cell::Load( DTid, dims );
+		cell.SeedPositionOs -= Mins;
+		cell.SeedPositionOs /= abs( Maxs - Mins );
+		float sdf = cell.SignedDistance;
 		sdf /= distance( Maxs, Mins );
 		if ( sdf < 0 )
 		{
 			sdf *= 0.1;
 		}
-		sdf = abs( sdf );
-		SeedData seed = Seeds[(int)data.x];
-		float3 normal = seed.Normal.xyz;
-		normal += 1;
-		normal *= 0.5;
-		// OutputTexture[DTid] = float4( normal.rgb, 1 );
-		OutputTexture[DTid] = float4( positionOs.rgb, sdf );
+		cell.SignedDistance = abs( sdf );
+		if ( useNormal )
+		{
+			float3 normal = cell.SeedNormalOs;
+			normal += 1;
+			normal *= 0.5;
+			cell.SeedPositionOs = normal;
+		}
+		cell.StoreTexture();
 	}
+
+//------------------------------------------------------------------
+// Main
+//------------------------------------------------------------------
 
 	DynamicCombo( D_STAGE, 0..5, Sys( All ) );
 
@@ -208,7 +283,7 @@ CS
 	#endif
 	void MainCs( uint3 id : SV_DispatchThreadID )
 	{
-		float3 dims;
+		uint3 dims;
 		OutputTexture.GetDimensions( dims.x, dims.y, dims.z );
 		#if D_STAGE == 0
 			InitializeVolume( id, dims );

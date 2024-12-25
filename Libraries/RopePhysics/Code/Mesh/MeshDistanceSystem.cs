@@ -1,6 +1,4 @@
-﻿using static System.Runtime.InteropServices.JavaScript.JSType;
-
-namespace Duccsoft;
+﻿namespace Duccsoft;
 
 public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 {
@@ -72,69 +70,82 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 	{
 		var bounds = data.CalculateMeshBounds();
 		// var size = bounds.Size * 1f;
-		var size = new Vector3( 128 );
+		var size = new Vector3( 64 );
 		var max = MathF.Max( size.x, size.y );
 		max = MathF.Max( max, size.z );
-		var volume = Texture
+		var volumeTex = Texture
 			.CreateVolume( (int)max, (int)max, (int)max, ImageFormat.RGBA32323232F )
 			.WithUAVBinding()
 			.Finish();
 
 		// Log.Info( $"Build MDF ID {id}! Bounds: {bounds}, Volume: {volume.Size.x}x{volume.Size.y}x{volume.Depth}" );
-		DispatchBuildShader( volume, data, bounds );
-		var mdf = new MeshDistanceField( id, volume, bounds );
+		var volumeData = DispatchBuildShader( volumeTex, data, bounds );
+		var mdf = new MeshDistanceField( id, volumeData, bounds );
 		_meshDistanceFields[id] = mdf;
 	}
 
-	private void DispatchBuildShader( Texture volume, MeshData data, BBox bounds )
+	private MeshVolumeData DispatchBuildShader( Texture volumeTex, MeshData data, BBox bounds )
 	{
 		int triCount = data.Indices.ElementCount / 3;
-		int voxelCount = volume.Width * volume.Height * volume.Depth;
+		int voxelCount = volumeTex.Width * volumeTex.Height * volumeTex.Depth;
 
-		var cellDataSize = 2;
-		var cellData = new GpuBuffer<Vector4>( cellDataSize * voxelCount, GpuBuffer.UsageFlags.Structured );
+		var voxelDataGpu = new GpuBuffer<int>( voxelCount, GpuBuffer.UsageFlags.Structured );
 		// Initialize each texel of the volume texture as having no associated seed index.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeVolume );
 		_meshSdfCs.Attributes.Set( "Mins", bounds.Mins );
 		_meshSdfCs.Attributes.Set( "Maxs", bounds.Maxs );
-		_meshSdfCs.Attributes.Set( "Data", cellData );
-		_meshSdfCs.Attributes.Set( "OutputTexture", volume );
-		_meshSdfCs.Dispatch( volume.Width, volume.Height, volume.Depth );
+		_meshSdfCs.Attributes.Set( "OutputData", voxelDataGpu );
+		_meshSdfCs.Attributes.Set( "OutputTexture", volumeTex );
+		_meshSdfCs.Dispatch( volumeTex.Width, volumeTex.Height, volumeTex.Depth );
 
 		var seedCount = triCount * 4;
-		var seedDataSize = 2;
-		var seedData = new GpuBuffer<Vector4>( seedDataSize * seedCount, GpuBuffer.UsageFlags.Structured );
+		var seedDataGpu = new GpuBuffer<MeshSeedData>( seedCount, GpuBuffer.UsageFlags.Structured );
 		// For each triangle, write its object space position and normal to the seed data.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.FindSeeds );
 		_meshSdfCs.Attributes.Set( "Vertices", data.Vertices );
 		_meshSdfCs.Attributes.Set( "Indices", data.Indices );
-		_meshSdfCs.Attributes.Set( "Seeds", seedData );
+		_meshSdfCs.Attributes.Set( "Seeds", seedDataGpu );
 		_meshSdfCs.Dispatch( threadsX: triCount );
 
 		// For each seed we found, write it to the seed data.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeSeeds );
 		_meshSdfCs.Dispatch( threadsX: seedCount );
 
-		// DebugLogSeedData( seedData, data, bounds );
 
 		// Run a jump flooding algorithm to find the nearest seed index for each texel/voxel
 		// and calculate the signed distance to that seed's object space position.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.JumpFlood );
-		var max = Math.Max( volume.Width, volume.Height );
-		max = Math.Max( max, volume.Depth );
+		var max = Math.Max( volumeTex.Width, volumeTex.Height );
+		max = Math.Max( max, volumeTex.Depth );
 		for ( int step = max / 2; step > 0; step /= 2 )
 		{
 			_meshSdfCs.Attributes.Set( "JumpStep", step );
-			_meshSdfCs.Dispatch( volume.Width, volume.Height, volume.Depth );
+			_meshSdfCs.Dispatch( volumeTex.Width, volumeTex.Height, volumeTex.Depth );
 		}
 
 		// A final pass replaces the reference to each seed with the object space position of that seed.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.FinalizeOutput );
-		_meshSdfCs.Dispatch( volume.Width, volume.Height, volume.Depth );
+		_meshSdfCs.Dispatch( volumeTex.Width, volumeTex.Height, volumeTex.Depth );
 
 		// Debug visualization - uncomment to see the data normalized for display.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.DebugNormalized );
-		_meshSdfCs.Dispatch( volume.Width, volume.Height, volume.Depth );
+		_meshSdfCs.Dispatch( volumeTex.Width, volumeTex.Height, volumeTex.Depth );
+
+		var seedData = new MeshSeedData[seedCount];
+		seedDataGpu.GetData( seedData );
+		// DumpSeedData( seedData, data );
+
+		var voxelData = new int[voxelCount];
+		voxelDataGpu.GetData( voxelData );
+		// DumpVoxelData( voxelData );
+
+		return new MeshVolumeData()
+		{
+			Texture = volumeTex,
+			Voxels = voxelData,
+			VoxelCount = new Vector3Int( volumeTex.Width, volumeTex.Height, volumeTex.Depth ),
+			Seeds = seedData,
+		};
 	}
 
 	public bool TryGetMdf( PhysicsShape shape, out MeshDistanceField meshDistanceField )
@@ -156,8 +167,8 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 	{
 		shape.Triangulate( out Vector3[] vtx3, out uint[] indices );
 		var vertices = vtx3.Select( v => new Vector4( v.x, v.y, v.z, 0 ) ).ToArray();
-		// Log.Info( $"Queue MDF ID {id}! v: {vertices.Length}, i: {indices.Length}, t: {indices.Length / 3}" );
-		// DebugLogMesh( vertices, indices, shape );
+		Log.Info( $"Queue MDF ID {id}! v: {vertices.Length}, i: {indices.Length}, t: {indices.Length / 3}" );
+		// DumpMesh( vertices, indices, shape );
 		var vtxBuffer = new GpuBuffer<Vector4>( vertices.Length, GpuBuffer.UsageFlags.Structured | GpuBuffer.UsageFlags.Vertex );
 		vtxBuffer.SetData( vertices );
 		var idxBuffer = new GpuBuffer<uint>( indices.Length, GpuBuffer.UsageFlags.Structured | GpuBuffer.UsageFlags.Index );
@@ -171,7 +182,7 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		_mdfBuildQueue[id] = meshData;
 	}
 
-	private void DebugLogMesh( Vector4[] vertices, uint[] indices, PhysicsShape shape )
+	private void DumpMesh( Vector4[] vertices, uint[] indices, PhysicsShape shape )
 	{
 		for ( int i = 0; i < indices.Length; i += 3 )
 		{
@@ -193,16 +204,24 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		}
 	}
 
-	private void DebugLogSeedData( GpuBuffer<Vector4> seedData, MeshData data, BBox bounds )
+	private void DumpSeedData( Span<MeshSeedData> seedData, MeshData data )
 	{
-		var retData = new Vector4[seedData.ElementCount];
-		seedData.GetData( retData );
-		for ( int i = 0; i < retData.Length; i += 2 )
+		for ( int i = 0; i < seedData.Length; i++ )
 		{
-			Vector4 positionOs = retData[i];
-			Vector4 normal = retData[i + 1];
+			var seedDatum = seedData[i];
+			Vector4 positionOs = seedDatum.Position;
+			Vector4 normal = seedDatum.Normal;
 			DebugOverlaySystem.Current.Sphere( new Sphere( positionOs, 1f ), color: Color.Cyan, duration: 5f, transform: data.Transform, overlay: true );
-			Log.Info( $"# {i / 2} pOs: {positionOs}, nor: {normal}" );
+			Log.Info( $"# {i} pOs: {positionOs}, nor: {normal}" );
+		}
+	}
+
+	private void DumpVoxelData( Span<int> voxelData )
+	{
+		for ( int i = 0; i < voxelData.Length; i++ )
+		{
+			var voxel = voxelData[i];
+			Log.Info( $"voxel {i} seedId: {voxel}" );
 		}
 	}
 }
