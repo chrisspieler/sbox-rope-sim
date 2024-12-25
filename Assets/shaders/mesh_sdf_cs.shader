@@ -41,6 +41,7 @@ CS
 
 	float3 TexelCenterToPositionOs( uint3 texel, float3 dims )
 	{
+		texel = clamp( texel, 0, dims );
 		float3 positionOs = TexelToPositionOs( texel, dims );
 		return positionOs + GetVoxelSize( dims ) * 0.5;
 	}
@@ -49,7 +50,7 @@ CS
 	{
 		float3 normalized = ( pos - Mins ) / ( Maxs - Mins );
 		uint3 texel = dims * normalized;
-		return texel;
+		return clamp(texel, 0, dims);
 	}
 
 	void StoreSeed( int i, float3 positionOs, float3 surfaceNormal )
@@ -74,7 +75,8 @@ CS
 
 		static int GetIndex( int3 voxel, float3 volumeDims )
 		{
-			return ( voxel.z * volumeDims.y * volumeDims.z ) + ( voxel.y * volumeDims.x ) + voxel.x;
+			uint3 dims = (uint3)volumeDims;
+			return ( voxel.z * dims.y * dims.z ) + ( voxel.y * dims.x ) + voxel.x;
 		}
 
 		static void Initialize( int3 voxel, float3 volumeDims )
@@ -84,18 +86,30 @@ CS
 			OutputTexture[voxel] = float4( 0, 0, 0, 0 );
 		}
 
+		bool IsValid()
+		{
+			return !any( Voxel < 0 ) && !any( Voxel >= (uint3)VolumeDims );
+		}
+
+		bool IsSeed()
+		{
+			return !( SeedId == -1 && SignedDistance < 0 );
+		}
+
 		static Cell Load( int3 voxel, float3 volumeDims )
 		{
 			Cell cell;
 			cell.Voxel = voxel;
 			cell.VolumeDims = volumeDims;
+			if ( !cell.IsValid() )
+				return cell;
 
 			float4 tex = OutputTexture[cell.Voxel];
 			cell.SignedDistance = tex.a;
 			int i = Cell::GetIndex(cell.Voxel, cell.VolumeDims);
 			cell.SeedId = OutputData[i];
-
-			if ( cell.SeedId < 0 && cell.SignedDistance >= 0 )
+			
+			if ( !cell.IsSeed() )
 				return cell;
 
 			SeedData seed = Seeds[abs( cell.SeedId )];
@@ -117,24 +131,32 @@ CS
 		}
 	};
 
-//------------------------------------------------------------------
-// Stages
-//------------------------------------------------------------------
+//==================================================================
+// STAGES
+//==================================================================
 
-	// Stage 0, 3D (Voxels)
-	void InitializeVolume( uint3 DTid, float3 dims )
+//------------------------------------------------------------------
+// Stage 0, 3D (Voxels)
+//------------------------------------------------------------------
+	void InitializeVolume( uint3 voxel, float3 dims )
 	{
-		if ( any( DTid < 0 ) || any( DTid >= dims ) )
+		if ( any( voxel < 0 ) || any( voxel >= dims ) )
 			return;
 
-		Cell::Initialize( DTid, dims );
+		Cell::Initialize( voxel, dims );
 	}
 
-	// Stage 1, 1D (Triangles)
-	void FindSeedPoints( uint3 DTid, float3 dims )
+//------------------------------------------------------------------
+// Stage 1, 1D (Triangles)
+//------------------------------------------------------------------
+	void FindSeedPoints( int triId, float3 dims )
 	{
-		uint triIndex = DTid.x;
-		uint iIndex = triIndex * 3;
+		uint iIndex = triId * 3;
+
+		uint numIndices, indexStride;
+		Indices.GetDimensions( numIndices, indexStride );
+		if ( iIndex >= numIndices )
+			return;
 		
 		// Triangle indices
 		uint i0 = Indices[iIndex];
@@ -153,19 +175,32 @@ CS
 		v1 += ( triCenter - v1 ) * 0.1;
 		v2 += ( triCenter - v2 ) * 0.1;
 
-		StoreSeed( triIndex * 4, triCenter, surfaceNormal );
-		StoreSeed( triIndex * 4 + 1, v0, surfaceNormal );
-		StoreSeed( triIndex * 4 + 2, v1, surfaceNormal );
-		StoreSeed( triIndex * 4 + 3, v2, surfaceNormal );
+		// Each triangle has four seeds - the center, and slightly inside of each vertex.
+		int sIndex = triId * 4;
+		StoreSeed( sIndex, triCenter, surfaceNormal );
+		StoreSeed( sIndex + 1, v0, surfaceNormal );
+		StoreSeed( sIndex + 2, v1, surfaceNormal );
+		StoreSeed( sIndex + 3, v2, surfaceNormal );
 	}
 
-	// Stage 2, 1D (Seeds)
-	void InitializeSeedPoints( uint3 DTid, float3 dims )
+//------------------------------------------------------------------
+// Stage 2, 1D (Seeds)
+//------------------------------------------------------------------
+	void InitializeSeedPoints( int seedId, float3 dims )
 	{
-		SeedData seedData = Seeds[DTid.x];
+		uint numSeeds, seedStride;
+		Seeds.GetDimensions( numSeeds, seedStride );
+		if ( seedId >= (int)numSeeds )
+			return;
+
+		// Get data such as the object space position and normal for this seed id.
+		SeedData seedData = Seeds[seedId];
 		uint3 voxel = PositionOsToTexel( seedData.PositionOs.xyz, dims );
 		Cell cell = Cell::Load( voxel, dims );
-		if ( cell.SeedId >= 0 )
+		if ( !cell.IsValid() )
+			return;
+		
+		if ( cell.IsSeed() )
 		{
 			float3 positionOs = TexelCenterToPositionOs( voxel, dims );
 			SeedData previousSeedData = Seeds[cell.SeedId];
@@ -174,83 +209,130 @@ CS
 			if ( currentDist > previousDist )
 				return;
 		}
-		cell.SeedId = DTid.x;
+		cell.SeedId = seedId;
 		cell.StoreSeedId();
 	}
 
-	// Stage 3, 3D (Voxels)
-	void JumpFlood( uint3 DTid, float3 dims )
+//------------------------------------------------------------------
+// Stage 3, 3D (Voxels)
+//------------------------------------------------------------------
+	Cell Flood( uint3 voxel, float3 dims, Cell pCell, Cell qCell )
 	{
-		Cell pCell = Cell::Load( DTid, dims );
+		// The neighbor must be a seed cell within the range of the texture, or we won't use it.
+		if ( !qCell.IsValid() || !qCell.IsSeed() )
+			return pCell;
 
-		for ( int z = -1; z <= 1; z++ )
+		float3 localPos = TexelCenterToPositionOs( voxel, dims );
+		float pDist = distance( localPos, pCell.SeedPositionOs );
+		float qDist = distance( localPos, qCell.SeedPositionOs );
+
+		// If this voxel is already defined and given a seed cell that is
+		// nearer than this neighbor, don't update this voxel at all.
+		if ( pCell.SeedId >= 0 && pDist < qDist )
+			return pCell;
+
+		// We will use our neighbor's seed, as it is nearer to this voxel.
+		pCell.SeedId = qCell.SeedId;
+		pCell.SeedPositionOs = qCell.SeedPositionOs;
+
+		// If we've copied a triangle point from a neighbor, we should evaluate whether
+		// our new distance should be positive or negative.
+		float sign = 1;
+
+		float3 qToLocalDir = normalize( localPos - qCell.SeedPositionOs );
+		bool qFacesAway = dot( qToLocalDir, qCell.SeedNormalOs ) <= 0;
+		if ( qFacesAway )
 		{
-			for ( int y = -1; y <= 1; y++ )
-			{
-				for ( int x = -1; x <= 1; x++ )
-				{
-					uint3 nOffset = uint3( x, y, z );
-					uint3 neighbor = DTid + nOffset * JumpStep;
+			sign = -1;
+		}
 
-					// Don't sample neighbors that are out of the range of the texture.
-					if ( any( neighbor < 0 ) || any( neighbor >= dims ) )
-						continue;
-					
-					Cell qCell = Cell::Load( neighbor, dims );
+		pCell.SignedDistance = qDist * sign;
+		return pCell;
+	}
 
-					// If the neighboring voxel is undefined, we can't get anything useful from it.
-					if ( qCell.SeedId < 0 )
-						continue;
+	void JumpFlood( uint3 voxel, float3 dims )
+	{
+		Cell pCell = Cell::Load( voxel, dims );
+		// In case the the shader was somehow dispatched with the wrong number of threads.
+		if ( !pCell.IsValid() )
+			return;
 
-					float3 localPos = TexelCenterToPositionOs( DTid, dims );
-					float pDist = distance( localPos, pCell.SeedPositionOs );
-					float qDist = distance( localPos, qCell.SeedPositionOs );
+		// Each voxel has an neighbor at:
+		// - Eight directions on the current Z slice
+		// - Nine directions, including the center cell, on the Z+1 and Z-1 slices
+		Cell nCells[26];
 
-					// If this voxel is already defined and given a seed cell that is
-					// nearer than this neighbor, don't update this voxel at all.
-					if ( pCell.SeedId >= 0 && pDist < qDist )
-						continue;
+		for ( int z = -1; z <= 1; z++ ) {
+			for ( int y = -1; y <= 1; y++ ) {
+				for ( int x = -1; x <= 1; x++ ) {
 
-					// We will use our neighbor's seed, as it is nearer to this voxel.
-					pCell.SeedId = qCell.SeedId;
-					pCell.SeedPositionOs = qCell.SeedPositionOs;
-					pCell.StoreSeedId();
+					int3 nOffset = int3( x, y, z );
+					int3 qVoxel = voxel + nOffset * JumpStep;
 
-					// If we've copied a triangle point from a neighbor, we should evaluate whether
-					// our new distance should be positive or negative.
-					float sign = 1;
+					// Shift each component +1 to remap from -1 to 1 -> 0 to 2.
+					nOffset += 1;
 
-					float3 qToLocalDir = normalize( localPos - qCell.SeedPositionOs );
-					bool qFacesAway = dot( qToLocalDir, qCell.SeedNormalOs ) <= 0;
-					if ( qFacesAway )
+					// The new max value per component is now 3. So, when adding each
+					// component to the index, the following offsets are also added.
+					//  x - 0
+					// 	y - 3^1 
+					// 	z - 3^2
+					int i = ( nOffset.z * 9 ) + ( nOffset.y * 3 ) + nOffset.x;
+
+					// This is the index of the local cell (0,0,0), which would have its components 
+					// shifted to (1,1,1), with an index of: ( 1 * 9 ) + ( 1 * 3 ) + 1
+					int centerIndex = 13;
+
+					// Skip adding the local cell.
+					if ( i == centerIndex )
 					{
-						sign = -1;
+						continue;
+					}
+					// Because we skipped adding the local cell, we must account 
+					// for the gap by shifting all subsequent indices down by one.
+					else if ( i > centerIndex )
+					{
+						i--;
 					}
 
-					pCell.SignedDistance = qDist * sign;
-					pCell.StoreTexture();
-				}
-			}
+					nCells[i] = Cell::Load( qVoxel, dims );
+		}}}
+
+		for( int i = 0; i < 26; i++ )
+		{
+			pCell = Flood( voxel, dims, pCell, nCells[i] );
 		}
+		pCell.StoreSeedId();
+		pCell.StoreTexture();
 	}
 
-	// Stage 4, 3D (Voxels)
-	void FinalizeOutput( uint3 DTid, uint3 dims )
+//------------------------------------------------------------------
+// Stage 4, 3D (Voxels)
+//------------------------------------------------------------------
+	void FinalizeOutput( uint3 voxel, uint3 dims )
 	{
-		Cell cell = Cell::Load( DTid, dims );
+		Cell cell = Cell::Load( voxel, dims );
+		if ( !cell.IsValid() )
+			return;
+
 		if ( cell.SignedDistance < 0 )
 		{
-			cell.SeedId = -cell.SeedId;
+			cell.SeedId *= -1;
 		}
 		cell.StoreSeedId();
 	}
 
-	// Stage 5, 3D (Voxels)
-	void DebugNormalized( uint3 DTid, uint3 dims )
+//------------------------------------------------------------------
+// Stage 5, 3D (Voxels)
+//------------------------------------------------------------------
+	void DebugNormalized( uint3 voxel, uint3 dims )
 	{
 		bool useNormal = false;
 
-		Cell cell = Cell::Load( DTid, dims );
+		Cell cell = Cell::Load( voxel, dims );
+		if ( !cell.IsValid() )
+			return;
+
 		cell.SeedPositionOs -= Mins;
 		cell.SeedPositionOs /= abs( Maxs - Mins );
 		float sdf = cell.SignedDistance;
@@ -288,9 +370,9 @@ CS
 		#if D_STAGE == 0
 			InitializeVolume( id, dims );
 		#elif D_STAGE == 1
-			FindSeedPoints( id, dims );
+			FindSeedPoints( id.x, dims );
 		#elif D_STAGE == 2
-			InitializeSeedPoints( id, dims );
+			InitializeSeedPoints( id.x, dims );
 		#elif D_STAGE == 3
 			JumpFlood( id, dims );
 		#elif D_STAGE == 4

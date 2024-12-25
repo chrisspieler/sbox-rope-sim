@@ -107,10 +107,13 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		_meshSdfCs.Attributes.Set( "Seeds", seedDataGpu );
 		_meshSdfCs.Dispatch( threadsX: triCount );
 
+		var seedData = new MeshSeedData[seedCount];
+		seedDataGpu.GetData( seedData );
+		// DumpSeedData( seedData, data );
+
 		// For each seed we found, write it to the seed data.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeSeeds );
 		_meshSdfCs.Dispatch( threadsX: seedCount );
-
 
 		// Run a jump flooding algorithm to find the nearest seed index for each texel/voxel
 		// and calculate the signed distance to that seed's object space position.
@@ -131,13 +134,8 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.DebugNormalized );
 		_meshSdfCs.Dispatch( volumeTex.Width, volumeTex.Height, volumeTex.Depth );
 
-		var seedData = new MeshSeedData[seedCount];
-		seedDataGpu.GetData( seedData );
-		// DumpSeedData( seedData, data );
-
 		var voxelData = new int[voxelCount];
 		voxelDataGpu.GetData( voxelData );
-		// DumpVoxelData( voxelData );
 
 		return new MeshVolumeData()
 		{
@@ -167,7 +165,7 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 	{
 		shape.Triangulate( out Vector3[] vtx3, out uint[] indices );
 		var vertices = vtx3.Select( v => new Vector4( v.x, v.y, v.z, 0 ) ).ToArray();
-		Log.Info( $"Queue MDF ID {id}! v: {vertices.Length}, i: {indices.Length}, t: {indices.Length / 3}" );
+		// Log.Info( $"Queue MDF ID {id}! v: {vertices.Length}, i: {indices.Length}, t: {indices.Length / 3}" );
 		// DumpMesh( vertices, indices, shape );
 		var vtxBuffer = new GpuBuffer<Vector4>( vertices.Length, GpuBuffer.UsageFlags.Structured | GpuBuffer.UsageFlags.Vertex );
 		vtxBuffer.SetData( vertices );
