@@ -171,9 +171,9 @@ CS
 		float3 triCenter = ( v0 + v1 + v2 ) / 3.0;
 		float3 surfaceNormal = TriangleSurfaceNormal( v0, v1, v2 );
 
-		v0 += ( triCenter - v0 ) * 0.1;
-		v1 += ( triCenter - v1 ) * 0.1;
-		v2 += ( triCenter - v2 ) * 0.1;
+		v0 += ( triCenter - v0 ) * 0.5;
+		v1 += ( triCenter - v1 ) * 0.5;
+		v2 += ( triCenter - v2 ) * 0.5;
 
 		// Each triangle has four seeds - the center, and slightly inside of each vertex.
 		int sIndex = triId * 4;

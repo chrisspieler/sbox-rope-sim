@@ -46,6 +46,7 @@ public partial class VerletRope
 	private struct MeshCollisionInfo
 	{
 		public int Id;
+		public MeshDistanceField Mdf;
 		public Transform Transform;
 		public List<int> CollidingPoints;
 
@@ -180,9 +181,9 @@ public partial class VerletRope
 		// Meshes, Hulls, and Terrain
 		else if ( tr.Shape.IsMeshShape || tr.Shape.IsHullShape || tr.Shape.IsHeightfieldShape )
 		{
-			if ( UseMeshDistanceFields && MeshDistanceSystem.Current.TryGetMdf( tr.Shape, out _ ) )
+			if ( UseMeshDistanceFields && MeshDistanceSystem.Current.TryGetMdf( tr.Shape, out MeshDistanceField mdf ) )
 			{
-				CaptureMeshCollision( pointIndex, tr.Shape );
+				CaptureMeshCollision( pointIndex, tr.Shape, mdf );
 			}
 			else
 			{
@@ -267,17 +268,17 @@ public partial class VerletRope
 		ci.CollidingPoints.Add( pointindex );
 	}
 
-	private void CaptureMeshCollision( int pointIndex, PhysicsShape shape )
+	private void CaptureMeshCollision( int pointIndex, PhysicsShape shape, MeshDistanceField mdf )
 	{
-		var id = shape.GetHashCode();
-		if ( !_meshColliders.TryGetValue( id, out var ci ) )
+		if ( !_meshColliders.TryGetValue( mdf.Id, out var ci ) )
 		{
 			ci = new MeshCollisionInfo()
 			{
-				Id = id,
+				Id = mdf.Id,
+				Mdf = mdf,
 				Transform = shape.Body.Transform,
 			};
-			_meshColliders[id] = ci;
+			_meshColliders[mdf.Id] = ci;
 		}
 		ci.CollidingPoints.Add( pointIndex );
 	}
@@ -335,6 +336,7 @@ public partial class VerletRope
 		ResolveSphereCollisions();
 		ResolveBoxCollisions();
 		ResolveCapsuleCollisions();
+		ResolveMeshCollisions();
 		ResolveGenericCollisions();
 
 		_shouldUpdateCollisions = true;
@@ -447,6 +449,25 @@ public partial class VerletRope
 				var currentPos = collision.HitPosition + collision.Normal * SolidRadius;
 				currentPos = ci.Transform.PointToWorld( currentPos );
 				_points[collision.Id] = point with { Position = currentPos };
+			}
+		}
+	}
+
+	private void ResolveMeshCollisions()
+	{
+		foreach ( (_, var ci) in _meshColliders )
+		{
+			foreach ( var collision in ci.CollidingPoints )
+			{
+				var point = _points[collision];
+				var currentPos = ci.Transform.PointToLocal( point.Position );
+				var result = ci.Mdf.Sample( currentPos );
+				if ( result.SignedDistance > SolidRadius )
+					continue;
+
+				currentPos = result.SurfacePosition + result.Direction * SolidRadius;
+				currentPos = ci.Transform.PointToWorld( currentPos );
+				_points[collision] = point with { Position = currentPos };
 			}
 		}
 	}

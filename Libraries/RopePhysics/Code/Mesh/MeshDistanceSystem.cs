@@ -6,6 +6,10 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 	public static int MaxBuildsPerUpdate { get; set; } = 10;
 	[ConVar( "rope_collision_mdf_voxel_density")]
 	public static float VoxelsPerWorldUnit { get; set; } = 1;
+	[ConVar( "rope_collision_mdf_debug" )]
+	public static bool DebugLog { get; set; } = true;
+	[ConVar( "rope_collision_mdf_voxel_max" )]
+	public static int MaxVoxelDimension { get; set; } = 128;
 
 	public MeshDistanceSystem( Scene scene ) : base( scene )
 	{
@@ -69,16 +73,24 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 	private void BuildMdf( int id, MeshData data )
 	{
 		var bounds = data.CalculateMeshBounds();
-		// var size = bounds.Size * 1f;
-		var size = new Vector3( 64 );
+
+		var size = bounds.Size * 1f;
 		var max = MathF.Max( size.x, size.y );
 		max = MathF.Max( max, size.z );
+		if ( max > MaxVoxelDimension )
+		{
+			Log.Info( $"Reducing MDF ID {id} max voxel dimension from {max} to {MaxVoxelDimension}" );
+			max = MaxVoxelDimension;
+		}
 		var volumeTex = Texture
 			.CreateVolume( (int)max, (int)max, (int)max, ImageFormat.RGBA32323232F )
 			.WithUAVBinding()
 			.Finish();
 
-		// Log.Info( $"Build MDF ID {id}! Bounds: {bounds}, Volume: {volume.Size.x}x{volume.Size.y}x{volume.Depth}" );
+		if ( DebugLog )
+		{
+			Log.Info( $"Build MDF ID {id}! Bounds: {bounds}, Volume: {volumeTex.Size.x}x{volumeTex.Size.y}x{volumeTex.Depth}" );
+		}
 		var volumeData = DispatchBuildShader( volumeTex, data, bounds );
 		var mdf = new MeshDistanceField( id, volumeData, bounds );
 		_meshDistanceFields[id] = mdf;
@@ -165,7 +177,10 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 	{
 		shape.Triangulate( out Vector3[] vtx3, out uint[] indices );
 		var vertices = vtx3.Select( v => new Vector4( v.x, v.y, v.z, 0 ) ).ToArray();
-		// Log.Info( $"Queue MDF ID {id}! v: {vertices.Length}, i: {indices.Length}, t: {indices.Length / 3}" );
+		if ( DebugLog )
+		{
+			Log.Info( $"Queue MDF ID {id}! v: {vertices.Length}, i: {indices.Length}, t: {indices.Length / 3}" );
+		}
 		// DumpMesh( vertices, indices, shape );
 		var vtxBuffer = new GpuBuffer<Vector4>( vertices.Length, GpuBuffer.UsageFlags.Structured | GpuBuffer.UsageFlags.Vertex );
 		vtxBuffer.SetData( vertices );

@@ -25,9 +25,11 @@ public class MeshDistanceField
 {
 	public struct MeshDistanceSample
 	{
-		public float SignedDistance { get; set; }
-		// TODO: Make sure this is actually signed rather than unsigned distance.
+		public Vector3 SamplePosition { get; set; }
 		public Vector3 Direction { get; set; }
+		public float SignedDistance { get; set; }
+		public Vector3 SurfaceNormal { get; set; }
+		public Vector3 SurfacePosition => SamplePosition + Direction * ( SignedDistance < 0 ? -SignedDistance : SignedDistance );
 	}
 
 
@@ -54,24 +56,20 @@ public class MeshDistanceField
 
 	public MeshDistanceSample Sample( Vector3 localPos )
 	{
-		// Clamp sample point to bounds.
-		if ( !IsInBounds( localPos ) )
-			localPos = Bounds.ClosestPoint( localPos );
+		var closestPoint = Bounds.ClosestPoint( localPos );
+		var extraDistance = closestPoint.Distance( localPos );
 
+		localPos = closestPoint;
 		var voxel = PositionToVoxel( localPos );
 		var seedId = Volume[voxel.x, voxel.y, voxel.z];
 		var sign = seedId >= 0 ? 1 : -1;
 		seedId = Math.Abs( seedId );
-		if ( seedId >= Volume.Seeds.Length )
-		{
-			// TODO: Figure out why SeedIDs may be out of range.
-			// Log.Info( $"Seed out of range: {seedId} of voxel {voxel}! Volume seeds length: {Volume.Seeds.Length}. Volume idx {Volume.Index3DTo1D( voxel.x, voxel.y, voxel.z )} of {Volume.Voxels.Length - 1}" );
-			return default;
-		}
 		var seedData = Volume.Seeds[ seedId ];
-		var unsignedDistance = localPos.Distance( seedData.Position );
+		var unsignedDistance = localPos.Distance( seedData.Position ) + extraDistance;
 		return new MeshDistanceSample()
 		{
+			SamplePosition = localPos,
+			SurfaceNormal = seedData.Normal,
 			SignedDistance = unsignedDistance * sign,
 			Direction = Vector3.Direction( localPos, seedData.Position ),
 		};

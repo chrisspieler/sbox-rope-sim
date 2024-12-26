@@ -37,6 +37,7 @@ public class MeshDistanceFieldDemo : Component
 			_copiedTex?.Dispose();
 			_copiedTex = null;
 		}
+		UpdateInput();
 		UpdateUI();
 	}
 
@@ -60,6 +61,56 @@ public class MeshDistanceFieldDemo : Component
 		_mdf = mdf;
 	}
 
+	private float _sdf;
+	private Vector3 _dirToSurface;
+	private Angles _cameraAngles => new Angles( -15f, -180f, 0 );
+	private float _cameraDistance = 200;
+
+	private void UpdateInput()
+	{
+		if ( _mdf is null )
+			return;
+
+		var tx = SelectedMeshGameObject.WorldTransform;
+
+		var mins = _mdf.Bounds.Mins;
+		var maxs = _mdf.Bounds.Maxs;
+		var z = ((float)_textureSlice).Remap( 0, _maxSlice, mins.z, maxs.z );
+		var center = _mdf.Bounds.Center.WithZ( z );
+		_cameraDistance = maxs.x * 3f;
+
+		var camera = Scene.Camera;
+		var worldCenter = tx.PointToWorld( center );
+		camera.WorldPosition = worldCenter + _cameraAngles.Forward * _cameraDistance;
+		camera.WorldRotation = Rotation.LookAt( Vector3.Direction( camera.WorldPosition, worldCenter ) );
+
+		DebugOverlay.Box( BBox.FromPositionAndSize( center, ( _mdf.Bounds.Size * 1.5f ).WithZ( 1f ) ), color: Color.White.WithAlpha( 0.15f ), transform: tx );
+		DebugOverlay.Line( center.WithX( mins.x ), center.WithX( maxs.x ), color: Color.White.WithAlpha( 0.15f ), transform: tx );
+		DebugOverlay.Line( center.WithY( mins.y ), center.WithY( maxs.y ), color: Color.White.WithAlpha( 0.15f ), transform: tx );
+
+		var mouseRay = Scene.Camera.ScreenPixelToRay( Mouse.Position );
+		var plane = new Plane( tx.PointToWorld( center ), Vector3.Up );
+		var tracePos = plane.Trace( mouseRay, true );
+		if ( !tracePos.HasValue )
+			return;
+
+		var mouseWorldPos = tracePos.Value;
+		var mouseLocalPos = tx.PointToLocal( mouseWorldPos );
+		var sample = _mdf.Sample( mouseLocalPos );
+		_sdf = sample.SignedDistance;
+		_dirToSurface = sample.Direction;
+
+		DebugOverlay.Sphere( new Sphere( mouseWorldPos, 0.5f ), color: Color.Red );
+		var distance = _sdf < 0 ? -_sdf : _sdf;
+		distance += 0.25f;
+		// var surfaceLocalPos = mouseLocalPos + _dirToSurface * distance;
+		var surfaceLocalPos = sample.SurfacePosition + sample.Direction * 0.25f;
+		var surfaceWorldPos = SelectedMeshGameObject.WorldTransform.PointToWorld( surfaceLocalPos );
+		DebugOverlay.Sphere( new Sphere( surfaceWorldPos, 0.5f ), color: Color.Blue );
+		DebugOverlay.Line( surfaceWorldPos, surfaceWorldPos + tx.NormalToWorld( sample.Direction ) * 3f, color: Color.Green );
+	}
+
+	private int _maxSlice;
 	private int _textureSlice = -1;
 	private ComputeShader _textureSliceCs = new( "texture_slice_copy_cs" );
 	private Texture _copiedTex;
@@ -87,15 +138,8 @@ public class MeshDistanceFieldDemo : Component
 			ImGui.NewLine();
 
 			ImGui.Text( $"Voxel Size: {_mdf.VoxelSize.x:F3},{_mdf.VoxelSize.y:F3},{_mdf.VoxelSize.z:F3}" );
-			var mouseRay = Scene.Camera.ScreenPixelToRay( Mouse.Position );
-			var plane = new Plane( MeshContainer.WorldPosition, Vector3.Direction( MeshContainer.WorldPosition, Scene.Camera.WorldPosition ) );
-			var mouseWorldPos = plane.Trace( mouseRay, true );
-			var mouseLocalPos = SelectedMeshGameObject.WorldTransform.PointToLocal( mouseWorldPos ?? float.PositiveInfinity );
-			var sample = _mdf.Sample( mouseLocalPos );
-			var sdf = sample.SignedDistance;
-			ImGui.Text( $"Mouse Distance: {sdf:F3}" );
-			var dirToSurface = sample.Direction;
-			ImGui.Text( $"Mouse Direction: {dirToSurface.x:F2},{dirToSurface.y:F2},{dirToSurface.z:F2}" );
+			ImGui.Text( $"Mouse Distance: {_sdf:F3}" );
+			ImGui.Text( $"Mouse Direction: {_dirToSurface.x:F2},{_dirToSurface.y:F2},{_dirToSurface.z:F2}" );
 
 			if ( ImGui.Button( "Regenerate MDF" ) )
 			{
@@ -110,15 +154,16 @@ public class MeshDistanceFieldDemo : Component
 			var voxelCount = _mdf.Volume.VoxelCount;
 			ImGui.Text( $"Size: {voxelCount.x}x{voxelCount.y}x{voxelCount.z}" );
 			ImGui.Text( "Slice:" ); ImGui.SameLine();
-			_textureSlice = _textureSlice.Clamp( 0, voxelCount.z - 1 );
+			_maxSlice = voxelCount.z - 1;
+			_textureSlice = _textureSlice.Clamp( 0, _maxSlice );
 			var newSlice = _textureSlice;
-			ImGui.SliderInt( nameof( _textureSlice ), ref newSlice, 0, voxelCount.z - 1 );
+			ImGui.SliderInt( nameof( _textureSlice ), ref newSlice, 0, _maxSlice );
 			if ( _copiedTex is null || newSlice != _textureSlice )
 			{
-				_textureSlice = newSlice.Clamp( 0, voxelCount.z - 1 );
+				_textureSlice = newSlice.Clamp( 0, _maxSlice );
 				_copiedTex = CopyMdfTexture( _textureSlice );
 			}
-			ImGui.Image( _copiedTex, new Vector2( 400 ) * ImGuiStyle.UIScale, Color.Transparent, ImGui.GetColorU32( ImGuiCol.Border ) );
+			ImGui.Image( _copiedTex, new Vector2( 400 ) * ImGuiStyle.UIScale, new Vector2(0, 0), new Vector2( 1, 1 ), Color.Transparent, ImGui.GetColorU32( ImGuiCol.Border ) );
 		}
 		ImGui.End();
 	}
