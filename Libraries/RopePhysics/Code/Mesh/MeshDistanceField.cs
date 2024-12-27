@@ -10,10 +10,18 @@ public class MeshVolumeData
 {
 	public Texture Texture { get; init; }
 	public Vector3Int VoxelCount { get; init; }
-	public int[] Voxels { get; init; }
-	public MeshSeedData[] Seeds { get; init; }
+	public float[] SignedDistanceField { get; init; }
 
-	public int this[int x, int y, int z] => Voxels[Index3DTo1D( x, y, z )];
+	public float this[Vector3Int voxel]
+	{
+		get
+		{
+			int x = voxel.x.Clamp( 0, VoxelCount.x - 1 );
+			int y = voxel.y.Clamp( 0, VoxelCount.y - 1 );
+			int z = voxel.z.Clamp( 0, VoxelCount.z - 1 );
+			return SignedDistanceField[Index3DTo1D( x, y, z )];
+		}
+	}
 
 	public int Index3DTo1D( int x, int y, int z )
 	{
@@ -25,11 +33,10 @@ public class MeshDistanceField
 {
 	public struct MeshDistanceSample
 	{
-		public Vector3 SamplePosition { get; set; }
-		public Vector3 Direction { get; set; }
+		public Vector3Int SampleVoxel { get; set; }
+		public Vector3 SampleLocalPosition { get; set; }
 		public float SignedDistance { get; set; }
 		public Vector3 SurfaceNormal { get; set; }
-		public Vector3 SurfacePosition => SamplePosition + Direction * ( SignedDistance < 0 ? -SignedDistance : SignedDistance );
 	}
 
 
@@ -54,24 +61,35 @@ public class MeshDistanceField
 		return (Vector3Int)voxel;
 	}
 
-	public MeshDistanceSample Sample( Vector3 localPos )
+	private Vector3 EstimateVoxelSurfaceNormal( Vector3Int voxel )
 	{
-		var closestPoint = Bounds.ClosestPoint( localPos );
-		var extraDistance = closestPoint.Distance( localPos );
+		var xOffset = new Vector3Int( 1, 0, 0 );
+		var yOffset = new Vector3Int( 0, 1, 0 );
+		var zOffset = new Vector3Int( 0, 0, 1 );
+		var gradient = new Vector3()
+		{
+			x = Volume[ voxel + xOffset ] - Volume[ voxel - xOffset ],
+			y = Volume[ voxel + yOffset ] - Volume[ voxel - yOffset ],
+			z = Volume[ voxel + zOffset ] - Volume[ voxel - zOffset ],
+		};
+		return gradient.Normal;
+	}
 
-		localPos = closestPoint;
-		var voxel = PositionToVoxel( localPos );
-		var seedId = Volume[voxel.x, voxel.y, voxel.z];
-		var sign = seedId >= 0 ? 1 : -1;
-		seedId = Math.Abs( seedId );
-		var seedData = Volume.Seeds[ seedId ];
-		var unsignedDistance = localPos.Distance( seedData.Position ) + extraDistance;
+	public MeshDistanceSample Sample( Vector3 localSamplePos )
+	{
+		// Snap sample point to bounds, in case it's out of bounds.
+		var closestPoint = Bounds.ClosestPoint( localSamplePos );
+		var voxel = PositionToVoxel( closestPoint );
+		var signedDistance = Volume[voxel];
+		// If we were out of bounds, add the amount by which we were out of bounds to the distance.
+		signedDistance += closestPoint.Distance( localSamplePos );
+		var surfaceNormal = EstimateVoxelSurfaceNormal( voxel );
 		return new MeshDistanceSample()
 		{
-			SamplePosition = localPos,
-			SurfaceNormal = seedData.Normal,
-			SignedDistance = unsignedDistance * sign,
-			Direction = Vector3.Direction( localPos, seedData.Position ),
+			SampleVoxel = voxel,
+			SampleLocalPosition = closestPoint,
+			SurfaceNormal = surfaceNormal,
+			SignedDistance = signedDistance,
 		};
 	}
 }

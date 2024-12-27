@@ -101,12 +101,12 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		int triCount = data.Indices.ElementCount / 3;
 		int voxelCount = volumeTex.Width * volumeTex.Height * volumeTex.Depth;
 
-		var voxelDataGpu = new GpuBuffer<int>( voxelCount, GpuBuffer.UsageFlags.Structured );
+		var voxelSeedsGpu = new GpuBuffer<int>( voxelCount, GpuBuffer.UsageFlags.Structured );
 		// Initialize each texel of the volume texture as having no associated seed index.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeVolume );
 		_meshSdfCs.Attributes.Set( "Mins", bounds.Mins );
 		_meshSdfCs.Attributes.Set( "Maxs", bounds.Maxs );
-		_meshSdfCs.Attributes.Set( "OutputData", voxelDataGpu );
+		_meshSdfCs.Attributes.Set( "VoxelSeeds", voxelSeedsGpu );
 		_meshSdfCs.Attributes.Set( "OutputTexture", volumeTex );
 		_meshSdfCs.Dispatch( volumeTex.Width, volumeTex.Height, volumeTex.Depth );
 
@@ -138,23 +138,29 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 			_meshSdfCs.Dispatch( volumeTex.Width, volumeTex.Height, volumeTex.Depth );
 		}
 
+		var voxelSdfGpu = new GpuBuffer<float>( voxelCount, GpuBuffer.UsageFlags.Structured );
 		// A final pass replaces the reference to each seed with the object space position of that seed.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.FinalizeOutput );
+		_meshSdfCs.Attributes.Set( "VoxelSignedDistances", voxelSdfGpu );
 		_meshSdfCs.Dispatch( volumeTex.Width, volumeTex.Height, volumeTex.Depth );
 
 		// Debug visualization - uncomment to see the data normalized for display.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.DebugNormalized );
 		_meshSdfCs.Dispatch( volumeTex.Width, volumeTex.Height, volumeTex.Depth );
 
-		var voxelData = new int[voxelCount];
-		voxelDataGpu.GetData( voxelData );
+		//var voxelSeeds = new int[voxelCount];
+		//voxelSeedsGpu.GetData( voxelSeeds );
+		//DumpVoxelSeeds( voxelSeeds );
+
+		var voxelSdf = new float[voxelCount];
+		voxelSdfGpu.GetData( voxelSdf );
+		// DumpVoxelSdf( voxelSdf );
 
 		return new MeshVolumeData()
 		{
 			Texture = volumeTex,
-			Voxels = voxelData,
 			VoxelCount = new Vector3Int( volumeTex.Width, volumeTex.Height, volumeTex.Depth ),
-			Seeds = seedData,
+			SignedDistanceField = voxelSdf,
 		};
 	}
 
@@ -229,12 +235,21 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		}
 	}
 
-	private void DumpVoxelData( Span<int> voxelData )
+	private void DumpVoxelSeeds( Span<int> voxelData )
 	{
 		for ( int i = 0; i < voxelData.Length; i++ )
 		{
 			var voxel = voxelData[i];
 			Log.Info( $"voxel {i} seedId: {voxel}" );
+		}
+	}
+
+	private void DumpVoxelSdf( Span<float> voxelSdf )
+	{
+		for ( int i = 0; i < voxelSdf.Length; i++ )
+		{
+			var signedDistance = voxelSdf[i];
+			Log.Info( $"voxel {i} signedDistance: {signedDistance}" );
 		}
 	}
 }

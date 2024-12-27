@@ -10,8 +10,17 @@ CS
 
 	struct SeedData
 	{
+		// w components go unused for now, but could be used later.
 		float4 PositionOs;
 		float4 Normal;
+
+		static SeedData From( float3 positionOs, float3 normalOs )
+		{
+			SeedData data;
+			data.PositionOs = float4( positionOs.xyz, 0 );
+			data.Normal = float4( normalOs.xyz, 0 );
+			return data;
+		}
 	};
 
 	float3 Mins < Attribute( "Mins" ); >;
@@ -19,7 +28,8 @@ CS
 	StructuredBuffer<float4> Vertices < Attribute("Vertices"); >;
 	StructuredBuffer<uint> Indices < Attribute("Indices"); >;
 	RWStructuredBuffer<SeedData> Seeds < Attribute( "Seeds" ); >;
-	RWStructuredBuffer<int> OutputData < Attribute( "OutputData" ); >;
+	RWStructuredBuffer<int> VoxelSeeds < Attribute( "VoxelSeeds" ); >;
+	RWStructuredBuffer<float> VoxelSignedDistances < Attribute( "VoxelSignedDistances" ); >;
 	RWTexture3D<float4> OutputTexture < Attribute( "OutputTexture" ); >;
 
 	int JumpStep < Attribute( "JumpStep" ); >;
@@ -29,6 +39,77 @@ CS
 		float3 u = v1 - v0;
 		float3 v = v2 - v0;
 		return normalize( cross( u, v ) );
+	}
+
+	float dot2( in float3 v ) { return dot(v,v); }
+
+	// Copied from: https://www.shadertoy.com/view/ttfGWl
+	float3 TriangleClosestPoint( float3 v0, float3 v1, float3 v2, float3 p )
+	{
+		    float3 v10 = v1 - v0; float3 p0 = p - v0;
+			float3 v21 = v2 - v1; float3 p1 = p - v1;
+			float3 v02 = v0 - v2; float3 p2 = p - v2;
+			float3 nor = cross( v10, v02 );
+
+			float3  q = cross( nor, p0 );
+			float d = 1.0/dot2(nor);
+			float u = d*dot( q, v02 );
+			float v = d*dot( q, v10 );
+			float w = 1.0-u-v;
+			
+				 if( u<0.0 ) { w = clamp( dot(p2,v02)/dot2(v02), 0.0, 1.0 ); u = 0.0; v = 1.0-w; }
+			else if( v<0.0 ) { u = clamp( dot(p0,v10)/dot2(v10), 0.0, 1.0 ); v = 0.0; w = 1.0-u; }
+			else if( w<0.0 ) { v = clamp( dot(p1,v21)/dot2(v21), 0.0, 1.0 ); w = 0.0; u = 1.0-v; }
+			
+			return u*v1 + v*v2 + w*v0;
+	}
+
+	// Copied from embree: https://github.com/RenderKit/embree/blob/master/tutorials/common/math/closest_point.h
+	float3 TriangleClosestPoint2( float3 v0, float3 v1, float3 v2, float3 p )
+	{
+		float3 v01 = v1 - v0;
+		float3 v02 = v2 - v0;
+		float3 v0p = p - v0;
+
+		float d1 = dot( v01, v0p );
+		float d2 = dot( v02, v0p );
+		if ( d1 <= 0.0 && d2 <= 0.0 ) return v0;
+
+		float3 v1p = p - v1;
+		float d3 = dot( v01, v1p );
+		float d4 = dot( v02, v1p );
+		if ( d3 >= 0.0 && d4 <= d3 ) return v1;
+
+		float3 v2p = p - v2;
+		float d5 = dot( v01, v2p );
+		float d6 = dot( v02, v2p );
+		if ( d6 >= 0.0 && d5 <= d6 ) return v2;
+
+		float vc = d1 * d4 - d3 * d2;
+		if ( vc <= 0.0 && d1 >= 0.0 && d3 <= 0.0 )
+		{
+			float v = d1 / ( d1 - d3 );
+			return v0 + v * v01;
+		}
+
+		float vb = d5 * d2 - d1 * d6;
+		if ( vb <= 0.0 && d2 >= 0.0 && d6 <= 0.0 )
+		{
+			float v = d2 / ( d2 - d6 );
+			return v0 + v * v02;
+		}
+
+		float va = d3 * d6 - d5 * d4;
+		if ( va <= 0.0 && ( d4 - d3 ) >= 0.0 && ( d5 - d6 ) >= 0.0 )
+		{
+			float v = ( d4 - d3 )  / ( ( d4 - d3 ) + ( d5 - d6 ) );
+			return v1 + v * ( v2 - v1 );
+		}
+
+		float denom = 1.0 / (va + vb + vc);
+		float v = vb * denom;
+		float w = vc * denom;
+		return v0 + v * v01 + w * v02;
 	}
 
 	float3 TexelToPositionOs( uint3 texel, float3 dims )
@@ -53,13 +134,49 @@ CS
 		return clamp(texel, 0, dims);
 	}
 
-	void StoreSeed( int i, float3 positionOs, float3 surfaceNormal )
+	void StoreTriCenterSeed( int triangleId, float3 positionOs, float3 surfaceNormal )
 	{
-		SeedData data;
-		// w components go unused for now, but could be used later.
-		data.PositionOs = float4( positionOs.xyz, 0 );
-		data.Normal = float4( surfaceNormal.xyz, 0 );
-		Seeds[i] = data;
+		int i = triangleId * 4;
+		Seeds[i] = SeedData::From( positionOs, surfaceNormal );
+	}
+
+	void StoreTriVertexSeed( int triangleId, int vertexIndex, float3 positionOs, float3 surfaceNormal )
+	{
+		vertexIndex %= 3;
+		// There are four seeds per triangle ID.
+		// The first is the center, and the last three correspond to each vertex.
+		// Offset the vertex index since the first slot is for the center.
+		int i = triangleId * 4 + vertexIndex + 1;
+		Seeds[i] = SeedData::From( positionOs, surfaceNormal );
+	}
+
+	SeedData LoadTriCenterSeed( int seedId )
+	{
+		if ( seedId <= 0 )
+			return Seeds[0];
+
+		seedId -= seedId % 4;
+		return Seeds[seedId];
+	}
+
+	SeedData LoadTriVertexSeed( int seedId, int vertexIndex )
+	{
+		vertexIndex %= 3;
+		if ( seedId <= 0 )
+		{
+			seedId = 0;
+		}
+		else 
+		{
+			seedId -= seedId % 4;
+		}
+		int i = seedId + vertexIndex;
+		return Seeds[i];
+	}
+
+	int Index3DTo1D( uint3 voxel, uint3 dims )
+	{
+		return ( voxel.z * dims.y * dims.z ) + ( voxel.y * dims.x ) + voxel.x;
 	}
 
 	struct Cell
@@ -73,16 +190,10 @@ CS
 		float3 SeedPositionOs;
 		float3 SeedNormalOs;
 
-		static int GetIndex( int3 voxel, float3 volumeDims )
-		{
-			uint3 dims = (uint3)volumeDims;
-			return ( voxel.z * dims.y * dims.z ) + ( voxel.y * dims.x ) + voxel.x;
-		}
-
 		static void Initialize( int3 voxel, float3 volumeDims )
 		{
-			int i = Cell::GetIndex(voxel, volumeDims);
-			OutputData[i] = -1;
+			int i = Index3DTo1D(voxel, volumeDims);
+			VoxelSeeds[i] = -1;
 			OutputTexture[voxel] = float4( 0, 0, 0, 0 );
 		}
 
@@ -106,8 +217,8 @@ CS
 
 			float4 tex = OutputTexture[cell.Voxel];
 			cell.SignedDistance = tex.a;
-			int i = Cell::GetIndex(cell.Voxel, cell.VolumeDims);
-			cell.SeedId = OutputData[i];
+			int i = Index3DTo1D(cell.Voxel, cell.VolumeDims);
+			cell.SeedId = VoxelSeeds[i];
 			
 			if ( !cell.IsSeed() )
 				return cell;
@@ -120,9 +231,9 @@ CS
 
 		void StoreSeedId()
 		{
-			int i = Cell::GetIndex(Voxel, VolumeDims);
+			int i = Index3DTo1D(Voxel, VolumeDims);
 			int iOut;
-			InterlockedExchange( OutputData[i], SeedId, iOut );
+			InterlockedExchange( VoxelSeeds[i], SeedId, iOut );
 		}
 
 		void StoreTexture()
@@ -151,36 +262,39 @@ CS
 //------------------------------------------------------------------
 	void FindSeedPoints( int triId, float3 dims )
 	{
-		uint iIndex = triId * 3;
+		// Each triangle is represented by three indices.
+		uint indexId = triId * 3;
 
 		uint numIndices, indexStride;
 		Indices.GetDimensions( numIndices, indexStride );
-		if ( iIndex >= numIndices )
+		if ( indexId >= numIndices )
 			return;
 		
-		// Triangle indices
-		uint i0 = Indices[iIndex];
-		uint i1 = Indices[iIndex + 1]; 
-		uint i2 = Indices[iIndex + 2];
-		// Triangle vertices
+		// Fetch the indices that comprise the triangle.
+		uint i0 = Indices[indexId];
+		uint i1 = Indices[indexId + 1]; 
+		uint i2 = Indices[indexId + 2];
+		// Fetch the vertices referred to by each index.
 		float3 v0 = Vertices[i0].xyz;
 		float3 v1 = Vertices[i1].xyz;
 		float3 v2 = Vertices[i2].xyz;
 
-		// Triangle centroid and normal
+		// Calculate triangle centroid and normal.
 		float3 triCenter = ( v0 + v1 + v2 ) / 3.0;
 		float3 surfaceNormal = TriangleSurfaceNormal( v0, v1, v2 );
 
-		v0 += ( triCenter - v0 ) * 0.5;
-		v1 += ( triCenter - v1 ) * 0.5;
-		v2 += ( triCenter - v2 ) * 0.5;
+		// Nudge the seed point of each vertex slightly inward.
+		// This avoids any ambiguity about which triangle is closest.
+		v0 += ( triCenter - v0 ) * 0.01;
+		v1 += ( triCenter - v1 ) * 0.01;
+		v2 += ( triCenter - v2 ) * 0.01;
 
 		// Each triangle has four seeds - the center, and slightly inside of each vertex.
 		int sIndex = triId * 4;
-		StoreSeed( sIndex, triCenter, surfaceNormal );
-		StoreSeed( sIndex + 1, v0, surfaceNormal );
-		StoreSeed( sIndex + 2, v1, surfaceNormal );
-		StoreSeed( sIndex + 3, v2, surfaceNormal );
+		StoreTriCenterSeed( triId, triCenter, surfaceNormal );
+		StoreTriVertexSeed( triId, 0, v0, surfaceNormal );
+		StoreTriVertexSeed( triId, 1, v1, surfaceNormal );
+		StoreTriVertexSeed( triId, 2, v2, surfaceNormal );
 	}
 
 //------------------------------------------------------------------
@@ -315,11 +429,27 @@ CS
 		if ( !cell.IsValid() )
 			return;
 
-		if ( cell.SignedDistance < 0 )
-		{
-			cell.SeedId *= -1;
-		}
-		cell.StoreSeedId();
+		// Get each vertex associated with this seed's triangle.
+		float3 v0 	= LoadTriVertexSeed( cell.SeedId, 0 ).PositionOs.xyz;
+		float3 v1 	= LoadTriVertexSeed( cell.SeedId, 1 ).PositionOs.xyz;
+		float3 v2 	= LoadTriVertexSeed( cell.SeedId, 2 ).PositionOs.xyz;
+
+		float3 localPos = TexelCenterToPositionOs( voxel, dims );
+		// Find the closest point on the triangle to this voxel's position...
+		float3 closestPoint = TriangleClosestPoint( v0, v1, v2, localPos );
+		// ...and find the distance to that point.
+		float udDistance = distance( localPos, closestPoint );
+
+		// We assume that the correct sign was found during jump flooding.
+		int sdSign = sign( cell.SignedDistance );
+		cell.SignedDistance = udDistance * sdSign;
+
+		// Store the sign to the debug texture...
+		cell.StoreTexture();
+
+		int i = Index3DTo1D( voxel, dims );
+		// ...and the distance field.
+		VoxelSignedDistances[i] = cell.SignedDistance;
 	}
 
 //------------------------------------------------------------------

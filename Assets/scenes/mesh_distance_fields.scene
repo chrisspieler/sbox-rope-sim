@@ -14321,6 +14321,37 @@
           ]
         },
         {
+          "__guid": "d4f7ba46-0bf9-4754-8865-5a191dd78bab",
+          "Flags": 0,
+          "Name": "Cube",
+          "Components": [
+            {
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "ecf1ce2c-4672-481d-a949-665fe29afeb7",
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "Model": "models/dev/box.vmdl",
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "1,1,1,1"
+            },
+            {
+              "__type": "Sandbox.BoxCollider",
+              "__guid": "077398c8-2fbe-46f7-a885-a6f1e1f9e8f4",
+              "Center": "0,0,0",
+              "IsTrigger": false,
+              "Scale": "50,50,50",
+              "Static": false,
+              "SurfaceVelocity": "0,0,0"
+            }
+          ]
+        },
+        {
           "__guid": "522c3749-018a-4680-9b6f-4377bcbcaf57",
           "Flags": 0,
           "Name": "ducc",
@@ -14790,37 +14821,6 @@
               "Center": "0,0,0",
               "IsTrigger": false,
               "Radius": 32,
-              "Static": false,
-              "SurfaceVelocity": "0,0,0"
-            }
-          ]
-        },
-        {
-          "__guid": "d4f7ba46-0bf9-4754-8865-5a191dd78bab",
-          "Flags": 0,
-          "Name": "Cube",
-          "Components": [
-            {
-              "__type": "Sandbox.ModelRenderer",
-              "__guid": "ecf1ce2c-4672-481d-a949-665fe29afeb7",
-              "BodyGroups": 18446744073709551615,
-              "CreateAttachments": false,
-              "Model": "models/dev/box.vmdl",
-              "RenderOptions": {
-                "GameLayer": true,
-                "OverlayLayer": false,
-                "BloomLayer": false,
-                "AfterUILayer": false
-              },
-              "RenderType": "On",
-              "Tint": "1,1,1,1"
-            },
-            {
-              "__type": "Sandbox.BoxCollider",
-              "__guid": "077398c8-2fbe-46f7-a885-a6f1e1f9e8f4",
-              "Center": "0,0,0",
-              "IsTrigger": false,
-              "Scale": "50,50,50",
               "Static": false,
               "SurfaceVelocity": "0,0,0"
             }

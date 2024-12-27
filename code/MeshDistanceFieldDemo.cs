@@ -98,16 +98,15 @@ public class MeshDistanceFieldDemo : Component
 		var mouseLocalPos = tx.PointToLocal( mouseWorldPos );
 		var sample = _mdf.Sample( mouseLocalPos );
 		_sdf = sample.SignedDistance;
-		_dirToSurface = sample.Direction;
+		_dirToSurface = sample.SurfaceNormal * ( _sdf < 0 ? 1 : -1 );
 
 		DebugOverlay.Sphere( new Sphere( mouseWorldPos, 0.5f ), color: Color.Red );
 		var distance = _sdf < 0 ? -_sdf : _sdf;
 		distance += 0.25f;
-		// var surfaceLocalPos = mouseLocalPos + _dirToSurface * distance;
-		var surfaceLocalPos = sample.SurfacePosition + sample.Direction * 0.25f;
+		var surfaceLocalPos = sample.SampleLocalPosition + _dirToSurface * distance;
 		var surfaceWorldPos = SelectedMeshGameObject.WorldTransform.PointToWorld( surfaceLocalPos );
-		DebugOverlay.Sphere( new Sphere( surfaceWorldPos, 0.5f ), color: Color.Blue );
-		DebugOverlay.Line( surfaceWorldPos, surfaceWorldPos + tx.NormalToWorld( sample.Direction ) * 3f, color: Color.Green );
+		DebugOverlay.Sphere( new Sphere( surfaceWorldPos, 0.5f ), color: Color.Blue, overlay: false );
+		DebugOverlay.Line( surfaceWorldPos, surfaceWorldPos + tx.NormalToWorld( sample.SurfaceNormal ) * 3f, color: Color.Green, overlay: false );
 	}
 
 	private int _maxSlice;
