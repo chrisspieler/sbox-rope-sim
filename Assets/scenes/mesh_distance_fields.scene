@@ -91,7 +91,18 @@
             "_type": "gameobject",
             "go": "5033acc0-1340-4e28-b4fe-0ae364eed887"
           },
-          "SelectedMeshIndex": 0
+          "SelectedMeshIndex": 0,
+          "TextureViewer": {
+            "_type": "component",
+            "component_id": "f07bef6e-f9f8-4d7c-828f-2499f8efab51",
+            "go": "ab3d85b6-7d7b-4b14-b598-380b906e8998",
+            "component_type": "MdfTextureViewer"
+          }
+        },
+        {
+          "__type": "MdfTextureViewer",
+          "__guid": "f07bef6e-f9f8-4d7c-828f-2499f8efab51",
+          "MdfIndex": 0
         }
       ]
     },

@@ -57,6 +57,19 @@
       ]
     },
     {
+      "__guid": "fb8dd0a3-dcb2-4f2e-8cae-3508cdb0295f",
+      "Flags": 0,
+      "Name": "Demo",
+      "Position": "512,0,0",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "MdfTextureViewer",
+          "__guid": "b965b0ad-4c83-4f9a-9451-350660c8d0a4"
+        }
+      ]
+    },
+    {
       "__guid": "5148ff26-e6cd-49f3-8b0c-9a29446c0ac3",
       "Flags": 0,
       "Name": "Verlet",

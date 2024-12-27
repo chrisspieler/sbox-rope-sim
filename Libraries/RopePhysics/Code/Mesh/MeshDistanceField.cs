@@ -33,6 +33,7 @@ public class MeshDistanceField
 	public float VoxelSize { get; }
 	public int VolumeSize { get; init; }
 	public float[] VoxelSdf { get; init; }
+	public int DataSize => VolumeSize * VolumeSize * VolumeSize * sizeof( float );
 
 	public float this[Vector3Int voxel]
 	{

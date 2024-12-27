@@ -25,41 +25,16 @@ public class MeshDistanceFieldDemo : Component
 		}
 	}
 	private int _selectedMeshIndex = 0;
-	public GameObject SelectedMeshGameObject => MeshContainer?.Children[SelectedMeshIndex];
-	
+	[Property] public MdfTextureViewer TextureViewer { get; set; }
 
-	private MeshDistanceField _mdf;
+	public GameObject SelectedMeshGameObject => MeshContainer?.Children[SelectedMeshIndex];
+
+	public MeshDistanceField Mdf => TextureViewer?.Mdf;
+
 	protected override void OnUpdate()
 	{
-		UpdateMdf();
-		if ( _mdf is null )
-		{
-			_copiedTex?.Dispose();
-			_copiedTex = null;
-		}
 		UpdateInput();
 		UpdateUI();
-	}
-
-	private void UpdateMdf()
-	{
-		var tr = Scene.Trace
-			.Sphere( 1000f, Vector3.Zero, Vector3.Zero )
-			.WithTag( "mdf_demo")
-			.Run();
-		if ( !tr.Hit || tr.Shape is null )
-		{
-			_mdf = null;
-			return;
-		}
-
-		if ( !MeshDistanceSystem.Current.TryGetMdf( tr.Shape, out var mdf ) )
-		{
-			_mdf = null;
-			return;
-		}
-
-		_mdf = mdf;
 	}
 
 	private float _sdf;
@@ -69,15 +44,15 @@ public class MeshDistanceFieldDemo : Component
 
 	private void UpdateInput()
 	{
-		if ( _mdf is null )
+		if ( Mdf is null )
 			return;
 
 		var tx = SelectedMeshGameObject.WorldTransform;
 
-		var mins = _mdf.Bounds.Mins;
-		var maxs = _mdf.Bounds.Maxs;
-		var z = ((float)_textureSlice).Remap( 0, _maxSlice, mins.z, maxs.z );
-		var center = _mdf.Bounds.Center.WithZ( z );
+		var mins = Mdf.Bounds.Mins;
+		var maxs = Mdf.Bounds.Maxs;
+		var z = ((float)TextureViewer.TextureSlice).Remap( 0, Mdf.VolumeSize - 1, mins.z, maxs.z );
+		var center = Mdf.Bounds.Center.WithZ( z );
 		_cameraDistance = maxs.x * 8f;
 
 		var camera = Scene.Camera;
@@ -85,7 +60,7 @@ public class MeshDistanceFieldDemo : Component
 		camera.WorldPosition = worldCenter + _cameraAngles.Forward * _cameraDistance;
 		camera.WorldRotation = Rotation.LookAt( Vector3.Direction( camera.WorldPosition, worldCenter ) );
 
-		DebugOverlay.Box( BBox.FromPositionAndSize( center, ( _mdf.Bounds.Size * 1.5f ).WithZ( 1f ) ), color: Color.White.WithAlpha( 0.15f ), transform: tx );
+		DebugOverlay.Box( BBox.FromPositionAndSize( center, ( Mdf.Bounds.Size * 1.5f ).WithZ( 1f ) ), color: Color.White.WithAlpha( 0.15f ), transform: tx );
 		DebugOverlay.Line( center.WithX( mins.x ), center.WithX( maxs.x ), color: Color.White.WithAlpha( 0.15f ), transform: tx );
 		DebugOverlay.Line( center.WithY( mins.y ), center.WithY( maxs.y ), color: Color.White.WithAlpha( 0.15f ), transform: tx );
 
@@ -97,7 +72,7 @@ public class MeshDistanceFieldDemo : Component
 
 		var mouseWorldPos = tracePos.Value;
 		var mouseLocalPos = tx.PointToLocal( mouseWorldPos );
-		var sample = _mdf.Sample( mouseLocalPos );
+		var sample = Mdf.Sample( mouseLocalPos );
 		_sdf = sample.SignedDistance;
 		_dirToSurface = sample.SurfaceNormal * ( _sdf < 0 ? 1 : -1 );
 
@@ -118,79 +93,47 @@ public class MeshDistanceFieldDemo : Component
 		DebugOverlay.Line( surfaceWorldPos, surfaceWorldPos + tx.NormalToWorld( sample.SurfaceNormal ) * 3f, color: Color.Green, overlay: false );
 	}
 
-	private int _maxSlice;
-	private int _textureSlice = -1;
-	private ComputeShader _textureSliceCs = new( "mesh_sdf_preview_cs" );
-	private Texture _copiedTex;
-
 	private void UpdateUI()
 	{
 		ImGui.SetNextWindowPos( new Vector2( 900, 50 ) * ImGuiStyle.UIScale );
 		if ( ImGui.Begin( "Mesh Distance Field" ) )
 		{
-			if ( _mdf is null )
-			{
-				ImGui.Text( "No mesh distance field generated." );
-				return;
-			}
-			ImGui.Text( $"Selected Mesh: {MeshContainer.Children[SelectedMeshIndex].Name}" );
-			if ( ImGui.Button( "Previous Mesh" ) )
-			{
-				SelectedMeshIndex--;
-			}
-			ImGui.SameLine(); 
-			if ( ImGui.Button( "Next Mesh" ) )
-			{
-				SelectedMeshIndex++;
-			}
-			ImGui.NewLine();
-
-			ImGui.Text( $"Voxel Size: {_mdf.VoxelSize:F3},{_mdf.VoxelSize:F3},{_mdf.VoxelSize:F3}" );
-			ImGui.Text( $"Mouse Distance: {_sdf:F3}" );
-			ImGui.Text( $"Mouse Direction: {_dirToSurface.x:F2},{_dirToSurface.y:F2},{_dirToSurface.z:F2}" );
-
-			if ( ImGui.Button( "Regenerate MDF" ) )
-			{
-				MeshDistanceSystem.Current.RemoveMdf( _mdf.Id );
-			}
-		}
-		ImGui.End();
-
-		ImGui.SetNextWindowPos( new Vector2( 50, 50 ) * ImGuiStyle.UIScale );
-		if ( ImGui.Begin( "Volume Texture Viewer" ) )
-		{
-			var size = _mdf.VolumeSize;
-			ImGui.Text( $"Size: {size}x{size}x{size}" );
-			ImGui.Text( "Slice:" ); ImGui.SameLine();
-			_maxSlice = size - 1;
-			_textureSlice = _textureSlice.Clamp( 0, _maxSlice );
-			var newSlice = _textureSlice;
-			ImGui.SliderInt( nameof( _textureSlice ), ref newSlice, 0, _maxSlice );
-			if ( _copiedTex is null || newSlice != _textureSlice )
-			{
-				_textureSlice = newSlice.Clamp( 0, _maxSlice );
-				_copiedTex = CopyMdfTexture( _textureSlice );
-			}
-			ImGui.Image( _copiedTex, new Vector2( 400 ) * ImGuiStyle.UIScale, new Vector2(0, 0), new Vector2( 1, 1 ), Color.Transparent, ImGui.GetColorU32( ImGuiCol.Border ) );
+			DrawWindow();
 		}
 		ImGui.End();
 	}
 
-	private Texture CopyMdfTexture( int z )
+	private void DrawWindow()
 	{
-		var size = _mdf.VolumeSize;
-		var outputTex = Texture.Create( size, size )
-			.WithUAVBinding()
-			.Finish();
-		var voxelSdfGpu = new GpuBuffer<float>( size * size * size, GpuBuffer.UsageFlags.Structured );
-		voxelSdfGpu.SetData( _mdf.VoxelSdf );
-		_textureSliceCs.Attributes.Set( "VoxelMinsOs", _mdf.Bounds.Mins );
-		_textureSliceCs.Attributes.Set( "VoxelMaxsOs", _mdf.Bounds.Maxs );
-		_textureSliceCs.Attributes.Set( "VoxelVolumeDims", new Vector3( size ) );
-		_textureSliceCs.Attributes.Set( "VoxelSdf", voxelSdfGpu );
-		_textureSliceCs.Attributes.Set( "ZLayer", z );
-		_textureSliceCs.Attributes.Set( "OutputTexture", outputTex );
-		_textureSliceCs.Dispatch( _mdf.VolumeSize, _mdf.VolumeSize );
-		return outputTex;
+		if ( Mdf is null )
+		{
+			ImGui.Text( "No mesh distance field generated." );
+			return;
+		}
+		ImGui.Text( $"Selected Mesh: {MeshContainer.Children[SelectedMeshIndex].Name}" );
+		var previousMeshIndex = SelectedMeshIndex;
+		if ( ImGui.Button( "Previous Mesh" ) )
+		{
+			SelectedMeshIndex--;
+		}
+		ImGui.SameLine();
+		if ( ImGui.Button( "Next Mesh" ) )
+		{
+			SelectedMeshIndex++;
+		}
+		if ( previousMeshIndex != SelectedMeshIndex )
+		{
+			MeshDistanceSystem.Current.RemoveMdf( Mdf.Id );
+		}
+		ImGui.NewLine();
+
+		ImGui.Text( $"Voxel Size: {Mdf.VoxelSize:F3},{Mdf.VoxelSize:F3},{Mdf.VoxelSize:F3}" );
+		ImGui.Text( $"Mouse Distance: {_sdf:F3}" );
+		ImGui.Text( $"Mouse Direction: {_dirToSurface.x:F2},{_dirToSurface.y:F2},{_dirToSurface.z:F2}" );
+
+		if ( ImGui.Button( "Regenerate MDF" ) )
+		{
+			MeshDistanceSystem.Current.RemoveMdf( Mdf.Id );
+		}
 	}
 }
