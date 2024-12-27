@@ -102,10 +102,43 @@
       "Enabled": true,
       "Children": [
         {
+          "__guid": "d61a8e4c-d833-4d1c-98f9-853871854bdc",
+          "Flags": 0,
+          "Name": "monkey",
+          "Rotation": "0,0,1,-0.00000004371139",
+          "Tags": "mdf_demo",
+          "Enabled": true,
+          "Components": [
+            {
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "79484ee3-bc4a-4887-a1c6-b0f206a2af55",
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "Model": "models/monkey/monkey.vmdl",
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "1,1,1,1"
+            },
+            {
+              "__type": "Sandbox.ModelCollider",
+              "__guid": "ffc63d73-82a9-4d62-bcee-2b4eb2887eb4",
+              "IsTrigger": false,
+              "Model": "models/monkey/monkey.vmdl",
+              "Static": false,
+              "SurfaceVelocity": "0,0,0"
+            }
+          ]
+        },
+        {
           "__guid": "a7e7fc6a-e5ec-4c31-9055-df3e33e9cf0a",
           "Flags": 0,
           "Name": "Mesh Sphere",
-          "Enabled": true,
+          "Tags": "mdf_demo",
           "Components": [
             {
               "__type": "Sandbox.MeshComponent",
@@ -14321,31 +14354,127 @@
           ]
         },
         {
-          "__guid": "d4f7ba46-0bf9-4754-8865-5a191dd78bab",
+          "__guid": "c181a3ba-97ee-4f77-9ab1-a7d4df7aea3a",
           "Flags": 0,
-          "Name": "Cube",
+          "Name": "Mesh Box",
+          "Tags": "mdf_demo",
           "Components": [
             {
-              "__type": "Sandbox.ModelRenderer",
-              "__guid": "ecf1ce2c-4672-481d-a949-665fe29afeb7",
-              "BodyGroups": 18446744073709551615,
-              "CreateAttachments": false,
-              "Model": "models/dev/box.vmdl",
-              "RenderOptions": {
-                "GameLayer": true,
-                "OverlayLayer": false,
-                "BloomLayer": false,
-                "AfterUILayer": false
-              },
-              "RenderType": "On",
-              "Tint": "1,1,1,1"
-            },
-            {
-              "__type": "Sandbox.BoxCollider",
-              "__guid": "077398c8-2fbe-46f7-a885-a6f1e1f9e8f4",
-              "Center": "0,0,0",
+              "__type": "Sandbox.MeshComponent",
+              "__guid": "9e9211cb-75da-4c1a-b69f-0ad823ac90be",
+              "Collision": "Mesh",
+              "Color": "1,1,1,1",
+              "HideInGame": false,
               "IsTrigger": false,
-              "Scale": "50,50,50",
+              "Mesh": {
+                "Topology": "H4sIAAAAAAAACl2QCQ7CMAwEp4Qj3NBy/f\u002BlaMRGsohUVbFn1\u002Bt04ANs\u002BZ0VsM69AwfgBFyAKZ9MPXdgk3qLnsI\u002BUm/h/me9i2ZXfFvYOazafTJN0XRgKZmPyWtfXvYVL73PZRd52WdYPa7xtC8veys7u6t17/7t6Tn0ZtFjvIXZR895zjKjPWf4NiOrGt\u002BivpXZ3XnozaOndVn9vvVkkTjEAQAA",
+                "Positions": [
+                  "-32,-32,32",
+                  "32,-32,32",
+                  "32,32,32",
+                  "-32,32,32",
+                  "-32,32,-32",
+                  "32,32,-32",
+                  "32,-32,-32",
+                  "-32,-32,-32"
+                ],
+                "TextureCoord": [
+                  "1,1",
+                  "-1,-1",
+                  "1,-1",
+                  "-1,-1",
+                  "-1,-1",
+                  "-1,-1",
+                  "-1,1",
+                  "-1,-1",
+                  "1,-1",
+                  "1,1",
+                  "1,1",
+                  "1,1",
+                  "-1,1",
+                  "1,1",
+                  "-1,-1",
+                  "1,1",
+                  "1,-1",
+                  "-1,1",
+                  "-1,1",
+                  "1,-1",
+                  "-1,1",
+                  "1,-1",
+                  "1,-1",
+                  "-1,1"
+                ],
+                "TextureUAxis": [
+                  "1,0,0",
+                  "1,0,-0",
+                  "0,-1,0",
+                  "0,1,0",
+                  "-1,0,0",
+                  "1,-0,0"
+                ],
+                "TextureVAxis": [
+                  "0,-1,0",
+                  "0,-1,0",
+                  "0,0,-1",
+                  "-0,0,-1",
+                  "0,0,-1",
+                  "-0,0,-1"
+                ],
+                "TextureScale": [
+                  "0.25,0.25",
+                  "0.25,0.25",
+                  "0.25,0.25",
+                  "0.25,0.25",
+                  "0.25,0.25",
+                  "0.25,0.25"
+                ],
+                "TextureOffset": [
+                  "0,0",
+                  "0,0",
+                  "0,0",
+                  "0,0",
+                  "0,0",
+                  "0,0"
+                ],
+                "MaterialIndex": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "EdgeFlags": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "Materials": [
+                  "materials/dev/dev_measuregeneric01.vmat"
+                ]
+              },
+              "SmoothingAngle": 40,
               "Static": false,
               "SurfaceVelocity": "0,0,0"
             }
@@ -14356,6 +14485,7 @@
           "Flags": 0,
           "Name": "ducc",
           "Rotation": "0,0,1,-0.00000004371139",
+          "Tags": "mdf_demo",
           "Components": [
             {
               "__type": "Sandbox.ModelRenderer",
@@ -14383,41 +14513,11 @@
           ]
         },
         {
-          "__guid": "d61a8e4c-d833-4d1c-98f9-853871854bdc",
-          "Flags": 0,
-          "Name": "monkey",
-          "Rotation": "0,0,1,-0.00000004371139",
-          "Components": [
-            {
-              "__type": "Sandbox.ModelRenderer",
-              "__guid": "79484ee3-bc4a-4887-a1c6-b0f206a2af55",
-              "BodyGroups": 18446744073709551615,
-              "CreateAttachments": false,
-              "Model": "models/monkey/monkey.vmdl",
-              "RenderOptions": {
-                "GameLayer": true,
-                "OverlayLayer": false,
-                "BloomLayer": false,
-                "AfterUILayer": false
-              },
-              "RenderType": "On",
-              "Tint": "1,1,1,1"
-            },
-            {
-              "__type": "Sandbox.ModelCollider",
-              "__guid": "ffc63d73-82a9-4d62-bcee-2b4eb2887eb4",
-              "IsTrigger": false,
-              "Model": "models/monkey/monkey.vmdl",
-              "Static": false,
-              "SurfaceVelocity": "0,0,0"
-            }
-          ]
-        },
-        {
           "__guid": "06a6cc1f-71e6-41cd-9fe0-1d1053bd7524",
           "Flags": 0,
           "Name": "Concave U",
           "Position": "0,0,16",
+          "Tags": "mdf_demo",
           "Components": [
             {
               "__type": "Sandbox.MeshComponent",
@@ -14825,6 +14925,159 @@
               "SurfaceVelocity": "0,0,0"
             }
           ]
+        }
+      ]
+    },
+    {
+      "__guid": "7032c96c-95a6-4981-9bdc-1395b234634a",
+      "Flags": 0,
+      "Name": "Verlet",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.VerletDemo",
+          "__guid": "a3c1d9b0-88fc-4bd6-b844-4a1efb6edd06",
+          "CollisionExclude": "noblockrope",
+          "CollisionInclude": "",
+          "DuplicateOffset": "8,4,16",
+          "Duplicates": "1,0,1",
+          "FixedEnd": false,
+          "FixedStart": true,
+          "FollowMouse": true,
+          "Iterations": 80,
+          "OscillateEnd": false,
+          "OscillateEndAmplitude": "0,100",
+          "OscillateEndOffset": "100,0",
+          "OscillateEndPeriod": 1,
+          "RopeEndOffset": "0,-200,0",
+          "RopePointCount": 64,
+          "RopeStartOffset": "0,100,50",
+          "RopeTarget": {
+            "_type": "component",
+            "component_id": "e6ace28a-e182-4ac9-accf-b1e5e34d943a",
+            "go": "ba6031b3-b24a-4c4a-82db-55e8da11cbc1",
+            "component_type": "SphereCollider"
+          },
+          "ShowWindow": true
+        },
+        {
+          "__type": "Duccsoft.RopeRenderer",
+          "__guid": "4f563558-e97f-406e-9406-24a1944eaad4",
+          "Line": {
+            "_type": "component",
+            "component_id": "2243ff3e-10ee-46ed-b165-681173d8b72d",
+            "go": "7032c96c-95a6-4981-9bdc-1395b234634a",
+            "component_type": "LineRenderer"
+          }
+        },
+        {
+          "__type": "Sandbox.LineRenderer",
+          "__guid": "2243ff3e-10ee-46ed-b165-681173d8b72d",
+          "CastShadows": true,
+          "Color": {
+            "blend": "Linear",
+            "color": [
+              {
+                "t": 0.5,
+                "c": "1,1,1,1"
+              }
+            ],
+            "alpha": []
+          },
+          "EndCap": "Triangle",
+          "Face": "Camera",
+          "Opaque": true,
+          "Points": [],
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "SplineBias": 0,
+          "SplineContinuity": 0,
+          "SplineInterpolation": 5,
+          "SplineTension": -0.2,
+          "StartCap": "Triangle",
+          "Texturing": {
+            "Texture": "textures/rope_color.vtex",
+            "WorldSpace": true,
+            "UnitsPerTexture": 50,
+            "Scale": 1,
+            "Offset": 0,
+            "Scroll": 0
+          },
+          "UseVectorPoints": true,
+          "VectorPoints": [],
+          "Width": {
+            "rangey": "0,0.5",
+            "frames": [
+              {
+                "x": 0.5,
+                "y": 5,
+                "in": 0,
+                "out": 0,
+                "mode": "Mirrored"
+              }
+            ]
+          },
+          "Wireframe": false
+        }
+      ]
+    },
+    {
+      "__guid": "ba6031b3-b24a-4c4a-82db-55e8da11cbc1",
+      "Flags": 0,
+      "Name": "Rope Target",
+      "Position": "0,0,96",
+      "Scale": "0.1,0.1,0.1",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "8aa1fc70-4165-4759-8bc4-734b120a7956",
+          "__enabled": false,
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "Model": "models/dev/sphere.vmdl",
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.SphereCollider",
+          "__guid": "e6ace28a-e182-4ac9-accf-b1e5e34d943a",
+          "Center": "0,0,0",
+          "IsTrigger": false,
+          "Radius": 10,
+          "Static": false,
+          "SurfaceVelocity": "0,0,0"
+        },
+        {
+          "__type": "Sandbox.Rigidbody",
+          "__guid": "ba94d848-5cfb-404e-a41f-b68e1cd5775c",
+          "AngularDamping": 0,
+          "Gravity": false,
+          "LinearDamping": 0,
+          "Locking": {
+            "X": false,
+            "Y": false,
+            "Z": false,
+            "Pitch": false,
+            "Yaw": false,
+            "Roll": false
+          },
+          "MassCenterOverride": "0,0,0",
+          "MassOverride": 0,
+          "MotionEnabled": true,
+          "OverrideMassCenter": false,
+          "RigidbodyFlags": "DisableCollisionSounds",
+          "StartAsleep": false
         }
       ]
     }

@@ -466,7 +466,7 @@ public partial class VerletRope
 					continue;
 
 				// Signed distance is negative, so invert it to travel along normal to surface.
-				currentPos += result.SurfaceNormal * (-result.SignedDistance) + SolidRadius;
+				currentPos += result.SurfaceNormal * -( result.SignedDistance - SolidRadius );
 				currentPos = ci.Transform.PointToWorld( currentPos );
 				_points[collision] = point with { Position = currentPos };
 			}

@@ -68,6 +68,7 @@ public class VerletDemo : Component
 	[Property] public TagSet CollisionInclude { get; set; } = [];
 	[Property] public TagSet CollisionExclude { get; set; } = [];
 	[Property] public RopeRenderer Renderer { get; set; }
+	[Property] public Collider RopeTarget { get; set; }
 	public VerletRope Rope { get; set; }
 
 	protected override void OnStart()
@@ -175,10 +176,27 @@ public class VerletDemo : Component
 					ropePos = hit.Value;
 				}
 			}
-			var delta = ropePos - RopeStart;
-			delta = delta.SubtractDirection( Scene.Camera.WorldRotation.Forward, 0.8f );
-			ropePos = RopeStart.ExpDecayTo( RopeStart + delta, 16f );
-			RopeStartOffset = WorldTransform.PointToLocal( ropePos );
+
+			if ( RopeTarget.IsValid() )
+			{
+				if ( RopeTarget.Rigidbody.IsValid() )
+				{
+					RopeTarget.Rigidbody.SmoothMove( new Transform( ropePos ), 0.1f, Time.Delta );
+				}
+				else
+				{
+					RopeTarget.KeyframeBody.SmoothMove( new Transform( ropePos ), 0.1f, Time.Delta );
+				}
+				RopeStartOffset = RopeTarget.WorldPosition;
+			}
+			else
+			{
+				var delta = ropePos - RopeStart;
+				delta = delta.SubtractDirection( Scene.Camera.WorldRotation.Forward, 0.8f );
+				ropePos = RopeStart.ExpDecayTo( RopeStart + delta, 16f );
+				RopeStartOffset = WorldTransform.PointToLocal( ropePos );
+			}
+			
 		}
 
 		// Simulate();

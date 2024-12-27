@@ -45,6 +45,7 @@ public class MeshDistanceFieldDemo : Component
 	{
 		var tr = Scene.Trace
 			.Sphere( 1000f, Vector3.Zero, Vector3.Zero )
+			.WithTag( "mdf_demo")
 			.Run();
 		if ( !tr.Hit || tr.Shape is null )
 		{
@@ -63,7 +64,7 @@ public class MeshDistanceFieldDemo : Component
 
 	private float _sdf;
 	private Vector3 _dirToSurface;
-	private Angles _cameraAngles => new Angles( -15f, -180f, 0 );
+	private Angles _cameraAngles => new Angles( -25f, -180f, 0 );
 	private float _cameraDistance = 200;
 
 	private void UpdateInput()
@@ -77,7 +78,7 @@ public class MeshDistanceFieldDemo : Component
 		var maxs = _mdf.Bounds.Maxs;
 		var z = ((float)_textureSlice).Remap( 0, _maxSlice, mins.z, maxs.z );
 		var center = _mdf.Bounds.Center.WithZ( z );
-		_cameraDistance = maxs.x * 3f;
+		_cameraDistance = maxs.x * 8f;
 
 		var camera = Scene.Camera;
 		var worldCenter = tx.PointToWorld( center );
