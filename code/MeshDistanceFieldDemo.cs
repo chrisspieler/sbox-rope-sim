@@ -100,7 +100,15 @@ public class MeshDistanceFieldDemo : Component
 		_sdf = sample.SignedDistance;
 		_dirToSurface = sample.SurfaceNormal * ( _sdf < 0 ? 1 : -1 );
 
-		DebugOverlay.Sphere( new Sphere( mouseWorldPos, 0.5f ), color: Color.Red );
+		if ( _sdf < 0 )
+		{
+			DebugOverlay.Sphere( new Sphere( mouseWorldPos, 0.5f ), color: Color.White.WithAlpha( 0.15f), overlay: true );
+		}
+		else
+		{
+			DebugOverlay.Sphere( new Sphere( mouseWorldPos, 0.5f ), color: Color.Red );
+		}
+		
 		var distance = _sdf < 0 ? -_sdf : _sdf;
 		distance += 0.25f;
 		var surfaceLocalPos = sample.SampleLocalPosition + _dirToSurface * distance;
