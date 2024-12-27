@@ -120,7 +120,7 @@ public class MeshDistanceFieldDemo : Component
 
 	private int _maxSlice;
 	private int _textureSlice = -1;
-	private ComputeShader _textureSliceCs = new( "texture_slice_copy_cs" );
+	private ComputeShader _textureSliceCs = new( "mesh_sdf_preview_cs" );
 	private Texture _copiedTex;
 
 	private void UpdateUI()
@@ -145,7 +145,7 @@ public class MeshDistanceFieldDemo : Component
 			}
 			ImGui.NewLine();
 
-			ImGui.Text( $"Voxel Size: {_mdf.VoxelSize.x:F3},{_mdf.VoxelSize.y:F3},{_mdf.VoxelSize.z:F3}" );
+			ImGui.Text( $"Voxel Size: {_mdf.VoxelSize:F3},{_mdf.VoxelSize:F3},{_mdf.VoxelSize:F3}" );
 			ImGui.Text( $"Mouse Distance: {_sdf:F3}" );
 			ImGui.Text( $"Mouse Direction: {_dirToSurface.x:F2},{_dirToSurface.y:F2},{_dirToSurface.z:F2}" );
 
@@ -159,10 +159,10 @@ public class MeshDistanceFieldDemo : Component
 		ImGui.SetNextWindowPos( new Vector2( 50, 50 ) * ImGuiStyle.UIScale );
 		if ( ImGui.Begin( "Volume Texture Viewer" ) )
 		{
-			var voxelCount = _mdf.Volume.VoxelCount;
-			ImGui.Text( $"Size: {voxelCount.x}x{voxelCount.y}x{voxelCount.z}" );
+			var size = _mdf.VolumeSize;
+			ImGui.Text( $"Size: {size}x{size}x{size}" );
 			ImGui.Text( "Slice:" ); ImGui.SameLine();
-			_maxSlice = voxelCount.z - 1;
+			_maxSlice = size - 1;
 			_textureSlice = _textureSlice.Clamp( 0, _maxSlice );
 			var newSlice = _textureSlice;
 			ImGui.SliderInt( nameof( _textureSlice ), ref newSlice, 0, _maxSlice );
@@ -176,17 +176,21 @@ public class MeshDistanceFieldDemo : Component
 		ImGui.End();
 	}
 
-	private Texture CopyMdfTexture( int slice )
+	private Texture CopyMdfTexture( int z )
 	{
-		var input = _mdf.Volume.Texture;
-		var output = Texture.Create( input.Width, input.Height, ImageFormat.RGBA32323232F )
+		var size = _mdf.VolumeSize;
+		var outputTex = Texture.Create( size, size )
 			.WithUAVBinding()
 			.Finish();
-
-		_textureSliceCs.Attributes.Set( "InputTexture", input );
-		_textureSliceCs.Attributes.Set( "OutputTexture", output );
-		_textureSliceCs.Attributes.Set( "Slice", slice );
-		_textureSliceCs.Dispatch( output.Width, output.Height );
-		return output;
+		var voxelSdfGpu = new GpuBuffer<float>( size * size * size, GpuBuffer.UsageFlags.Structured );
+		voxelSdfGpu.SetData( _mdf.VoxelSdf );
+		_textureSliceCs.Attributes.Set( "VoxelMinsOs", _mdf.Bounds.Mins );
+		_textureSliceCs.Attributes.Set( "VoxelMaxsOs", _mdf.Bounds.Maxs );
+		_textureSliceCs.Attributes.Set( "VoxelVolumeDims", new Vector3( size ) );
+		_textureSliceCs.Attributes.Set( "VoxelSdf", voxelSdfGpu );
+		_textureSliceCs.Attributes.Set( "ZLayer", z );
+		_textureSliceCs.Attributes.Set( "OutputTexture", outputTex );
+		_textureSliceCs.Dispatch( _mdf.VolumeSize, _mdf.VolumeSize );
+		return outputTex;
 	}
 }

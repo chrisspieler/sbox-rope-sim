@@ -1,13 +1,13 @@
 float3 VoxelMinsOs < Attribute( "VoxelMinsOs" ); >;
 float3 VoxelMaxsOs < Attribute( "VoxelMaxsOs" ); >;
-float3 VoxelDims < Attribute( "VoxelDims" ); >;
+float3 VoxelVolumeDims < Attribute( "VoxelVolumeDims" ); >;
 RWStructuredBuffer<float> VoxelSdf < Attribute( "VoxelSdf" ); >;
 
 struct Voxel
 {
 	static bool IsInVolume( uint3 voxel )
 	{
-		return !any( voxel >= (uint3)VoxelDims );
+		return !any( voxel >= (uint3)VoxelVolumeDims );
 	}
 
 	static float3 GetVolumeSize()
@@ -17,12 +17,12 @@ struct Voxel
 
 	static float3 GetVoxelSize()
 	{
-		return GetVolumeSize() / VoxelDims;
+		return GetVolumeSize() / VoxelVolumeDims;
 	}
 
 	static float3 GetPositionOs( uint3 voxel )
 	{
-		float3 normalized = float3(voxel) / VoxelDims;
+		float3 normalized = float3(voxel) / VoxelVolumeDims;
 		return VoxelMinsOs + normalized * GetVolumeSize();
 	}
 
@@ -34,21 +34,21 @@ struct Voxel
 	static uint3 FromPosition( float3 positionOs )
 	{
 		float3 normalized = ( positionOs - VoxelMinsOs ) / GetVolumeSize();
-		return VoxelDims * normalized;
+		return VoxelVolumeDims * normalized;
 	}
 
 	static int Index3DTo1D( uint3 voxel )
 	{
-		uint3 dims = (uint3)VoxelDims;
+		uint3 dims = (uint3)VoxelVolumeDims;
 		return ( voxel.z * dims.y * dims.z ) + ( voxel.y * dims.x ) + voxel.x;
 	}
 
 	static uint3 Index1DTo3D( int i )
 	{
-		int z = i / ( VoxelDims.x * VoxelDims.y );
-		i -= ( z * VoxelDims.x * VoxelDims.y );
-		int y = i / VoxelDims.x;
-		int x = i % VoxelDims.x;
+		int z = i / ( VoxelVolumeDims.x * VoxelVolumeDims.y );
+		i -= ( z * VoxelVolumeDims.x * VoxelVolumeDims.y );
+		int y = i / VoxelVolumeDims.x;
+		int x = i % VoxelVolumeDims.x;
 		return uint3( x, y, z );
 	}
 

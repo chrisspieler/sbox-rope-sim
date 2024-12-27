@@ -37,7 +37,6 @@ CS
 	StructuredBuffer<uint> Indices < Attribute("Indices"); >;
 	RWStructuredBuffer<SeedData> Seeds < Attribute( "Seeds" ); >;
 	RWStructuredBuffer<int> VoxelSeeds < Attribute( "VoxelSeeds" ); >;
-	RWTexture3D<float4> OutputTexture < Attribute( "OutputTexture" ); >;
 	int JumpStep < Attribute( "JumpStep" ); >;
 
 //==================================================================
@@ -143,7 +142,7 @@ CS
 		{
 			int i = Voxel::Index3DTo1D( voxel );
 			VoxelSeeds[i] = -1;
-			OutputTexture[voxel] = float4( 0, 0, 0, 0 );
+			Voxel::Store( voxel, 255 );
 		}
 
 		bool IsValid()
@@ -163,8 +162,7 @@ CS
 			if ( !cell.IsValid() )
 				return cell;
 
-			float4 tex = OutputTexture[cell.Voxel];
-			cell.SignedDistance = tex.a;
+			cell.SignedDistance = Voxel::Load( cell.Voxel );
 			int i = Voxel::Index3DTo1D( cell.Voxel );
 			cell.SeedId = VoxelSeeds[i];
 			
@@ -177,16 +175,12 @@ CS
 			return cell;
 		}
 
-		void StoreSeedId()
+		void StoreData()
 		{
 			int i = Voxel::Index3DTo1D( Voxel );
 			int iOut;
 			InterlockedExchange( VoxelSeeds[i], SeedId, iOut );
-		}
-
-		void StoreTexture()
-		{
-			OutputTexture[Voxel] = float4( SeedPositionOs.xyz, SignedDistance );
+			Voxel::Store( Voxel, SignedDistance );
 		}
 	};
 
@@ -199,7 +193,7 @@ CS
 //------------------------------------------------------------------
 	void InitializeVolume( uint3 voxel )
 	{
-		if ( any( voxel < 0 ) || any( voxel >= VoxelDims ) )
+		if ( !Voxel::IsInVolume( voxel ) )
 			return;
 
 		Cell::Initialize( voxel );
@@ -271,7 +265,7 @@ CS
 				return;
 		}
 		cell.SeedId = seedId;
-		cell.StoreSeedId();
+		cell.StoreData();
 	}
 
 //------------------------------------------------------------------
@@ -301,6 +295,7 @@ CS
 		// We will use our neighbor's seed, as it is nearer to this voxel.
 		pCell.SeedId = qCell.SeedId;
 		pCell.SeedPositionOs = qClosest;
+		pCell.SeedNormalOs = qTri.Normal;
 
 		// If we've copied a triangle point from a neighbor, we should evaluate whether
 		// our new distance should be positive or negative.
@@ -369,57 +364,14 @@ CS
 		{
 			pCell = Flood( voxel, pCell, nCells[i] );
 		}
-		pCell.StoreSeedId();
-		pCell.StoreTexture();
-	}
-
-//------------------------------------------------------------------
-// Stage 4, 3D (Voxels)
-//------------------------------------------------------------------
-	void FinalizeOutput( uint3 voxel )
-	{
-		Cell cell = Cell::Load( voxel );
-		if ( !cell.IsValid() )
-			return;
-
-		Voxel::Store( voxel, cell.SignedDistance );
-	}
-
-//------------------------------------------------------------------
-// Stage 5, 3D (Voxels)
-//------------------------------------------------------------------
-	void DebugNormalized( uint3 voxel )
-	{
-		bool useNormal = false;
-
-		Cell cell = Cell::Load( voxel );
-		if ( !cell.IsValid() )
-			return;
-
-		cell.SeedPositionOs -= VoxelMinsOs;
-		cell.SeedPositionOs /= abs( VoxelMaxsOs - VoxelMinsOs );
-		float sdf = cell.SignedDistance;
-		sdf /= distance( VoxelMaxsOs, VoxelMinsOs );
-		if ( sdf < 0 )
-		{
-			sdf *= 0.1;
-		}
-		cell.SignedDistance = abs( sdf );
-		if ( useNormal )
-		{
-			float3 normal = cell.SeedNormalOs;
-			normal += 1;
-			normal *= 0.5;
-			cell.SeedPositionOs = normal;
-		}
-		cell.StoreTexture();
+		pCell.StoreData();
 	}
 
 //==================================================================
 // MAIN
 //==================================================================
 
-	DynamicCombo( D_STAGE, 0..5, Sys( All ) );
+	DynamicCombo( D_STAGE, 0..3, Sys( All ) );
 
 	#if D_STAGE == 1 || D_STAGE == 2
 	[numthreads( 1024, 1, 1 )]
@@ -436,10 +388,6 @@ CS
 			InitializeSeedPoints( id.x );
 		#elif D_STAGE == 3
 			JumpFlood( id );
-		#elif D_STAGE == 4
-			FinalizeOutput( id );
-		#elif D_STAGE == 5
-			DebugNormalized( id );
 		#endif
 	}
 }

@@ -73,47 +73,40 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 	private void BuildMdf( int id, MeshData data )
 	{
 		var bounds = data.CalculateMeshBounds();
+		int size = (int)Math.Max( Math.Max( bounds.Size.x, bounds.Size.y ), bounds.Size.z );
 
-		var size = bounds.Size * 1f;
-		var max = MathF.Max( size.x, size.y );
-		max = MathF.Max( max, size.z );
-		if ( max > MaxVoxelDimension )
+		if ( size > MaxVoxelDimension )
 		{
-			Log.Info( $"Reducing MDF ID {id} max voxel dimension from {max} to {MaxVoxelDimension}" );
-			max = MaxVoxelDimension;
+			Log.Info( $"Reducing MDF ID {id} max voxel dimension from {size} to {MaxVoxelDimension}" );
+			size = MaxVoxelDimension;
 		}
-		var volumeTex = Texture
-			.CreateVolume( (int)max, (int)max, (int)max, ImageFormat.RGBA32323232F )
-			.WithUAVBinding()
-			.Finish();
 
 		if ( DebugLog )
 		{
-			Log.Info( $"Build MDF ID {id}! Bounds: {bounds}, Volume: {volumeTex.Size.x}x{volumeTex.Size.y}x{volumeTex.Depth}" );
+			Log.Info( $"Build MDF ID {id}! Bounds: {bounds}, Volume: {size}x{size}x{size}" );
 		}
-		var volumeData = DispatchBuildShader( volumeTex, data, bounds );
-		var mdf = new MeshDistanceField( id, volumeData, bounds );
+		var voxelSdf = DispatchBuildShader( size, data, bounds );
+		var mdf = new MeshDistanceField( id, size, voxelSdf, bounds );
 		_meshDistanceFields[id] = mdf;
 	}
 
-	private MeshVolumeData DispatchBuildShader( Texture volumeTex, MeshData data, BBox bounds )
+	private float[] DispatchBuildShader( int size, MeshData data, BBox bounds )
 	{
 		int triCount = data.Indices.ElementCount / 3;
-		int voxelCount = volumeTex.Width * volumeTex.Height * volumeTex.Depth;
+		int voxelCount = size * size * size;
 
 		// Set the attributes for the signed distance field.
 		var voxelSdfGpu = new GpuBuffer<float>( voxelCount, GpuBuffer.UsageFlags.Structured );
 		_meshSdfCs.Attributes.Set( "VoxelMinsOs", bounds.Mins );
 		_meshSdfCs.Attributes.Set( "VoxelMaxsOs", bounds.Maxs );
-		_meshSdfCs.Attributes.Set( "VoxelDims", new Vector3( volumeTex.Width, volumeTex.Height, volumeTex.Depth ) );
+		_meshSdfCs.Attributes.Set( "VoxelVolumeDims", new Vector3( size ) );
 		_meshSdfCs.Attributes.Set( "VoxelSdf", voxelSdfGpu );
 
 		var voxelSeedsGpu = new GpuBuffer<int>( voxelCount, GpuBuffer.UsageFlags.Structured );
 		// Initialize each texel of the volume texture as having no associated seed index.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeVolume );
 		_meshSdfCs.Attributes.Set( "VoxelSeeds", voxelSeedsGpu );
-		_meshSdfCs.Attributes.Set( "OutputTexture", volumeTex );
-		_meshSdfCs.Dispatch( volumeTex.Width, volumeTex.Height, volumeTex.Depth );
+		_meshSdfCs.Dispatch( size, size, size );
 
 		var seedCount = triCount * 4;
 		var seedDataGpu = new GpuBuffer<MeshSeedData>( seedCount, GpuBuffer.UsageFlags.Structured );
@@ -135,21 +128,11 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		// Run a jump flooding algorithm to find the nearest seed index for each texel/voxel
 		// and calculate the signed distance to that seed's object space position.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.JumpFlood );
-		var max = Math.Max( volumeTex.Width, volumeTex.Height );
-		max = Math.Max( max, volumeTex.Depth );
-		for ( int step = max / 2; step > 0; step /= 2 )
+		for ( int step = size / 2; step > 0; step /= 2 )
 		{
 			_meshSdfCs.Attributes.Set( "JumpStep", step );
-			_meshSdfCs.Dispatch( volumeTex.Width, volumeTex.Height, volumeTex.Depth );
+			_meshSdfCs.Dispatch( size, size, size );
 		}
-
-		// A final pass replaces the reference to each seed with the object space position of that seed.
-		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.FinalizeOutput );
-		_meshSdfCs.Dispatch( volumeTex.Width, volumeTex.Height, volumeTex.Depth );
-
-		// Debug visualization - uncomment to see the data normalized for display.
-		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.DebugNormalized );
-		_meshSdfCs.Dispatch( volumeTex.Width, volumeTex.Height, volumeTex.Depth );
 
 		//var voxelSeeds = new int[voxelCount];
 		//voxelSeedsGpu.GetData( voxelSeeds );
@@ -161,12 +144,7 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 
 		_meshSdfCs.Attributes.Clear();
 
-		return new MeshVolumeData()
-		{
-			Texture = volumeTex,
-			VoxelCount = new Vector3Int( volumeTex.Width, volumeTex.Height, volumeTex.Depth ),
-			SignedDistanceField = voxelSdf,
-		};
+		return voxelSdf;
 	}
 
 	public bool TryGetMdf( PhysicsShape shape, out MeshDistanceField meshDistanceField )
