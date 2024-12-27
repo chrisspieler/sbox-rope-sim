@@ -14475,7 +14475,7 @@
                 ]
               },
               "SmoothingAngle": 40,
-              "Static": false,
+              "Static": true,
               "SurfaceVelocity": "0,0,0"
             }
           ]
@@ -15031,6 +15031,7 @@
       "Name": "Rope Target",
       "Position": "0,0,96",
       "Scale": "0.1,0.1,0.1",
+      "Tags": "noblockrope",
       "Enabled": true,
       "Components": [
         {

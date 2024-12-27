@@ -79,7 +79,7 @@ public partial class VerletRope
 
 	public PhysicsWorld Physics { get; init; }
 	public TagSet CollisionInclude { get; set; } = [];
-	public TagSet CollisionExclude { get; set; } = [];
+	public TagSet CollisionExclude { get; set; } = [ "noblockrope" ];
 	/// <summary>
 	/// A bias applied to CollisionRadius that is used when finding colliders that are near to
 	/// a rope node. Higher values will reduce the chance of clipping.
