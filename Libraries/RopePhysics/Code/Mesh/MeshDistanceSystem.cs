@@ -101,11 +101,16 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		int triCount = data.Indices.ElementCount / 3;
 		int voxelCount = volumeTex.Width * volumeTex.Height * volumeTex.Depth;
 
+		// Set the attributes for the signed distance field.
+		var voxelSdfGpu = new GpuBuffer<float>( voxelCount, GpuBuffer.UsageFlags.Structured );
+		_meshSdfCs.Attributes.Set( "VoxelMinsOs", bounds.Mins );
+		_meshSdfCs.Attributes.Set( "VoxelMaxsOs", bounds.Maxs );
+		_meshSdfCs.Attributes.Set( "VoxelDims", new Vector3( volumeTex.Width, volumeTex.Height, volumeTex.Depth ) );
+		_meshSdfCs.Attributes.Set( "VoxelSdf", voxelSdfGpu );
+
 		var voxelSeedsGpu = new GpuBuffer<int>( voxelCount, GpuBuffer.UsageFlags.Structured );
 		// Initialize each texel of the volume texture as having no associated seed index.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeVolume );
-		_meshSdfCs.Attributes.Set( "Mins", bounds.Mins );
-		_meshSdfCs.Attributes.Set( "Maxs", bounds.Maxs );
 		_meshSdfCs.Attributes.Set( "VoxelSeeds", voxelSeedsGpu );
 		_meshSdfCs.Attributes.Set( "OutputTexture", volumeTex );
 		_meshSdfCs.Dispatch( volumeTex.Width, volumeTex.Height, volumeTex.Depth );
@@ -138,10 +143,8 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 			_meshSdfCs.Dispatch( volumeTex.Width, volumeTex.Height, volumeTex.Depth );
 		}
 
-		var voxelSdfGpu = new GpuBuffer<float>( voxelCount, GpuBuffer.UsageFlags.Structured );
 		// A final pass replaces the reference to each seed with the object space position of that seed.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.FinalizeOutput );
-		_meshSdfCs.Attributes.Set( "VoxelSignedDistances", voxelSdfGpu );
 		_meshSdfCs.Dispatch( volumeTex.Width, volumeTex.Height, volumeTex.Depth );
 
 		// Debug visualization - uncomment to see the data normalized for display.
@@ -155,6 +158,8 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		var voxelSdf = new float[voxelCount];
 		voxelSdfGpu.GetData( voxelSdf );
 		// DumpVoxelSdf( voxelSdf );
+
+		_meshSdfCs.Attributes.Clear();
 
 		return new MeshVolumeData()
 		{

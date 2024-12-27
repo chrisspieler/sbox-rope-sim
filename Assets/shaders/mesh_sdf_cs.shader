@@ -8,6 +8,8 @@ CS
 	#include "system.fxc"
 	#include "common.fxc"
 
+	#include "shared/voxel_sdf.hlsl"
+
 //==================================================================
 // DTO
 //==================================================================
@@ -31,46 +33,18 @@ CS
 // ATTRIBUTES
 //==================================================================
 
-	float3 Mins < Attribute( "Mins" ); >;
-	float3 Maxs < Attribute( "Maxs" ); >;
 	StructuredBuffer<float4> Vertices < Attribute("Vertices"); >;
 	StructuredBuffer<uint> Indices < Attribute("Indices"); >;
 	RWStructuredBuffer<SeedData> Seeds < Attribute( "Seeds" ); >;
 	RWStructuredBuffer<int> VoxelSeeds < Attribute( "VoxelSeeds" ); >;
-	RWStructuredBuffer<float> VoxelSignedDistances < Attribute( "VoxelSignedDistances" ); >;
 	RWTexture3D<float4> OutputTexture < Attribute( "OutputTexture" ); >;
 	int JumpStep < Attribute( "JumpStep" ); >;
 
 //==================================================================
-// GLOBAL FUNCTIONS
+// GLOBALS
 //==================================================================
 
-	float3 TexelToPositionOs( uint3 texel, float3 dims )
-	{
-		float3 normalized = float3(texel) / dims;
-		return Mins + normalized * ( Maxs - Mins );
-	}
 
-	float3 GetVoxelSize( float3 dims) { return ( Maxs - Mins ) / dims; }
-
-	float3 TexelCenterToPositionOs( uint3 texel, float3 dims )
-	{
-		texel = clamp( texel, 0, dims );
-		float3 positionOs = TexelToPositionOs( texel, dims );
-		return positionOs + GetVoxelSize( dims ) * 0.5;
-	}
-
-	uint3 PositionOsToTexel( float3 pos, float3 dims )
-	{
-		float3 normalized = ( pos - Mins ) / ( Maxs - Mins );
-		uint3 texel = dims * normalized;
-		return clamp(texel, 0, dims);
-	}
-
-	int Index3DTo1D( uint3 voxel, uint3 dims )
-	{
-		return ( voxel.z * dims.y * dims.z ) + ( voxel.y * dims.x ) + voxel.x;
-	}
 
 //==================================================================
 // CLASSES
@@ -157,8 +131,7 @@ CS
 
 	struct Cell
 	{
-		int3 Voxel;
-		float3 VolumeDims;
+		uint3 Voxel;
 
 		float SignedDistance;
 
@@ -166,16 +139,16 @@ CS
 		float3 SeedPositionOs;
 		float3 SeedNormalOs;
 
-		static void Initialize( int3 voxel, float3 volumeDims )
+		static void Initialize( uint3 voxel )
 		{
-			int i = Index3DTo1D(voxel, volumeDims);
+			int i = Voxel::Index3DTo1D( voxel );
 			VoxelSeeds[i] = -1;
 			OutputTexture[voxel] = float4( 0, 0, 0, 0 );
 		}
 
 		bool IsValid()
 		{
-			return !any( Voxel < 0 ) && !any( Voxel >= (uint3)VolumeDims );
+			return Voxel::IsInVolume( Voxel );
 		}
 
 		bool IsSeed()
@@ -183,17 +156,16 @@ CS
 			return !( SeedId == -1 && SignedDistance < 0 );
 		}
 
-		static Cell Load( int3 voxel, float3 volumeDims )
+		static Cell Load( uint3 voxel )
 		{
 			Cell cell;
 			cell.Voxel = voxel;
-			cell.VolumeDims = volumeDims;
 			if ( !cell.IsValid() )
 				return cell;
 
 			float4 tex = OutputTexture[cell.Voxel];
 			cell.SignedDistance = tex.a;
-			int i = Index3DTo1D(cell.Voxel, cell.VolumeDims);
+			int i = Voxel::Index3DTo1D( cell.Voxel );
 			cell.SeedId = VoxelSeeds[i];
 			
 			if ( !cell.IsSeed() )
@@ -207,7 +179,7 @@ CS
 
 		void StoreSeedId()
 		{
-			int i = Index3DTo1D(Voxel, VolumeDims);
+			int i = Voxel::Index3DTo1D( Voxel );
 			int iOut;
 			InterlockedExchange( VoxelSeeds[i], SeedId, iOut );
 		}
@@ -225,18 +197,18 @@ CS
 //------------------------------------------------------------------
 // Stage 0, 3D (Voxels)
 //------------------------------------------------------------------
-	void InitializeVolume( uint3 voxel, float3 dims )
+	void InitializeVolume( uint3 voxel )
 	{
-		if ( any( voxel < 0 ) || any( voxel >= dims ) )
+		if ( any( voxel < 0 ) || any( voxel >= VoxelDims ) )
 			return;
 
-		Cell::Initialize( voxel, dims );
+		Cell::Initialize( voxel );
 	}
 
 //------------------------------------------------------------------
 // Stage 1, 1D (Triangles)
 //------------------------------------------------------------------
-	void FindSeedPoints( int triId, float3 dims )
+	void FindSeedPoints( int triId )
 	{
 		// Each triangle is represented by three indices.
 		uint indexId = triId * 3;
@@ -275,7 +247,7 @@ CS
 //------------------------------------------------------------------
 // Stage 2, 1D (Seeds)
 //------------------------------------------------------------------
-	void InitializeSeedPoints( int seedId, float3 dims )
+	void InitializeSeedPoints( int seedId )
 	{
 		uint numSeeds, seedStride;
 		Seeds.GetDimensions( numSeeds, seedStride );
@@ -284,14 +256,14 @@ CS
 
 		// Get data such as the object space position and normal for this seed id.
 		SeedData seedData = Seeds[seedId];
-		uint3 voxel = PositionOsToTexel( seedData.PositionOs.xyz, dims );
-		Cell cell = Cell::Load( voxel, dims );
+		uint3 voxel = Voxel::FromPosition( seedData.PositionOs.xyz );
+		Cell cell = Cell::Load( voxel );
 		if ( !cell.IsValid() )
 			return;
 		
 		if ( cell.IsSeed() )
 		{
-			float3 positionOs = TexelCenterToPositionOs( voxel, dims );
+			float3 positionOs = Voxel::GetCenterPositionOs( voxel );
 			SeedData previousSeedData = Seeds[cell.SeedId];
 			float previousDist = distance( positionOs, cell.SeedPositionOs );
 			float currentDist = distance( positionOs, seedData.PositionOs.xyz );
@@ -305,13 +277,13 @@ CS
 //------------------------------------------------------------------
 // Stage 3, 3D (Voxels)
 //------------------------------------------------------------------
-	Cell Flood( uint3 voxel, float3 dims, Cell pCell, Cell qCell )
+	Cell Flood( uint3 voxel, Cell pCell, Cell qCell )
 	{
 		// The neighbor must be a seed cell within the range of the texture, or we won't use it.
 		if ( !qCell.IsValid() || !qCell.IsSeed() )
 			return pCell;
 
-		float3 localPos = TexelCenterToPositionOs( voxel, dims );
+		float3 localPos = Voxel::GetCenterPositionOs( voxel );
 
 		Triangle pTri = Triangle::FromSeed( pCell.SeedId );
 		float3 pClosest = pTri.GetClosestPoint( localPos );
@@ -345,9 +317,9 @@ CS
 		return pCell;
 	}
 
-	void JumpFlood( uint3 voxel, float3 dims )
+	void JumpFlood( uint3 voxel )
 	{
-		Cell pCell = Cell::Load( voxel, dims );
+		Cell pCell = Cell::Load( voxel );
 		// In case the the shader was somehow dispatched with the wrong number of threads.
 		if ( !pCell.IsValid() )
 			return;
@@ -390,12 +362,12 @@ CS
 						i--;
 					}
 
-					nCells[i] = Cell::Load( qVoxel, dims );
+					nCells[i] = Cell::Load( qVoxel );
 		}}}
 
 		for( int i = 0; i < 26; i++ )
 		{
-			pCell = Flood( voxel, dims, pCell, nCells[i] );
+			pCell = Flood( voxel, pCell, nCells[i] );
 		}
 		pCell.StoreSeedId();
 		pCell.StoreTexture();
@@ -404,31 +376,30 @@ CS
 //------------------------------------------------------------------
 // Stage 4, 3D (Voxels)
 //------------------------------------------------------------------
-	void FinalizeOutput( uint3 voxel, uint3 dims )
+	void FinalizeOutput( uint3 voxel )
 	{
-		Cell cell = Cell::Load( voxel, dims );
+		Cell cell = Cell::Load( voxel );
 		if ( !cell.IsValid() )
 			return;
 
-		int i = Index3DTo1D( voxel, dims );
-		VoxelSignedDistances[i] = cell.SignedDistance;
+		Voxel::Store( voxel, cell.SignedDistance );
 	}
 
 //------------------------------------------------------------------
 // Stage 5, 3D (Voxels)
 //------------------------------------------------------------------
-	void DebugNormalized( uint3 voxel, uint3 dims )
+	void DebugNormalized( uint3 voxel )
 	{
 		bool useNormal = false;
 
-		Cell cell = Cell::Load( voxel, dims );
+		Cell cell = Cell::Load( voxel );
 		if ( !cell.IsValid() )
 			return;
 
-		cell.SeedPositionOs -= Mins;
-		cell.SeedPositionOs /= abs( Maxs - Mins );
+		cell.SeedPositionOs -= VoxelMinsOs;
+		cell.SeedPositionOs /= abs( VoxelMaxsOs - VoxelMinsOs );
 		float sdf = cell.SignedDistance;
-		sdf /= distance( Maxs, Mins );
+		sdf /= distance( VoxelMaxsOs, VoxelMinsOs );
 		if ( sdf < 0 )
 		{
 			sdf *= 0.1;
@@ -457,20 +428,18 @@ CS
 	#endif
 	void MainCs( uint3 id : SV_DispatchThreadID )
 	{
-		uint3 dims;
-		OutputTexture.GetDimensions( dims.x, dims.y, dims.z );
 		#if D_STAGE == 0
-			InitializeVolume( id, dims );
+			InitializeVolume( id );
 		#elif D_STAGE == 1
-			FindSeedPoints( id.x, dims );
+			FindSeedPoints( id.x );
 		#elif D_STAGE == 2
-			InitializeSeedPoints( id.x, dims );
+			InitializeSeedPoints( id.x );
 		#elif D_STAGE == 3
-			JumpFlood( id, dims );
+			JumpFlood( id );
 		#elif D_STAGE == 4
-			FinalizeOutput( id, dims );
+			FinalizeOutput( id );
 		#elif D_STAGE == 5
-			DebugNormalized( id, dims );
+			DebugNormalized( id );
 		#endif
 	}
 }

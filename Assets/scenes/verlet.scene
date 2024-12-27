@@ -355,6 +355,7 @@
       "Name": "Big Mesh",
       "Position": "512,0,-96",
       "Tags": "mesh",
+      "Enabled": true,
       "Components": [
         {
           "__type": "Sandbox.MeshComponent",
