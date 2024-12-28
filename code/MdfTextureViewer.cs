@@ -58,7 +58,7 @@ public class MdfTextureViewer : Component
 			return;
 		}
 		ImGui.Text( $"MDF Count: {system.MdfCount}" ); ImGui.SameLine();
-		ImGui.Text( $"Total Data Size: {system.MdfTotalBytes.FormatBytes()}" );
+		ImGui.Text( $"Total Data Size: {system.MdfTotalDataSize.FormatBytes()}" );
 		if ( ImGui.Button( "Next MDF" ) )
 		{
 			MdfIndex++;
@@ -94,10 +94,12 @@ public class MdfTextureViewer : Component
 	private Texture CopyMdfTexture( MeshDistanceField mdf, int z )
 	{
 		var size = mdf.VolumeSize;
+
 		var outputTex = Texture.Create( size, size )
 			.WithUAVBinding()
 			.Finish();
-		var voxelSdfGpu = new GpuBuffer<float>( size * size * size, GpuBuffer.UsageFlags.Structured );
+
+		var voxelSdfGpu = new GpuBuffer<int>( size * size * size / 4, GpuBuffer.UsageFlags.Structured );
 		voxelSdfGpu.SetData( mdf.VoxelSdf );
 		_textureSliceCs.Attributes.Set( "VoxelMinsOs", mdf.Bounds.Mins );
 		_textureSliceCs.Attributes.Set( "VoxelMaxsOs", mdf.Bounds.Maxs );
@@ -105,7 +107,7 @@ public class MdfTextureViewer : Component
 		_textureSliceCs.Attributes.Set( "VoxelSdf", voxelSdfGpu );
 		_textureSliceCs.Attributes.Set( "ZLayer", z );
 		_textureSliceCs.Attributes.Set( "OutputTexture", outputTex );
-		_textureSliceCs.Dispatch( size, size );
+		_textureSliceCs.Dispatch( size / 4, size, 1 );
 		return outputTex;
 	}
 }

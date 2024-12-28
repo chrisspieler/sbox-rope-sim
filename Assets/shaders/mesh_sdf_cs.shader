@@ -142,7 +142,7 @@ CS
 		{
 			int i = Voxel::Index3DTo1D( voxel );
 			VoxelSeeds[i] = -1;
-			Voxel::Store( voxel, 255 );
+			Voxel::Store( voxel, 1e20 );
 		}
 
 		bool IsValid()
@@ -195,7 +195,7 @@ CS
 	{
 		if ( !Voxel::IsInVolume( voxel ) )
 			return;
-
+		
 		Cell::Initialize( voxel );
 	}
 
@@ -367,14 +367,24 @@ CS
 		pCell.StoreData();
 	}
 
+//------------------------------------------------------------------
+// Stage 4, 3D (Voxels)
+//------------------------------------------------------------------
+	void Compress( uint3 voxel )
+	{
+		Voxel::Compress( voxel );
+	}
+
 //==================================================================
 // MAIN
 //==================================================================
 
-	DynamicCombo( D_STAGE, 0..3, Sys( All ) );
+	DynamicCombo( D_STAGE, 0..4, Sys( All ) );
 
 	#if D_STAGE == 1 || D_STAGE == 2
 	[numthreads( 1024, 1, 1 )]
+	#elif D_STAGE == 4
+	[numthreads( 4, 8, 8 )]
 	#else
 	[numthreads( 10, 10, 10 )]
 	#endif
@@ -388,6 +398,8 @@ CS
 			InitializeSeedPoints( id.x );
 		#elif D_STAGE == 3
 			JumpFlood( id );
+		#elif D_STAGE == 4
+			Compress( id );
 		#endif
 	}
 }

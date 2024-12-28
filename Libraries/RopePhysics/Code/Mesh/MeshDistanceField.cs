@@ -1,10 +1,6 @@
-﻿namespace Duccsoft;
+﻿using System;
 
-public struct MeshSeedData
-{
-	public Vector4 Position;
-	public Vector4 Normal;
-}
+namespace Duccsoft;
 
 public class MeshDistanceField
 {
@@ -17,7 +13,7 @@ public class MeshDistanceField
 	}
 
 
-	public MeshDistanceField( int id, int volumeSize, float[] voxelSdf, BBox localBounds )
+	public MeshDistanceField( int id, int volumeSize, int[] voxelSdf, BBox localBounds )
 	{
 		Id = id;
 		Bounds = localBounds;
@@ -32,8 +28,8 @@ public class MeshDistanceField
 	public BBox Bounds { get; }
 	public float VoxelSize { get; }
 	public int VolumeSize { get; init; }
-	public float[] VoxelSdf { get; init; }
-	public int DataSize => VolumeSize * VolumeSize * VolumeSize * sizeof( float );
+	public int[] VoxelSdf { get; init; }
+	public int DataSize => VolumeSize * VolumeSize * VolumeSize * sizeof( byte );
 
 	public float this[Vector3Int voxel]
 	{
@@ -42,12 +38,17 @@ public class MeshDistanceField
 			int x = voxel.x.Clamp( 0, VolumeSize - 1 );
 			int y = voxel.y.Clamp( 0, VolumeSize - 1 );
 			int z = voxel.z.Clamp( 0, VolumeSize - 1 );
-			return VoxelSdf[Index3DTo1D( x, y, z )];
+			int i = Index3DTo1D( x, y, z );
+			int packed = VoxelSdf[i / 4];
+			int shift = ( i % 4 ) * 8;
+			sbyte sdByte = (sbyte)( ( packed >> shift ) & 0xFF);
+			float volumeSize = ( Bounds.Maxs - Bounds.Mins ).x;
+			return ByteToSignedDistance( sdByte, -volumeSize * 0.5f, volumeSize * 0.5f );
 		}
 	}
 	private int Index3DTo1D( int x, int y, int z )
 	{
-		return (z * VolumeSize * VolumeSize ) + (y * VolumeSize ) + x;
+		return (z * VolumeSize * VolumeSize) + (y * VolumeSize) + x;
 	}
 
 	public bool IsInBounds( Vector3 localPos ) => Bounds.Contains( localPos );
@@ -71,6 +72,13 @@ public class MeshDistanceField
 			z = this[ voxel + zOffset ] - this[ voxel - zOffset ],
 		};
 		return gradient.Normal;
+	}
+
+	private static float ByteToSignedDistance( sbyte sdByte, float minValue, float maxValue )
+	{
+		float invLerp = MathX.LerpInverse( sdByte, -128f, 127 );
+		invLerp = invLerp.Clamp( 0f, 1f );
+		return MathX.Lerp( minValue, maxValue, invLerp );
 	}
 
 	public MeshDistanceSample Sample( Vector3 localSamplePos )

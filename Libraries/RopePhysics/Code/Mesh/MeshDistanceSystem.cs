@@ -4,6 +4,12 @@ namespace Duccsoft;
 
 public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 {
+	private struct MeshSeedData
+	{
+		public Vector4 Position;
+		public Vector4 Normal;
+	}
+
 	[ConVar( "rope_collision_mdf_build_rate" )]
 	public static int MaxBuildsPerUpdate { get; set; } = 10;
 	[ConVar( "rope_collision_mdf_voxel_density")]
@@ -46,7 +52,7 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 	private readonly ComputeShader _meshSdfCs = new( "mesh_sdf_cs" );
 
 	public int MdfCount => _meshDistanceFields.Count;
-	public int MdfTotalBytes { get; private set; }
+	public int MdfTotalDataSize { get; private set; }
 
 	private void AddMdf( int id, MeshDistanceField mdf )
 	{
@@ -60,11 +66,11 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		_meshDistanceFields[id] = mdf;
 		if ( previousMdf is null )
 		{
-			MdfTotalBytes += mdf.DataSize;
+			MdfTotalDataSize += mdf.DataSize;
 		}
 		else if ( previousMdf != mdf )
 		{
-			MdfTotalBytes += mdf.DataSize - previousMdf.DataSize;
+			MdfTotalDataSize += mdf.DataSize - previousMdf.DataSize;
 		}
 	}
 
@@ -73,7 +79,7 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		if ( _meshDistanceFields.TryGetValue( id, out var mdf ) )
 		{
 			_meshDistanceFields.Remove( id );
-			MdfTotalBytes -= mdf.DataSize;
+			MdfTotalDataSize -= mdf.DataSize;
 		}
 	}
 
@@ -95,15 +101,16 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		FindSeeds,
 		InitializeSeeds,
 		JumpFlood,
-		FinalizeOutput,
-		DebugNormalized
+		Compress
 	}
+
 	private void BuildMdf( int id, MeshData data )
 	{
 		var sw = FastTimer.StartNew();
 		var bounds = data.CalculateMeshBounds();
 		Log.Info( $"Calculate Mesh Bounds: {sw.ElapsedMilliSeconds:F3}" );
-		int size = (int)Math.Max( Math.Max( bounds.Size.x, bounds.Size.y ), bounds.Size.z );
+		// int size = (int)Math.Max( Math.Max( bounds.Size.x, bounds.Size.y ), bounds.Size.z );
+		int size = 16;
 
 		if ( size > MaxVoxelDimension )
 		{
@@ -127,19 +134,19 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		Log.Info( $"Added MDF: {sw.ElapsedMilliSeconds:F3}" );
 	}
 
-	private float[] DispatchBuildShader( int size, MeshData data, BBox bounds )
+	private int[] DispatchBuildShader( int size, MeshData data, BBox bounds )
 	{
 		int triCount = data.Indices.ElementCount / 3;
 		int voxelCount = size * size * size;
 
 		var sw = FastTimer.StartNew();
+		var scratchVoxelSdfGpu = new GpuBuffer<float>( voxelCount, GpuBuffer.UsageFlags.Structured );
+		Log.Info( $"Create ScratchVoxelSdf Buffer: {sw.ElapsedMilliSeconds:F3}" );
 		// Set the attributes for the signed distance field.
-		var voxelSdfGpu = new GpuBuffer<float>( voxelCount, GpuBuffer.UsageFlags.Structured );
-		Log.Info( $"Create VoxelSdf Buffer: {sw.ElapsedMilliSeconds:F3}" );
 		_meshSdfCs.Attributes.Set( "VoxelMinsOs", bounds.Mins );
 		_meshSdfCs.Attributes.Set( "VoxelMaxsOs", bounds.Maxs );
 		_meshSdfCs.Attributes.Set( "VoxelVolumeDims", new Vector3( size ) );
-		_meshSdfCs.Attributes.Set( "VoxelSdf", voxelSdfGpu );
+		_meshSdfCs.Attributes.Set( "ScratchVoxelSdf", scratchVoxelSdfGpu );
 
 		
 		var voxelSeedsGpu = new GpuBuffer<int>( voxelCount, GpuBuffer.UsageFlags.Structured );
@@ -162,8 +169,8 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		Log.Info( $"Dispatch FindSeeds: {sw.ElapsedMilliSeconds:F3}" );
 
 		sw.Start();
-		var seedData = new MeshSeedData[seedCount];
-		seedDataGpu.GetData( seedData );
+		//var seedData = new MeshSeedData[seedCount];
+		//seedDataGpu.GetData( seedData );
 		Log.Info( $"Get Seed Data: {sw.ElapsedMilliSeconds:F3}" );
 
 		// DumpSeedData( seedData, data );
@@ -184,12 +191,20 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 			Log.Info( $"Dispatch JumpFlood {step}: {sw.ElapsedMilliSeconds:F3}" );
 		}
 
+		var voxelSdfGpu = new GpuBuffer<int>( voxelCount / 4, GpuBuffer.UsageFlags.Structured );
+		Log.Info( $"Create VoxelSdf Buffer: {sw.ElapsedMilliSeconds:F3}" );
+		sw.Start();
+		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.Compress );
+		_meshSdfCs.Attributes.Set( "VoxelSdf", voxelSdfGpu );
+		_meshSdfCs.Dispatch( size / 4, size, size );
+		Log.Info( $"Dispatch Compress: {sw.ElapsedMilliSeconds:F3}" );
+
 		//var voxelSeeds = new int[voxelCount];
 		//voxelSeedsGpu.GetData( voxelSeeds );
 		//DumpVoxelSeeds( voxelSeeds );
 
 		sw.Start();
-		var voxelSdf = new float[voxelCount];
+		var voxelSdf = new int[voxelCount / 4];
 		voxelSdfGpu.GetData( voxelSdf );
 		Log.Info( $"Get VoxelSdf Data: {sw.ElapsedMilliSeconds:F3}" );
 		// DumpVoxelSdf( voxelSdf );
