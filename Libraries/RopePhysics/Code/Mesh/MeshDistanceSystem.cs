@@ -1,14 +1,81 @@
 ﻿using Sandbox.Diagnostics;
+using static Duccsoft.MeshDistanceSystem;
 
 namespace Duccsoft;
 
-public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
+internal record MdfBuildRequest( MeshCpuData CpuMesh, MeshGpuData GpuMesh )
 {
-	private struct MeshSeedData
+	public int VertexCount => CpuMesh.Vertices.Length;
+	public int IndexCount => CpuMesh.Indices.Length;
+	public int TriangleCount => CpuMesh.Indices.Length / 3;
+}
+
+internal record MeshCpuData( Vector3[] Vertices, uint[] Indices )
+{
+	public static MeshCpuData FromPhysicsShape( int id, PhysicsShape shape )
 	{
-		public Vector4 Position;
-		public Vector4 Normal;
+		Assert.IsValid( shape );
+
+		Vector3[] vertices;
+		uint[] indices;
+		using ( PerfLog.Scope( id, $"{nameof( PhysicsShape )}.{nameof( PhysicsShape.Triangulate )}" ) )
+		{
+			shape.Triangulate( out vertices, out indices );
+		}
+		return new MeshCpuData( vertices, indices );
 	}
+	public BBox CalculateMeshBounds()
+	{
+		Assert.NotNull( Vertices );
+		if ( Vertices.Length < 1 )
+			return BBox.FromPositionAndSize( Vector3.Zero, 16f );
+
+		var bbox = BBox.FromPositionAndSize( Vertices[0] );
+		for ( int i = 1; i < Vertices.Length; i++ )
+		{
+			bbox = bbox.AddPoint( Vertices[i] );
+		}
+		return bbox.Grow( 4f );
+	}
+}
+
+internal record MeshGpuData( GpuBuffer<Vector4> Vertices, GpuBuffer<uint> Indices )
+{
+	public static MeshGpuData FromCpuData( int id, MeshCpuData cpuData )
+	{
+		ArgumentNullException.ThrowIfNull( cpuData );
+		Assert.NotNull( cpuData.Vertices );
+		Assert.NotNull( cpuData.Indices );
+
+		Vector4[] vertices;
+		int vertexCount = cpuData.Vertices.Length;
+		int indexCount = cpuData.Indices.Length;
+		using ( PerfLog.Scope( id, "Convert Vector3 -> Vector4" ) )
+		{
+			vertices = new Vector4[vertexCount];
+			for ( int i = 0; i < vertexCount; i++ )
+			{
+				vertices[i] = new Vector4( cpuData.Vertices[i] );
+			}
+		}
+		GpuBuffer<Vector4> vtxBuffer;
+		using ( PerfLog.Scope( id, "Fill Vertex Buffer" ) )
+		{
+			vtxBuffer = new GpuBuffer<Vector4>( vertexCount, GpuBuffer.UsageFlags.Structured | GpuBuffer.UsageFlags.Vertex );
+			vtxBuffer.SetData( vertices );
+		}
+		GpuBuffer<uint> idxBuffer;
+		using ( PerfLog.Scope( id, "Fill Index Buffer" ) )
+		{
+			idxBuffer = new GpuBuffer<uint>( indexCount, GpuBuffer.UsageFlags.Structured | GpuBuffer.UsageFlags.Index );
+			idxBuffer.SetData( cpuData.Indices );
+		}
+		return new MeshGpuData( vtxBuffer, idxBuffer );
+	}
+}
+
+public partial class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
+{
 
 	[ConVar( "rope_collision_mdf_build_rate" )]
 	public static int MaxBuildsPerUpdate { get; set; } = 10;
@@ -20,37 +87,20 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 	public static bool EnablePerfLog { get; set; } = false;
 	[ConVar( "rope_collision_mdf_voxel_max" )]
 	public static int MaxVoxelDimension { get; set; } = 128;
+	[ConVar( "rope_collision_build_frametime_budget" )]
+	public static float FrameTimeBudgetMilliseconds { get; set; } = 5f;
 
 	public MeshDistanceSystem( Scene scene ) : base( scene )
 	{
-		Listen( Stage.StartUpdate, 0, BuildAllMdfs, "Build Mesh Distance Fields" );
+		Listen( Stage.StartUpdate, 0, () => _updateStartTimer = FastTimer.StartNew(), "Update Start Timer" );
+		Listen( Stage.FinishUpdate, 0, BuildAllMdfs, "Build Mesh Distance Fields" );
 	}
 
-	private struct MeshData
-	{
-		public GpuBuffer<Vector4> Vertices;
-		public GpuBuffer<uint> Indices;
-		public Transform Transform;
-
-		public readonly BBox CalculateMeshBounds()
-		{
-			var vertices = new Vector4[Vertices.ElementCount];
-			Vertices.GetData( vertices );
-			if ( vertices.Length < 1 )
-				return default;
-
-			var bbox = BBox.FromPositionAndSize( vertices[0] );
-			for ( int i = 1; i < vertices.Length; i++ )
-			{
-				bbox = bbox.AddPoint( vertices[i] );
-			}
-			return bbox.Grow( 4f );
-		}
-	}
+	private FastTimer _updateStartTimer;
 
 	private readonly Dictionary<int, MeshDistanceField> _meshDistanceFields = new();
 
-	private readonly Dictionary<int, MeshData> _mdfBuildQueue = new();
+	private readonly Dictionary<int, MdfBuildRequest> _mdfBuildQueue = new();
 	private readonly ComputeShader _meshSdfCs = new( "mesh_sdf_cs" );
 
 	public int MdfCount => _meshDistanceFields.Count;
@@ -87,11 +137,26 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 
 	private void BuildAllMdfs()
 	{
+		if ( !Game.IsPlaying )
+			return;
+
+		var startBuildTime = _updateStartTimer.ElapsedMilliSeconds;
 		var built = 0;
-		while( _mdfBuildQueue.Count > 0 && built < MaxBuildsPerUpdate )
+		while( _mdfBuildQueue.Count > 0 )
 		{
-			(int id, MeshData data ) = _mdfBuildQueue.First();
-			BuildMdf( id, data );
+			(int id, MdfBuildRequest request ) = _mdfBuildQueue.First();
+			if ( built >= MaxBuildsPerUpdate )
+			{
+				DebugLog( $"Request {id}, first of {_mdfBuildQueue.Count}, skipped until next update. Reached max builds per update: {MaxBuildsPerUpdate}" );
+				return;
+			}
+			var buildTime = _updateStartTimer.ElapsedMilliSeconds - startBuildTime;
+			if ( buildTime >= FrameTimeBudgetMilliseconds )
+			{
+				DebugLog( $"Request {id}, first of {_mdfBuildQueue.Count}, skipped until next update. Build time: {buildTime:F3}" );
+				return;
+			}
+			BuildMdf( id, request );
 			_mdfBuildQueue.Remove( id );
 			built++;
 		}
@@ -106,32 +171,7 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		Compress
 	}
 
-	private class PerfLog : IDisposable
-	{
-		private PerfLog() { }
-		private int Id;
-		private string Label;
-		private FastTimer Stopwatch;
-
-		public static PerfLog Scope( int id, string label )
-		{
-			var perflog = new PerfLog();
-			perflog.Id = id;
-			perflog.Label = label;
-			perflog.Stopwatch = FastTimer.StartNew();
-			return perflog;
-		}
-
-		public void Dispose()
-		{
-			if ( !EnablePerfLog )
-				return;
-
-			Log.Info( $"MDF {Id} {Stopwatch.ElapsedMilliSeconds:F3}ms: {Label}" );
-		}
-	}
-
-	private void DebugLog( string message )
+	private static void DebugLog( string message )
 	{
 		if ( !EnableDebugLog )
 			return;
@@ -139,12 +179,14 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		Log.Info( message );
 	}
 
-	private void BuildMdf( int id, MeshData data )
+	private void BuildMdf( int id, MdfBuildRequest request )
 	{
+		( MeshCpuData cpuMesh, MeshGpuData gpuMesh ) = request;
+
 		BBox bounds;
-		using ( PerfLog.Scope( id, nameof( MeshData.CalculateMeshBounds ) ) )
+		using ( PerfLog.Scope( id, nameof( MeshCpuData.CalculateMeshBounds ) ) )
 		{
-			bounds = data.CalculateMeshBounds();
+			bounds = cpuMesh.CalculateMeshBounds();
 		}
 		// int size = (int)Math.Max( Math.Max( bounds.Size.x, bounds.Size.y ), bounds.Size.z );
 		int size = 16;
@@ -156,7 +198,7 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		}
 
 		DebugLog( $"Build MDF ID {id}! Bounds: {bounds}, Volume: {size}x{size}x{size}" );
-		var voxelSdf = DispatchBuildShader( id, size, data, bounds );
+		var voxelSdf = DispatchBuildShader( id, size, gpuMesh, bounds );
 		MeshDistanceField mdf;
 		using ( PerfLog.Scope( id, $"Instantiate {nameof(MeshDistanceField)}" ) )
 		{
@@ -168,7 +210,7 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		}
 	}
 
-	private int[] DispatchBuildShader( int id, int size, MeshData data, BBox bounds )
+	private int[] DispatchBuildShader( int id, int size, MeshGpuData data, BBox bounds )
 	{
 		int triCount = data.Indices.ElementCount / 3;
 		int voxelCount = size * size * size;
@@ -319,42 +361,11 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 
 	private void AddPhysicsShape( int id, PhysicsShape shape )
 	{
-		Vector3[] vtx3;
-		uint[] indices;
-		using ( PerfLog.Scope( id, $"{nameof(PhysicsShape)}.{nameof(PhysicsShape.Triangulate)}" ) )
-		{
-			shape.Triangulate( out vtx3, out indices );
-		}
-		Vector4[] vertices;
-		using ( PerfLog.Scope( id, "Convert Vector3 -> Vector4" ) )
-		{
-			vertices = new Vector4[vtx3.Length];
-			for ( int i = 0; i < vtx3.Length; i++ )
-			{
-				vertices[i] = new Vector4( vtx3[i] );
-			}
-		}
-		DebugLog( $"Queue MDF ID {id}! v: {vertices.Length}, i: {indices.Length}, t: {indices.Length / 3}" );
-		// DumpMesh( vertices, indices, shape );
-		GpuBuffer<Vector4> vtxBuffer;
-		using ( PerfLog.Scope( id, "Fill Vertex Buffer" ) )
-		{
-			vtxBuffer = new GpuBuffer<Vector4>( vertices.Length, GpuBuffer.UsageFlags.Structured | GpuBuffer.UsageFlags.Vertex );
-			vtxBuffer.SetData( vertices );
-		}
-		GpuBuffer<uint> idxBuffer;
-		using ( PerfLog.Scope( id, "Fill Index Buffer" ) )
-		{
-			idxBuffer = new GpuBuffer<uint>( indices.Length, GpuBuffer.UsageFlags.Structured | GpuBuffer.UsageFlags.Index );
-			idxBuffer.SetData( indices );
-		}
-		var meshData = new MeshData()
-		{
-			Vertices = vtxBuffer,
-			Indices = idxBuffer,
-			Transform = shape.Body.Transform,
-		};
-		_mdfBuildQueue[id] = meshData;
+		var cpuMesh = MeshCpuData.FromPhysicsShape( id, shape );
+		var gpuMesh = MeshGpuData.FromCpuData( id, cpuMesh );
+		var buildRequest = new MdfBuildRequest( cpuMesh, gpuMesh );
+		DebugLog( $"Queue MDF ID {id}! v: {buildRequest.VertexCount}, i: {buildRequest.IndexCount}, t: {buildRequest.TriangleCount}" );
+		_mdfBuildQueue[id] = buildRequest;
 	}
 
 	private void DumpMesh( Vector4[] vertices, uint[] indices, PhysicsShape shape )
@@ -379,14 +390,13 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		}
 	}
 
-	private void DumpSeedData( Span<MeshSeedData> seedData, MeshData data )
+	private void DumpSeedData( Span<MeshSeedData> seedData, MeshGpuData data )
 	{
 		for ( int i = 0; i < seedData.Length; i++ )
 		{
 			var seedDatum = seedData[i];
 			Vector4 positionOs = seedDatum.Position;
 			Vector4 normal = seedDatum.Normal;
-			DebugOverlaySystem.Current.Sphere( new Sphere( positionOs, 1f ), color: Color.Cyan, duration: 5f, transform: data.Transform, overlay: true );
 			Log.Info( $"# {i} pOs: {positionOs}, nor: {normal}" );
 		}
 	}
