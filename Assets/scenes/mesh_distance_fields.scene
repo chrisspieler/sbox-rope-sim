@@ -101,8 +101,7 @@
         },
         {
           "__type": "MdfTextureViewer",
-          "__guid": "f07bef6e-f9f8-4d7c-828f-2499f8efab51",
-          "MdfIndex": 0
+          "__guid": "f07bef6e-f9f8-4d7c-828f-2499f8efab51"
         }
       ]
     },
@@ -15021,7 +15020,7 @@
           "UseVectorPoints": true,
           "VectorPoints": [],
           "Width": {
-            "rangey": "0,0.5",
+            "rangey": "0,0.15",
             "frames": [
               {
                 "x": 0.5,

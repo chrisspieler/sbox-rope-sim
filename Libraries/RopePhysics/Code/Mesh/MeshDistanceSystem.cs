@@ -15,7 +15,9 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 	[ConVar( "rope_collision_mdf_voxel_density")]
 	public static float VoxelsPerWorldUnit { get; set; } = 1;
 	[ConVar( "rope_collision_mdf_debug" )]
-	public static bool DebugLog { get; set; } = true;
+	public static bool EnableDebugLog { get; set; } = true;
+	[ConVar( "rope_collision_mdf_perf_log" )]
+	public static bool EnablePerfLog { get; set; } = false;
 	[ConVar( "rope_collision_mdf_voxel_max" )]
 	public static int MaxVoxelDimension { get; set; } = 128;
 
@@ -104,44 +106,78 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		Compress
 	}
 
+	private class PerfLog : IDisposable
+	{
+		private PerfLog() { }
+		private int Id;
+		private string Label;
+		private FastTimer Stopwatch;
+
+		public static PerfLog Scope( int id, string label )
+		{
+			var perflog = new PerfLog();
+			perflog.Id = id;
+			perflog.Label = label;
+			perflog.Stopwatch = FastTimer.StartNew();
+			return perflog;
+		}
+
+		public void Dispose()
+		{
+			if ( !EnablePerfLog )
+				return;
+
+			Log.Info( $"MDF {Id} {Stopwatch.ElapsedMilliSeconds:F3}ms: {Label}" );
+		}
+	}
+
+	private void DebugLog( string message )
+	{
+		if ( !EnableDebugLog )
+			return;
+
+		Log.Info( message );
+	}
+
 	private void BuildMdf( int id, MeshData data )
 	{
-		var sw = FastTimer.StartNew();
-		var bounds = data.CalculateMeshBounds();
-		Log.Info( $"Calculate Mesh Bounds: {sw.ElapsedMilliSeconds:F3}" );
+		BBox bounds;
+		using ( PerfLog.Scope( id, nameof( MeshData.CalculateMeshBounds ) ) )
+		{
+			bounds = data.CalculateMeshBounds();
+		}
 		// int size = (int)Math.Max( Math.Max( bounds.Size.x, bounds.Size.y ), bounds.Size.z );
 		int size = 16;
 
 		if ( size > MaxVoxelDimension )
 		{
-			if ( DebugLog )
-			{
-				Log.Info( $"Reducing MDF ID {id} max voxel dimension from {size} to {MaxVoxelDimension}" );
-			}
+			DebugLog( $"Reducing MDF ID {id} max voxel dimension from {size} to {MaxVoxelDimension}" );
 			size = MaxVoxelDimension;
 		}
 
-		if ( DebugLog )
+		DebugLog( $"Build MDF ID {id}! Bounds: {bounds}, Volume: {size}x{size}x{size}" );
+		var voxelSdf = DispatchBuildShader( id, size, data, bounds );
+		MeshDistanceField mdf;
+		using ( PerfLog.Scope( id, $"Instantiate {nameof(MeshDistanceField)}" ) )
 		{
-			Log.Info( $"Build MDF ID {id}! Bounds: {bounds}, Volume: {size}x{size}x{size}" );
+			mdf = new MeshDistanceField( id, size, voxelSdf, bounds );
 		}
-		var voxelSdf = DispatchBuildShader( size, data, bounds );
-		sw.Start();
-		var mdf = new MeshDistanceField( id, size, voxelSdf, bounds );
-		Log.Info( $"Instantiate MDF: {sw.ElapsedMilliSeconds:F3}" );
-		sw.Start();
-		AddMdf( id, mdf );
-		Log.Info( $"Added MDF: {sw.ElapsedMilliSeconds:F3}" );
+		using ( PerfLog.Scope( id, nameof(AddMdf) ) )
+		{
+			AddMdf( id, mdf );
+		}
 	}
 
-	private int[] DispatchBuildShader( int size, MeshData data, BBox bounds )
+	private int[] DispatchBuildShader( int id, int size, MeshData data, BBox bounds )
 	{
 		int triCount = data.Indices.ElementCount / 3;
 		int voxelCount = size * size * size;
 
-		var sw = FastTimer.StartNew();
-		var scratchVoxelSdfGpu = new GpuBuffer<float>( voxelCount, GpuBuffer.UsageFlags.Structured );
-		Log.Info( $"Create ScratchVoxelSdf Buffer: {sw.ElapsedMilliSeconds:F3}" );
+		GpuBuffer<float> scratchVoxelSdfGpu;
+		using ( PerfLog.Scope( id, $"Create {nameof(scratchVoxelSdfGpu)}" ) )
+		{
+			scratchVoxelSdfGpu = new GpuBuffer<float>( voxelCount, GpuBuffer.UsageFlags.Structured );
+		}
 		// Set the attributes for the signed distance field.
 		_meshSdfCs.Attributes.Set( "VoxelMinsOs", bounds.Mins );
 		_meshSdfCs.Attributes.Set( "VoxelMaxsOs", bounds.Maxs );
@@ -150,64 +186,84 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 
 		
 		var voxelSeedsGpu = new GpuBuffer<int>( voxelCount, GpuBuffer.UsageFlags.Structured );
-		sw.Start();
-		// Initialize each texel of the volume texture as having no associated seed index.
-		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeVolume );
-		_meshSdfCs.Attributes.Set( "VoxelSeeds", voxelSeedsGpu );
-		_meshSdfCs.Dispatch( size, size, size );
-		Log.Info( $"Dispatch InitializeVolume: {sw.ElapsedMilliSeconds:F3}" );
+		using ( PerfLog.Scope( id, $"Dispatch {MdfBuildStage.InitializeVolume}" ) )
+		{
+			// Initialize each texel of the volume texture as having no associated seed index.
+			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeVolume );
+			_meshSdfCs.Attributes.Set( "VoxelSeeds", voxelSeedsGpu );
+			_meshSdfCs.Dispatch( size, size, size );
+		}
 
 		var seedCount = triCount * 4;
-		var seedDataGpu = new GpuBuffer<MeshSeedData>( seedCount, GpuBuffer.UsageFlags.Structured );
-		sw.Start();
-		// For each triangle, write its object space position and normal to the seed data.
-		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.FindSeeds );
-		_meshSdfCs.Attributes.Set( "Vertices", data.Vertices );
-		_meshSdfCs.Attributes.Set( "Indices", data.Indices );
-		_meshSdfCs.Attributes.Set( "Seeds", seedDataGpu );
-		_meshSdfCs.Dispatch( threadsX: triCount );
-		Log.Info( $"Dispatch FindSeeds: {sw.ElapsedMilliSeconds:F3}" );
+		GpuBuffer<MeshSeedData> seedDataGpu;
+		using ( PerfLog.Scope( id, $"Create {nameof(seedDataGpu)}") )
+		{
+			seedDataGpu = new GpuBuffer<MeshSeedData>( seedCount, GpuBuffer.UsageFlags.Structured );
+		}
+		using ( PerfLog.Scope( id, $"Dispatch {MdfBuildStage.FindSeeds}" ) )
+		{
+			// For each triangle, write its object space position and normal to the seed data.
+			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.FindSeeds );
+			_meshSdfCs.Attributes.Set( "Vertices", data.Vertices );
+			_meshSdfCs.Attributes.Set( "Indices", data.Indices );
+			_meshSdfCs.Attributes.Set( "Seeds", seedDataGpu );
+			_meshSdfCs.Dispatch( threadsX: triCount );
+		}
 
-		sw.Start();
-		//var seedData = new MeshSeedData[seedCount];
-		//seedDataGpu.GetData( seedData );
-		Log.Info( $"Get Seed Data: {sw.ElapsedMilliSeconds:F3}" );
+		//MeshSeedData[] seedData;
+		//using ( PerfLog.Scope( id, $"Read {nameof(seedDataGpu)}" ) )
+		//{
+		//	seedData = new MeshSeedData[seedCount];
+		//	seedDataGpu.GetData( seedData );
+		//}
+		//DumpSeedData( seedData, data );
 
-		// DumpSeedData( seedData, data );
-		sw.Start();
-		// For each seed we found, write it to the seed data.
-		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeSeeds );
-		_meshSdfCs.Dispatch( threadsX: seedCount );
-		Log.Info( $"Dispatch InitializeSeeds: {sw.ElapsedMilliSeconds:F3}" );
+		using ( PerfLog.Scope( id, $"Dispatch {nameof(MdfBuildStage.InitializeSeeds)}" ) )
+		{
+			// For each seed we found, write it to the seed data.
+			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeSeeds );
+			_meshSdfCs.Dispatch( threadsX: seedCount );
+		}
 
 		// Run a jump flooding algorithm to find the nearest seed index for each texel/voxel
 		// and calculate the signed distance to that seed's object space position.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.JumpFlood );
 		for ( int step = size / 2; step > 0; step /= 2 )
 		{
-			sw.Start();
-			_meshSdfCs.Attributes.Set( "JumpStep", step );
-			_meshSdfCs.Dispatch( size, size, size );
-			Log.Info( $"Dispatch JumpFlood {step}: {sw.ElapsedMilliSeconds:F3}" );
+			using ( PerfLog.Scope( id, $"Dispatch {MdfBuildStage.JumpFlood}, Step Size: {step}") )
+			{
+				_meshSdfCs.Attributes.Set( "JumpStep", step );
+				_meshSdfCs.Dispatch( size, size, size );
+			}
 		}
 
-		var voxelSdfGpu = new GpuBuffer<int>( voxelCount / 4, GpuBuffer.UsageFlags.Structured );
-		Log.Info( $"Create VoxelSdf Buffer: {sw.ElapsedMilliSeconds:F3}" );
-		sw.Start();
-		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.Compress );
-		_meshSdfCs.Attributes.Set( "VoxelSdf", voxelSdfGpu );
-		_meshSdfCs.Dispatch( size / 4, size, size );
-		Log.Info( $"Dispatch Compress: {sw.ElapsedMilliSeconds:F3}" );
+		GpuBuffer<int> voxelSdfGpu;
+		using ( PerfLog.Scope( id, $"Create {nameof(voxelSdfGpu)}" ) )
+		{
+			voxelSdfGpu = new GpuBuffer<int>( voxelCount / 4, GpuBuffer.UsageFlags.Structured );
+		}
+		using ( PerfLog.Scope( id, $"Dispatch {MdfBuildStage.Compress}" ) )
+		{
+			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.Compress );
+			_meshSdfCs.Attributes.Set( "VoxelSdf", voxelSdfGpu );
+			_meshSdfCs.Dispatch( size / 4, size, size );
+		}
 
-		//var voxelSeeds = new int[voxelCount];
-		//voxelSeedsGpu.GetData( voxelSeeds );
+		//int[] voxelSeeds;
+		//using ( PerfLog.Scope( id, $"Read {nameof( voxelSeedsGpu )}" ) )
+		//{
+		//	voxelSeeds = new int[voxelCount];
+		//	voxelSeedsGpu.GetData( voxelSeeds );
+		//}
 		//DumpVoxelSeeds( voxelSeeds );
 
-		sw.Start();
-		var voxelSdf = new int[voxelCount / 4];
-		voxelSdfGpu.GetData( voxelSdf );
-		Log.Info( $"Get VoxelSdf Data: {sw.ElapsedMilliSeconds:F3}" );
-		// DumpVoxelSdf( voxelSdf );
+		int[] voxelSdf;
+		using ( PerfLog.Scope( id, $"Read {nameof( voxelSdfGpu )}" ) )
+		{
+			voxelSdf = new int[voxelCount / 4];
+			voxelSdfGpu.GetData( voxelSdf );
+		}
+		//DumpVoxelSdf( voxelSdf );
 
 		_meshSdfCs.Attributes.Clear();
 
@@ -263,29 +319,35 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 
 	private void AddPhysicsShape( int id, PhysicsShape shape )
 	{
-		var sw = FastTimer.StartNew();
-		shape.Triangulate( out Vector3[] vtx3, out uint[] indices );
-		Log.Info( $"Triangulate PhysicsShape: {sw.ElapsedMilliSeconds:F3}" );
-		sw = FastTimer.StartNew();
-		var vertices = new Vector4[vtx3.Length];
-		for ( int i = 0; i < vtx3.Length; i++ )
+		Vector3[] vtx3;
+		uint[] indices;
+		using ( PerfLog.Scope( id, $"{nameof(PhysicsShape)}.{nameof(PhysicsShape.Triangulate)}" ) )
 		{
-			vertices[i] = new Vector4( vtx3[i] );
+			shape.Triangulate( out vtx3, out indices );
 		}
-		if ( DebugLog )
+		Vector4[] vertices;
+		using ( PerfLog.Scope( id, "Convert Vector3 -> Vector4" ) )
 		{
-			Log.Info( $"Queue MDF ID {id}! v: {vertices.Length}, i: {indices.Length}, t: {indices.Length / 3}" );
+			vertices = new Vector4[vtx3.Length];
+			for ( int i = 0; i < vtx3.Length; i++ )
+			{
+				vertices[i] = new Vector4( vtx3[i] );
+			}
 		}
-		Log.Info( $"Convert Vector3 -> Vector4: {sw.ElapsedMilliSeconds:F3}" );
-		sw.Start();
+		DebugLog( $"Queue MDF ID {id}! v: {vertices.Length}, i: {indices.Length}, t: {indices.Length / 3}" );
 		// DumpMesh( vertices, indices, shape );
-		var vtxBuffer = new GpuBuffer<Vector4>( vertices.Length, GpuBuffer.UsageFlags.Structured | GpuBuffer.UsageFlags.Vertex );
-		vtxBuffer.SetData( vertices );
-		Log.Info( $"Fill vertex buffer: {sw.ElapsedMilliSeconds:F3}" );
-		sw.Start();
-		var idxBuffer = new GpuBuffer<uint>( indices.Length, GpuBuffer.UsageFlags.Structured | GpuBuffer.UsageFlags.Index );
-		idxBuffer.SetData( indices );
-		Log.Info( $"Fill index buffer: {sw.ElapsedMilliSeconds:F3}" );
+		GpuBuffer<Vector4> vtxBuffer;
+		using ( PerfLog.Scope( id, "Fill Vertex Buffer" ) )
+		{
+			vtxBuffer = new GpuBuffer<Vector4>( vertices.Length, GpuBuffer.UsageFlags.Structured | GpuBuffer.UsageFlags.Vertex );
+			vtxBuffer.SetData( vertices );
+		}
+		GpuBuffer<uint> idxBuffer;
+		using ( PerfLog.Scope( id, "Fill Index Buffer" ) )
+		{
+			idxBuffer = new GpuBuffer<uint>( indices.Length, GpuBuffer.UsageFlags.Structured | GpuBuffer.UsageFlags.Index );
+			idxBuffer.SetData( indices );
+		}
 		var meshData = new MeshData()
 		{
 			Vertices = vtxBuffer,
@@ -338,12 +400,12 @@ public class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		}
 	}
 
-	private void DumpVoxelSdf( Span<float> voxelSdf )
+	private void DumpVoxelSdf( Span<int> voxelSdf )
 	{
 		for ( int i = 0; i < voxelSdf.Length; i++ )
 		{
 			var signedDistance = voxelSdf[i];
-			Log.Info( $"voxel {i} signedDistance: {signedDistance}" );
+			Log.Info( $"voxel {i} packed int: {signedDistance}" );
 		}
 	}
 }

@@ -93,7 +93,7 @@ public partial class VerletRope
 	/// A radius in units that defines the contribution of each node to CollisionBounds.
 	/// </summary>
 	public float CollisionRadius => SolidRadius * 2f + SegmentLength * 0.5f + CollisionSearchRadius;
-	public float SolidRadius => 0.5f;
+	public float SolidRadius => 0.15f;
 
 	public int SphereColliderCount => _sphereColliders.Count;
 	private Dictionary<int, SphereCollisionInfo> _sphereColliders = new();
