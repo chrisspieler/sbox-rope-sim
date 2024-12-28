@@ -70,7 +70,7 @@ public class MdfTextureViewer : Component
 		}
 		ImGui.Text( $"MDF Index: {MdfIndex}" ); ImGui.SameLine();
 		ImGui.Text( $"MDF Id: {Mdf.Id}" );
-		var size = Mdf.VolumeSize;
+		var size = Mdf.VoxelGridDims;
 		ImGui.Text( $"Dimensions: {size}x{size}x{size}" ); ImGui.SameLine();
 		ImGui.Text( $"Data Size: { Mdf.DataSize.FormatBytes()}" );
 		if ( ImGui.Button( "Remove MDF" ) )
@@ -93,7 +93,7 @@ public class MdfTextureViewer : Component
 
 	private Texture CopyMdfTexture( MeshDistanceField mdf, int z )
 	{
-		var size = mdf.VolumeSize;
+		var size = mdf.VoxelGridDims;
 
 		var outputTex = Texture.Create( size, size )
 			.WithUAVBinding()

@@ -51,16 +51,24 @@ public class MeshDistanceFieldDemo : Component
 
 		var mins = Mdf.Bounds.Mins;
 		var maxs = Mdf.Bounds.Maxs;
-		var z = ((float)TextureViewer.TextureSlice).Remap( 0, Mdf.VolumeSize - 1, mins.z, maxs.z );
+		var z = ((float)TextureViewer.TextureSlice).Remap( 0, Mdf.VoxelGridDims - 1, mins.z, maxs.z );
 		var center = Mdf.Bounds.Center.WithZ( z );
 		_cameraDistance = maxs.x * 8f;
 
 		var camera = Scene.Camera;
 		var worldCenter = tx.PointToWorld( center );
+		for ( int y = 0; y < Mdf.VoxelGridDims; y++ )
+		{
+			for ( int x = 0; x < Mdf.VoxelGridDims; x++ )
+			{
+				var voxelLocalPos = Mdf.VoxelToPositionCenter( new Vector3Int( x, y, TextureViewer.TextureSlice ) );
+				var bbox = BBox.FromPositionAndSize( voxelLocalPos, Mdf.VoxelSize );
+				DebugOverlay.Box( bbox, color: Color.Green.WithAlpha( 0.15f ), transform: tx );
+			}
+		}
 		camera.WorldPosition = worldCenter + _cameraAngles.Forward * _cameraDistance;
 		camera.WorldRotation = Rotation.LookAt( Vector3.Direction( camera.WorldPosition, worldCenter ) );
-
-		DebugOverlay.Box( BBox.FromPositionAndSize( center, ( Mdf.Bounds.Size * 1.5f ).WithZ( 1f ) ), color: Color.White.WithAlpha( 0.15f ), transform: tx );
+		DebugOverlay.Box( BBox.FromPositionAndSize( center, Mdf.Bounds.Size.WithZ( 1f ) ), color: Color.White.WithAlpha( 0.15f ), transform: tx );
 		DebugOverlay.Line( center.WithX( mins.x ), center.WithX( maxs.x ), color: Color.White.WithAlpha( 0.15f ), transform: tx );
 		DebugOverlay.Line( center.WithY( mins.y ), center.WithY( maxs.y ), color: Color.White.WithAlpha( 0.15f ), transform: tx );
 
@@ -95,7 +103,7 @@ public class MeshDistanceFieldDemo : Component
 
 	private void UpdateUI()
 	{
-		ImGui.SetNextWindowPos( new Vector2( 900, 50 ) * ImGuiStyle.UIScale );
+		ImGui.SetNextWindowPos( new Vector2( 875, 50 ) * ImGuiStyle.UIScale );
 		if ( ImGui.Begin( "Mesh Distance Field" ) )
 		{
 			DrawWindow();
@@ -125,9 +133,9 @@ public class MeshDistanceFieldDemo : Component
 		{
 			MeshDistanceSystem.Current.RemoveMdf( Mdf.Id );
 		}
-		ImGui.NewLine();
-
-		ImGui.Text( $"Voxel Size: {Mdf.VoxelSize:F3},{Mdf.VoxelSize:F3},{Mdf.VoxelSize:F3}" );
+		ImGui.Text( $"Mesh Mins: {Mdf.Bounds.Mins}" );
+		ImGui.Text( $"Mesh Maxs: {Mdf.Bounds.Maxs}" );
+		ImGui.Text( $"Voxel Size: {Mdf.VoxelSize:F3}" );
 		ImGui.Text( $"Mouse Distance: {_sdf:F3}" );
 		ImGui.Text( $"Mouse Direction: {_dirToSurface.x:F2},{_dirToSurface.y:F2},{_dirToSurface.z:F2}" );
 

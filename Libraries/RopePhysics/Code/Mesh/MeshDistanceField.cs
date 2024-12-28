@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Duccsoft;
+﻿namespace Duccsoft;
 
 public class MeshDistanceField
 {
@@ -13,42 +11,40 @@ public class MeshDistanceField
 	}
 
 
-	public MeshDistanceField( int id, int volumeSize, int[] voxelSdf, BBox localBounds )
+	public MeshDistanceField( int id, int voxelGridDims, int[] voxelSdf, BBox localBounds )
 	{
 		Id = id;
 		Bounds = localBounds;
-		VolumeSize = volumeSize;
+		VoxelGridDims = voxelGridDims;
 		VoxelSdf = voxelSdf;
-
-		var boundsMax = Math.Max( Math.Max( Bounds.Size.x, Bounds.Size.y ), Bounds.Size.z );
-		VoxelSize = boundsMax / VolumeSize;
+		VoxelSize = Bounds.Size / VoxelGridDims;
 	}
 
 	public int Id { get; }
 	public BBox Bounds { get; }
-	public float VoxelSize { get; }
-	public int VolumeSize { get; init; }
+	public Vector3 VoxelSize { get; }
+	public int VoxelGridDims { get; init; }
 	public int[] VoxelSdf { get; init; }
-	public int DataSize => VolumeSize * VolumeSize * VolumeSize * sizeof( byte );
+	public int DataSize => VoxelGridDims * VoxelGridDims * VoxelGridDims * sizeof( byte );
 
 	public float this[Vector3Int voxel]
 	{
 		get
 		{
-			int x = voxel.x.Clamp( 0, VolumeSize - 1 );
-			int y = voxel.y.Clamp( 0, VolumeSize - 1 );
-			int z = voxel.z.Clamp( 0, VolumeSize - 1 );
+			int x = voxel.x.Clamp( 0, VoxelGridDims - 1 );
+			int y = voxel.y.Clamp( 0, VoxelGridDims - 1 );
+			int z = voxel.z.Clamp( 0, VoxelGridDims - 1 );
 			int i = Index3DTo1D( x, y, z );
 			int packed = VoxelSdf[i / 4];
 			int shift = ( i % 4 ) * 8;
-			sbyte sdByte = (sbyte)( ( packed >> shift ) & 0xFF);
-			float volumeSize = ( Bounds.Maxs - Bounds.Mins ).x;
-			return ByteToSignedDistance( sdByte, -volumeSize * 0.5f, volumeSize * 0.5f );
+			byte udByte = (byte)( ( packed >> shift ) & 0xFF);
+			float sdByte = (float)udByte - 128;
+			return sdByte.Remap( -128, 127, VoxelGridDims * -0.5f, VoxelGridDims * 0.5f );
 		}
 	}
 	private int Index3DTo1D( int x, int y, int z )
 	{
-		return (z * VolumeSize * VolumeSize) + (y * VolumeSize) + x;
+		return (z * VoxelGridDims * VoxelGridDims) + (y * VoxelGridDims) + x;
 	}
 
 	public bool IsInBounds( Vector3 localPos ) => Bounds.Contains( localPos );
@@ -56,10 +52,16 @@ public class MeshDistanceField
 	public Vector3Int PositionToVoxel( Vector3 localPos )
 	{
 		var normalized = ( localPos - Bounds.Mins ) / Bounds.Size;
-		var voxel = normalized * ( VolumeSize - 1 );
+		var voxel = normalized * ( VoxelGridDims - 1 );
 		return (Vector3Int)voxel;
 	}
 
+	public Vector3 VoxelToPositionCenter( Vector3Int voxel )
+	{
+		var normalized = (Vector3)voxel / VoxelGridDims;
+		var positionCorner = Bounds.Mins + normalized * Bounds.Size;
+		return positionCorner + VoxelSize * 0.5f;
+	}
 	private Vector3 EstimateVoxelSurfaceNormal( Vector3Int voxel )
 	{
 		var xOffset = new Vector3Int( 1, 0, 0 );
@@ -72,13 +74,6 @@ public class MeshDistanceField
 			z = this[ voxel + zOffset ] - this[ voxel - zOffset ],
 		};
 		return gradient.Normal;
-	}
-
-	private static float ByteToSignedDistance( sbyte sdByte, float minValue, float maxValue )
-	{
-		float invLerp = MathX.LerpInverse( sdByte, -128f, 127 );
-		invLerp = invLerp.Clamp( 0f, 1f );
-		return MathX.Lerp( minValue, maxValue, invLerp );
 	}
 
 	public MeshDistanceSample Sample( Vector3 localSamplePos )
