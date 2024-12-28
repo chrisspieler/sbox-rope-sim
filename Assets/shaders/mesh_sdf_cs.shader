@@ -382,11 +382,11 @@ CS
 	DynamicCombo( D_STAGE, 0..4, Sys( All ) );
 
 	#if D_STAGE == 1 || D_STAGE == 2
-	[numthreads( 1024, 1, 1 )]
+	[numthreads( 16, 1, 1 )]
 	#elif D_STAGE == 4
 	[numthreads( 4, 8, 8 )]
 	#else
-	[numthreads( 10, 10, 10 )]
+	[numthreads( 8, 8, 8 )]
 	#endif
 	void MainCs( uint3 id : SV_DispatchThreadID )
 	{

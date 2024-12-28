@@ -107,7 +107,7 @@ public class MdfTextureViewer : Component
 		_textureSliceCs.Attributes.Set( "VoxelSdf", voxelSdfGpu );
 		_textureSliceCs.Attributes.Set( "ZLayer", z );
 		_textureSliceCs.Attributes.Set( "OutputTexture", outputTex );
-		_textureSliceCs.Dispatch( size / 4, size, 1 );
+		_textureSliceCs.Dispatch( size, size, size );
 		return outputTex;
 	}
 }

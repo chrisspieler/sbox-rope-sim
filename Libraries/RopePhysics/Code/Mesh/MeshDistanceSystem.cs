@@ -288,7 +288,7 @@ public partial class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		{
 			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.Compress );
 			_meshSdfCs.Attributes.Set( "VoxelSdf", voxelSdfGpu );
-			_meshSdfCs.Dispatch( size / 4, size, size );
+			_meshSdfCs.Dispatch( size, size, size );
 		}
 
 		//int[] voxelSeeds;

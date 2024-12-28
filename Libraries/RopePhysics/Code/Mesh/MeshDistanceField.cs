@@ -39,7 +39,9 @@ public class MeshDistanceField
 			int shift = ( i % 4 ) * 8;
 			byte udByte = (byte)( ( packed >> shift ) & 0xFF);
 			float sdByte = (float)udByte - 128;
-			return sdByte.Remap( -128, 127, VoxelGridDims * -0.5f, VoxelGridDims * 0.5f );
+			// Non-uniform bounds will not be supported in the future - assume VoxelGridDims^3 cube!
+			var maxDistance = VoxelGridDims * 0.5f;
+			return sdByte.Remap( -128, 127, -maxDistance, maxDistance );
 		}
 	}
 	private int Index3DTo1D( int x, int y, int z )
