@@ -11,13 +11,14 @@ public class MeshDistanceField
 	}
 
 
-	public MeshDistanceField( int id, int voxelGridDims, int[] voxelSdf, BBox localBounds )
+	public MeshDistanceField( int id, int voxelGridDims, int[] voxelSdf, SparseVoxelOctree<int[]> octree, BBox localBounds )
 	{
 		Id = id;
 		Bounds = localBounds;
 		VoxelGridDims = voxelGridDims;
 		VoxelSdf = voxelSdf;
 		VoxelSize = Bounds.Size / VoxelGridDims;
+		Octree = octree;
 	}
 
 	public int Id { get; }
@@ -25,6 +26,7 @@ public class MeshDistanceField
 	public Vector3 VoxelSize { get; }
 	public int VoxelGridDims { get; init; }
 	public int[] VoxelSdf { get; init; }
+	public SparseVoxelOctree<int[]> Octree { get; init; }
 	public int DataSize => VoxelGridDims * VoxelGridDims * VoxelGridDims * sizeof( byte );
 
 	public float this[Vector3Int voxel]

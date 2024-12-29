@@ -49,6 +49,9 @@ public class MeshDistanceFieldDemo : Component
 
 		var tx = SelectedMeshGameObject.WorldTransform;
 
+		var octreeTx = tx;
+		DrawOctree( octreeTx, Mdf.Octree );
+
 		var mins = Mdf.Bounds.Mins;
 		var maxs = Mdf.Bounds.Maxs;
 		var z = ((float)TextureViewer.TextureSlice).Remap( 0, Mdf.VoxelGridDims - 1, mins.z, maxs.z );
@@ -99,6 +102,30 @@ public class MeshDistanceFieldDemo : Component
 		var surfaceWorldPos = SelectedMeshGameObject.WorldTransform.PointToWorld( surfaceLocalPos );
 		DebugOverlay.Sphere( new Sphere( surfaceWorldPos, 0.5f ), color: Color.Blue, overlay: false );
 		DebugOverlay.Line( surfaceWorldPos, surfaceWorldPos + tx.NormalToWorld( sample.SurfaceNormal ) * 3f, color: Color.Green, overlay: false );
+	}
+
+	private void DrawOctree( Transform tx, SparseVoxelOctree<int[]> octree )
+	{
+		void DrawChildren( SparseVoxelOctree<int[]>.OctreeNode node )
+		{
+			var pos = node.Position - octree.Size / 2;
+			var bbox = new BBox( pos, pos + node.Size );
+			var color = Color.Blue.WithAlpha( 0.15f );
+			if ( node.IsLeaf )
+			{
+				color = Color.Yellow.WithAlpha( 0.35f );
+			}
+			DebugOverlay.Box( bbox, color, transform: tx );
+			foreach( var child in node.Children )
+			{
+				if ( child is null )
+					continue;
+
+				DrawChildren( child );
+			}
+		}
+
+		DrawChildren( octree.RootNode );
 	}
 
 	private void UpdateUI()

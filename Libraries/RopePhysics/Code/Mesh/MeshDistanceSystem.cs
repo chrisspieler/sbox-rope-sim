@@ -179,6 +179,18 @@ public partial class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		Log.Info( message );
 	}
 
+	private static int NearestPowerOf2( int v )
+	{
+		v--;
+		v |= v >> 1;
+		v |= v >> 2;
+		v |= v >> 4;
+		v |= v >> 8;
+		v |= v >> 16;
+		v++;
+		return v;
+	}
+
 	private void BuildMdf( int id, MdfBuildRequest request )
 	{
 		( MeshCpuData cpuMesh, MeshGpuData gpuMesh ) = request;
@@ -199,10 +211,27 @@ public partial class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 
 		DebugLog( $"Build MDF ID {id}! Bounds: {bounds}, Volume: {size}x{size}x{size}" );
 		var voxelSdf = DispatchBuildShader( id, size, gpuMesh, bounds );
+		SparseVoxelOctree<int[]> octree;
+		using ( PerfLog.Scope( id, $"Fill Octree" ) )
+		{
+			int svoSize = (int)Math.Max( Math.Max( bounds.Size.x, bounds.Size.y ), bounds.Size.z );
+			svoSize = NearestPowerOf2( svoSize );
+			// We want the octree depth to result in voxels that have a size of 16 units.
+			int logDiff = (int)Math.Log2( svoSize ) - 4;
+			int octreeDepth = Math.Max( 1, logDiff );
+			Log.Info( $"Create octree of size {svoSize} and depth {octreeDepth}" );
+			octree = new SparseVoxelOctree<int[]>( svoSize, octreeDepth );
+			for ( int i = 0; i < request.VertexCount; i++ )
+			{
+				var vtx = request.CpuMesh.Vertices[i];
+				int[] data = [(int)vtx.x, (int)vtx.y, (int)vtx.z, 0];
+				octree.Insert( vtx, data );
+			}
+		}
 		MeshDistanceField mdf;
 		using ( PerfLog.Scope( id, $"Instantiate {nameof(MeshDistanceField)}" ) )
 		{
-			mdf = new MeshDistanceField( id, size, voxelSdf, bounds );
+			mdf = new MeshDistanceField( id, size, voxelSdf, octree, bounds );
 		}
 		using ( PerfLog.Scope( id, nameof(AddMdf) ) )
 		{
