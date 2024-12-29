@@ -96,4 +96,30 @@ public class SparseVoxelOctree<T>
 
 		InsertRecursive( node[childIndex], point, data, depth + 1 );
 	}
+
+	public void DebugDraw( Transform tx )
+	{
+		var overlay = DebugOverlaySystem.Current;
+
+		DrawChildren( RootNode );
+
+		void DrawChildren( OctreeNode node )
+		{
+			var pos = node.Position - Size / 2;
+			var bbox = new BBox( pos, pos + node.Size );
+			var color = Color.Blue.WithAlpha( 0.15f );
+			if ( node.IsLeaf )
+			{
+				color = Color.Yellow.WithAlpha( 0.35f );
+			}
+			overlay.Box( bbox, color, transform: tx );
+			foreach ( var child in node.Children )
+			{
+				if ( child is null )
+					continue;
+
+				DrawChildren( child );
+			}
+		}
+	}
 }
