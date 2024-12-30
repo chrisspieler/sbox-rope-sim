@@ -1,6 +1,4 @@
-﻿using Sandbox.Diagnostics;
-
-namespace Duccsoft;
+﻿namespace Duccsoft;
 
 internal class CreateMeshOctreeJob : Job<GpuMeshData, SparseVoxelOctree<VoxelSdfData>>
 {
@@ -16,7 +14,6 @@ internal class CreateMeshOctreeJob : Job<GpuMeshData, SparseVoxelOctree<VoxelSdf
 
 	private SparseVoxelOctree<VoxelSdfData> CreateOctree()
 	{
-		Log.Info( "Creating octree" );
 		static int NearestPowerOf2( int v )
 		{
 			v--;
@@ -41,13 +38,11 @@ internal class CreateMeshOctreeJob : Job<GpuMeshData, SparseVoxelOctree<VoxelSdf
 		// Ensure that the octree depth is set such that we guarantee a leaf size of 2^LEAF_SIZE_LOG2
 		int octreeDepth = Math.Max( 1, logDiff );
 
-		Log.Info( $"Create octree of size {svoSize} and depth {octreeDepth}" );
 		return new SparseVoxelOctree<VoxelSdfData>( svoSize, octreeDepth );
 	}
 
 	private Triangle[] GetTriangles()
 	{
-		Log.Info( $"Creating triangles" );
 		var indices = InputData.CpuMesh.Indices;
 		var vertices = InputData.CpuMesh.Vertices;
 		var tris = new Triangle[indices.Length / 3];
@@ -67,7 +62,7 @@ internal class CreateMeshOctreeJob : Job<GpuMeshData, SparseVoxelOctree<VoxelSdf
 
 	private void InitializeOverlappingLeaves( Triangle tri )
 	{
-		var triBounds = tri.GetBounds().Grow( 0.001f );
+		var triBounds = tri.GetBounds().Grow( 0.01f );
 		var voxelMins = Octree.PositionToVoxel( triBounds.Mins );
 		var voxelMaxs = Octree.PositionToVoxel( triBounds.Maxs );
 		for ( int z = voxelMins.z; z < voxelMaxs.z; z++ )
@@ -77,8 +72,6 @@ internal class CreateMeshOctreeJob : Job<GpuMeshData, SparseVoxelOctree<VoxelSdf
 				for ( int x = voxelMins.x; x < voxelMaxs.x; x++ )
 				{
 					var voxel = new Vector3Int( x, y, z );
-					if ( Octree.HasLeaf( voxel ) )
-						continue;
 					var voxelPos = Octree.VoxelToPosition( voxel );
 					
 					// Use voxel center as BBox center.
@@ -100,23 +93,20 @@ internal class CreateMeshOctreeJob : Job<GpuMeshData, SparseVoxelOctree<VoxelSdf
 
 		Tris ??= GetTriangles();
 
-		var leafCount = Octree.Size / LEAF_SIZE;
-		var remainingTime = FrameTimeBudget;
-
-		Log.Info( $"load progress: {_triProgress}" );
+		var timer = new MultiTimer();
 		for ( int i = _triProgress; i < Tris.Length; i++ )
 		{
-			var timer = FastTimer.StartNew();
-			InitializeOverlappingLeaves( Tris[i] );
-			remainingTime -= timer.ElapsedMilliSeconds;
-			if ( remainingTime < 0 )
+			using ( timer.RecordTime() )
+			{
+				InitializeOverlappingLeaves( Tris[i] );
+			}
+
+			if ( timer.TotalMilliseconds > FrameTimeBudget )
 			{
 				_triProgress = ++i;
-				Log.Info( $"stored progress {_triProgress}" );
 				return false;
 			}
 		}
-		Log.Info( $"l: {LEAF_SIZE}, l2: {LEAF_SIZE_LOG2}, lc: {leafCount}, g: {leafCount * leafCount * leafCount }, t: {Tris.Length}" );
 		return true;
 	}
 }

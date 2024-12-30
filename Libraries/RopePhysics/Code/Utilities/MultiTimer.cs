@@ -17,6 +17,9 @@ internal class MultiTimer : ITimerStats
 
 	public double TotalMilliseconds { get; private set; }
 	public double LastMilliseconds { get; private set; }
+	public double AverageMilliseconds { get; private set; }
+	public int RecordCounter { get; set; } = 0;
+
 
 	public IDisposable RecordTime() => new JobTimerScope( this, FastTimer.StartNew() );
 
@@ -24,5 +27,6 @@ internal class MultiTimer : ITimerStats
 	{
 		LastMilliseconds = elapsedMilliseconds;
 		TotalMilliseconds += LastMilliseconds;
+		AverageMilliseconds = (AverageMilliseconds * RecordCounter + LastMilliseconds) / (RecordCounter + 1);
 	}
 }
