@@ -28,7 +28,7 @@ public class MeshDistanceFieldDemo : Component
 	[Property] public MdfTextureViewer TextureViewer { get; set; }
 	[Property] public bool ShouldDrawSlicePlane { get; set; } = true;
 	[Property] public bool ShouldDrawSliceVoxels { get; set; } = false;
-	[Property] public bool ShouldDrawOctree { get; set; } = false;
+	[Property] public bool ShouldDrawOctree { get; set; } = true;
 
 	public GameObject SelectedMeshGameObject => MeshContainer?.Children[SelectedMeshIndex];
 
@@ -151,6 +151,9 @@ public class MeshDistanceFieldDemo : Component
 
 	private static void DrawOctree( MeshDistanceField mdf, GameObject go )
 	{
+		if ( mdf?.Octree is null || !go.IsValid() )
+			return;
+
 		var tx = go.WorldTransform;
 		mdf.Octree.DebugDraw( tx );
 	}

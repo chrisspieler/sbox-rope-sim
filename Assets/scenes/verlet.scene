@@ -30236,7 +30236,6 @@
       "Name": "monkey",
       "Position": "512,-32,32",
       "Rotation": "0,0,1,-0.00000004371139",
-      "Enabled": true,
       "Components": [
         {
           "__type": "Sandbox.ModelRenderer",

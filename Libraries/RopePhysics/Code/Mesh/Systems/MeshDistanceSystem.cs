@@ -38,6 +38,7 @@ public partial class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		if ( _meshDistanceFields.TryGetValue( id, out var mdf ) )
 		{
 			_meshDistanceFields.Remove( id );
+			MeshDistanceBuildSystem.Current.StopBuild( id );
 			MdfTotalDataSize -= mdf.DataSize;
 		}
 	}

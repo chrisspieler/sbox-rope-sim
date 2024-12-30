@@ -62,35 +62,32 @@ public class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSystem>
 			_mdfsInProgress[jobId] = new MeshDistanceField( jobId, gpuMesh );
 		}
 		AddCreateMeshOctreeJobs( convertMeshToGpuResults );
-		AddJumpFloodSdfJobs( convertMeshToGpuResults );
 		if ( remainingTime <= 0 )
 			return;
 
 		var createMeshOctreeResults = RunJobSet( _createSvoJobs, ref remainingTime );
 		foreach ( (var jobId, var octree) in createMeshOctreeResults )
 		{
+			Log.Info( $"Add octree {jobId} to mdf" );
 			_mdfsInProgress[jobId].Octree = octree;
 		}
+		AddJumpFloodSdfJobs( createMeshOctreeResults );
 		if ( remainingTime <= 0 )
 			return;
 
 		// Run a jump flooding algorithm on each GpuMeshData to obtained signed distance fields.
 		var jumpFloodSdfResults = RunJobSet( _jumpFloodSdfJobs, ref remainingTime );
+		var mdfSystem = MeshDistanceSystem.Current;
 		foreach ( (var jobId, var voxels) in jumpFloodSdfResults )
 		{
 			_mdfsInProgress[jobId].VoxelSdf = voxels;
-		}
-
-		var mdfSystem = MeshDistanceSystem.Current;
-		foreach ( var id in _mdfsInProgress.Keys )
-		{
-			var mdf = StopBuild( id );
-			mdfSystem.AddMdf( id, mdf );
-			DebugLog( $"Added MDF ID # {id}" );
+			var mdf = StopBuild( jobId );
+			mdfSystem.AddMdf( jobId, mdf );
+			DebugLog( $"Added MDF ID # {jobId}" );
 		}
 	}
 
-	private MeshDistanceField StopBuild( int id )
+	public MeshDistanceField StopBuild( int id )
 	{
 		DebugLog( $"Stopping build for MDF ID # {id}" );
 		_allJobs.Remove( id );
@@ -125,11 +122,12 @@ public class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSystem>
 			_allJobs[id] = job;
 		}
 	}
-	private void AddJumpFloodSdfJobs( Dictionary<int, GpuMeshData> inputs )
+	private void AddJumpFloodSdfJobs( Dictionary<int, SparseVoxelOctree<VoxelSdfData>> inputs )
 	{
 		foreach ( (var id, var input) in inputs )
 		{
-			var job = new JumpFloodSdfJob( id, input );
+			var mdf = _mdfsInProgress[id];
+			var job = new JumpFloodSdfJob( id, mdf.MeshData );
 			_jumpFloodSdfJobs[id] = job;
 			_allJobs[id] = job;
 		}

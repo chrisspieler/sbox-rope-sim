@@ -27,15 +27,37 @@ public class SparseVoxelOctree<T>
 	{
 		Size = size;
 		MaxDepth = maxDepth;
+		RootNode = new OctreeNode( Vector3Int.Zero, Size );
 	}
 
 	public int Size { get; private set; }
 	public int MaxDepth { get; private set; }
 	public OctreeNode RootNode { get; private set; }
+	public Vector3Int PositionToVoxel( Vector3 localPos )
+	{
+		return (Vector3Int)(localPos + Size / 2f);
+	}
+
+	public Vector3 VoxelToPosition( Vector3Int voxel )
+	{
+		return (Vector3)voxel - Size / 2f;
+	}
+
+	public bool HasLeaf( Vector3 point )
+	{
+		var normalized = PositionToVoxel( point );
+		return HasLeaf( normalized );
+	}
+
+	public bool HasLeaf( Vector3Int leaf )
+	{
+		var found = FindRecursive( RootNode, leaf, 0 );
+		return found.Size == Size >> MaxDepth;
+	}
 
 	public OctreeNode Find( Vector3 point )
 	{
-		var normalized = (Vector2Int)(point + Size / 2);
+		var normalized = PositionToVoxel( point );
 		return FindRecursive( RootNode, normalized, 0 );
 	}
 
@@ -44,7 +66,8 @@ public class SparseVoxelOctree<T>
 		if ( node.IsLeaf || depth >= MaxDepth )
 			return node;
 
-		int childIndex = GetChildIndex( point, node.Position, node.Size / 2 );
+		int childSize = node.Size / 2;
+		int childIndex = GetChildIndex( point, node.Position, childSize );
 		if ( node[childIndex] is null )
 			return node;
 
@@ -68,10 +91,10 @@ public class SparseVoxelOctree<T>
 		return new Vector3Int( x, y, z );
 	}
 
+
 	public void Insert( Vector3 point, T data )
 	{
-		RootNode ??= new OctreeNode( Vector3Int.Zero, Size );
-		var normalized = (Vector3Int)( point + Size / 2 );
+		var normalized = PositionToVoxel( point );
 		InsertRecursive( RootNode, normalized, data, 0 );
 	}
 
@@ -100,6 +123,9 @@ public class SparseVoxelOctree<T>
 	public void DebugDraw( Transform tx )
 	{
 		var overlay = DebugOverlaySystem.Current;
+
+		if ( RootNode is null || overlay is null)
+			return;
 
 		DrawChildren( RootNode );
 
