@@ -110,7 +110,14 @@ public class SparseVoxelOctree<T>
 			var color = Color.Blue.WithAlpha( 0.15f );
 			if ( node.IsLeaf )
 			{
-				color = Color.Yellow.WithAlpha( 0.35f );
+				if ( node.Data is null )
+				{
+					color = Color.Red.WithAlpha( 0.5f );
+				}
+				else
+				{
+					color = Color.Yellow.WithAlpha( 0.35f );
+				}
 			}
 			overlay.Box( bbox, color, transform: tx );
 			foreach ( var child in node.Children )

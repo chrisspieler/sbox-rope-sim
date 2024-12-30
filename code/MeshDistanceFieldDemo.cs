@@ -55,7 +55,7 @@ public class MeshDistanceFieldDemo : Component
 		var tx = SelectedMeshGameObject.WorldTransform;
 		_cameraDistance = Mdf.Bounds.Maxs.x * 8f;
 
-		var z = ((float)TextureViewer.TextureSlice).Remap( 0, Mdf.VoxelGridDims - 1, Mdf.Bounds.Mins.z, Mdf.Bounds.Maxs.z );
+		var z = ((float)TextureViewer.TextureSlice).Remap( 0, Mdf.VoxelSdf.VoxelGridDims - 1, Mdf.Bounds.Mins.z, Mdf.Bounds.Maxs.z );
 		var worldCenter = tx.PointToWorld( Mdf.Bounds.Center.WithZ( z ) );
 		
 		camera.WorldPosition = worldCenter + _cameraAngles.Forward * _cameraDistance;
@@ -83,7 +83,7 @@ public class MeshDistanceFieldDemo : Component
 		
 		var distance = _sdf < 0 ? -_sdf : _sdf;
 		distance += 0.25f;
-		var surfaceLocalPos = sample.SampleLocalPosition + _dirToSurface * distance;
+		var surfaceLocalPos = mouseLocalPos + _dirToSurface * distance;
 		var surfaceWorldPos = SelectedMeshGameObject.WorldTransform.PointToWorld( surfaceLocalPos );
 		DebugOverlay.Sphere( new Sphere( surfaceWorldPos, 0.5f ), color: Color.Blue, overlay: false );
 		DebugOverlay.Line( surfaceWorldPos, surfaceWorldPos + tx.NormalToWorld( sample.SurfaceNormal ) * 3f, color: Color.Green, overlay: false );
@@ -91,6 +91,9 @@ public class MeshDistanceFieldDemo : Component
 
 	private void UpdateOverlays()
 	{
+		if ( Mdf is null )
+			return;
+
 		if ( ShouldDrawSlicePlane )
 		{
 			DrawSlicePlane( Mdf, SelectedMeshGameObject, TextureViewer.TextureSlice );
@@ -120,7 +123,7 @@ public class MeshDistanceFieldDemo : Component
 		var overlay = DebugOverlaySystem.Current;
 		var mins = mdf.Bounds.Mins;
 		var maxs = mdf.Bounds.Maxs;
-		var z = ((float)slice).Remap( 0, mdf.VoxelGridDims - 1, mins.z, maxs.z );
+		var z = ((float)slice).Remap( 0, mdf.VoxelSdf.VoxelGridDims - 1, mins.z, maxs.z );
 		var center = mdf.Bounds.Center.WithZ( z );
 		var tx = go.WorldTransform;
 
@@ -135,12 +138,12 @@ public class MeshDistanceFieldDemo : Component
 		var overlay = DebugOverlaySystem.Current;
 		var tx = go.WorldTransform;
 
-		for ( int y = 0; y < mdf.VoxelGridDims; y++ )
+		for ( int y = 0; y < mdf.VoxelSdf.VoxelGridDims; y++ )
 		{
-			for ( int x = 0; x < mdf.VoxelGridDims; x++ )
+			for ( int x = 0; x < mdf.VoxelSdf.VoxelGridDims; x++ )
 			{
 				var voxelLocalPos = mdf.VoxelToPositionCenter( new Vector3Int( x, y, slice ) );
-				var bbox = BBox.FromPositionAndSize( voxelLocalPos, mdf.VoxelSize );
+				var bbox = BBox.FromPositionAndSize( voxelLocalPos, MeshDistanceSystem.VoxelSize );
 				overlay.Box( bbox, color: Color.Green.WithAlpha( 0.15f ), transform: tx );
 			}
 		}
@@ -185,7 +188,7 @@ public class MeshDistanceFieldDemo : Component
 		var drawOctree = ShouldDrawOctree;
 		ImGui.Checkbox( "Octree", ref drawOctree );
 		ShouldDrawOctree = drawOctree;
-		ImGui.Text( $"Voxel Size: {Mdf.VoxelSize:F3}" );
+		ImGui.Text( $"Voxel Size: {MeshDistanceSystem.VoxelSize:F3}" );
 		ImGui.Text( $"Mouse Distance: {_sdf:F3}" );
 		ImGui.Text( $"Mouse Direction: {_dirToSurface.x:F2},{_dirToSurface.y:F2},{_dirToSurface.z:F2}" );
 
