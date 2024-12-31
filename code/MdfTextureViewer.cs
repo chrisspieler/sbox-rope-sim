@@ -52,7 +52,7 @@ public class MdfTextureViewer : Component
 	{
 		var system = MeshDistanceSystem.Current;
 
-		if ( Mdf is null )
+		if ( Mdf?.VoxelSdf is null )
 		{
 			ImGui.Text( $"No mesh distance field exists yet." );
 			return;

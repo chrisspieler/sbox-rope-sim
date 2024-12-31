@@ -1,10 +1,24 @@
-﻿using static Duccsoft.MeshDistanceSystem;
+﻿using static Duccsoft.JumpFloodSdfJob;
+using static Duccsoft.MeshDistanceSystem;
 
 namespace Duccsoft;
 
-internal class JumpFloodSdfJob : Job<GpuMeshData, VoxelSdfData>
+internal class JumpFloodSdfJob : Job<InputData, OutputData>
 {
-	public JumpFloodSdfJob( int id, GpuMeshData gpuMesh ) : base( id, gpuMesh ) { }
+	public struct InputData
+	{
+		public MeshDistanceField Mdf;
+		public Vector3 LocalPosition;
+	}
+
+	public struct OutputData
+	{
+		public MeshDistanceField Mdf;
+		public Vector3 LocalPosition;
+		public VoxelSdfData Sdf;
+	}
+
+	public JumpFloodSdfJob( int id, InputData input ) : base( id, input ) { }
 	
 	private enum MdfBuildStage
 	{
@@ -15,12 +29,17 @@ internal class JumpFloodSdfJob : Job<GpuMeshData, VoxelSdfData>
 		Compress
 	}
 
+	public MeshDistanceField MeshDistanceField { get; }
+	public Vector3Int LocalPosition { get; }
+
 	private readonly ComputeShader _meshSdfCs = new( "mesh_sdf_cs" );
 
-	protected override bool RunInternal( out VoxelSdfData result )
+	protected override bool RunInternal( out OutputData result )
 	{
+		var gpuMesh = Input.Mdf.MeshData;
+
 		int size = 16;
-		int triCount = InputData.Indices.ElementCount / 3;
+		int triCount = gpuMesh.Indices.ElementCount / 3;
 		int voxelCount = size * size * size;
 
 		GpuBuffer<float> scratchVoxelSdfGpu;
@@ -29,8 +48,8 @@ internal class JumpFloodSdfJob : Job<GpuMeshData, VoxelSdfData>
 			scratchVoxelSdfGpu = new GpuBuffer<float>( voxelCount, GpuBuffer.UsageFlags.Structured );
 		}
 		// Set the attributes for the signed distance field.
-		_meshSdfCs.Attributes.Set( "VoxelMinsOs", InputData.Bounds.Mins );
-		_meshSdfCs.Attributes.Set( "VoxelMaxsOs", InputData.Bounds.Maxs );
+		_meshSdfCs.Attributes.Set( "VoxelMinsOs", gpuMesh.Bounds.Mins );
+		_meshSdfCs.Attributes.Set( "VoxelMaxsOs", gpuMesh.Bounds.Maxs );
 		_meshSdfCs.Attributes.Set( "VoxelVolumeDims", new Vector3( size ) );
 		_meshSdfCs.Attributes.Set( "ScratchVoxelSdf", scratchVoxelSdfGpu );
 
@@ -54,8 +73,8 @@ internal class JumpFloodSdfJob : Job<GpuMeshData, VoxelSdfData>
 		{
 			// For each triangle, write its object space position and normal to the seed data.
 			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.FindSeeds );
-			_meshSdfCs.Attributes.Set( "Vertices", InputData.Vertices );
-			_meshSdfCs.Attributes.Set( "Indices", InputData.Indices );
+			_meshSdfCs.Attributes.Set( "Vertices", gpuMesh.Vertices );
+			_meshSdfCs.Attributes.Set( "Indices", gpuMesh.Indices );
 			_meshSdfCs.Attributes.Set( "Seeds", seedDataGpu );
 			_meshSdfCs.Dispatch( threadsX: triCount );
 		}
@@ -116,7 +135,12 @@ internal class JumpFloodSdfJob : Job<GpuMeshData, VoxelSdfData>
 		//DumpVoxelSdf( voxelSdf );
 
 		_meshSdfCs.Attributes.Clear();
-		result = new VoxelSdfData( voxelSdf, size );
+		result = new OutputData()
+		{
+			Mdf = Input.Mdf,
+			LocalPosition = Input.LocalPosition,
+			Sdf = new VoxelSdfData( voxelSdf, size )
+		};
 		return true;
 	}
 

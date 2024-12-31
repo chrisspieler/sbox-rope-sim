@@ -96,15 +96,15 @@ public partial class VerletRope
 	public float SolidRadius => 0.15f;
 
 	public int SphereColliderCount => _sphereColliders.Count;
-	private Dictionary<int, SphereCollisionInfo> _sphereColliders = new();
+	private readonly Dictionary<int, SphereCollisionInfo> _sphereColliders = [];
 	public int BoxColliderCount => _boxColliders.Count;
-	private Dictionary<int, BoxCollisionInfo> _boxColliders = new();
+	private readonly Dictionary<int, BoxCollisionInfo> _boxColliders = [];
 	public int CapsuleColliderCount => _capsuleColliders.Count;
-	private Dictionary<int, CapsuleCollisionInfo> _capsuleColliders = new();
+	private readonly Dictionary<int, CapsuleCollisionInfo> _capsuleColliders = [];
 	public int MeshColliderCount => _meshColliders.Count;
-	private Dictionary<int, MeshCollisionInfo> _meshColliders = new();
+	private readonly Dictionary<int, MeshCollisionInfo> _meshColliders = [];
 	public int GenericColliderCount => _genericColliders.Count;
-	private Dictionary<int, GenericCollisionInfo> _genericColliders = new();
+	private readonly Dictionary<int, GenericCollisionInfo> _genericColliders = [];
 
 	private bool _shouldUpdateCollisions;
 
@@ -150,45 +150,37 @@ public partial class VerletRope
 		{
 			foreach ( var tr in trs )
 			{
-				CaptureCollision( i, tr );
+				var collisionType = tr.ClassifyColliderType();
+				CaptureCollision( i, collisionType, tr.Shape );
 			}
 		}
 		
 	}
 
-	private void CaptureCollision( int pointIndex, PhysicsTraceResult tr )
+	private void CaptureCollision( int pointIndex, RopeColliderType colliderType, PhysicsShape shape )
 	{
-		// Spheres
-		if ( (tr.Shape.IsHullShape || tr.Shape.IsSphereShape) && tr.Shape.Collider is SphereCollider sphere )
+		switch( colliderType )
 		{
-			CaptureSphereCollision( pointIndex, sphere );
-		}
-		// Capsules
-		else if ( tr.Shape.IsCapsuleShape && tr.Shape.Collider is CapsuleCollider capsule )
-		{
-			CaptureCapsuleCollision( pointIndex, capsule );
-		}
-		// Boxes
-		else if ( tr.Shape.IsHullShape && tr.Shape.Collider is BoxCollider box )
-		{
-			CaptureBoxCollision( pointIndex, box );
-		}
-		// Planes
-		else if ( tr.Shape.IsMeshShape && tr.Shape.Collider is PlaneCollider plane )
-		{
-			CapturePlaneCollision( pointIndex, plane );
-		}
-		// Meshes, Hulls, and Terrain
-		else if ( tr.Shape.IsMeshShape || tr.Shape.IsHullShape || tr.Shape.IsHeightfieldShape )
-		{
-			if ( UseMeshDistanceFields && MeshDistanceSystem.Current.TryGetMdf( tr.Shape, out MeshDistanceField mdf ) )
-			{
-				CaptureMeshCollision( pointIndex, tr.Shape, mdf );
-			}
-			else
-			{
-				CaptureGenericCollision( pointIndex, tr.Shape );
-			}
+			case RopeColliderType.None:
+				return;
+			case RopeColliderType.UniformSphere:
+			case RopeColliderType.HullSphere:
+				CaptureSphereCollision( pointIndex, shape.Collider as SphereCollider );
+				break;
+			case RopeColliderType.Capsule:
+				CaptureCapsuleCollision( pointIndex, shape.Collider as CapsuleCollider );
+				break;
+			case RopeColliderType.Box:
+				CaptureBoxCollision( pointIndex, shape.Collider as BoxCollider );
+				break;
+			case RopeColliderType.Plane:
+				CapturePlaneCollision( pointIndex, shape.Collider as PlaneCollider );
+				break;
+			case RopeColliderType.Mesh:
+				CaptureMeshCollision( pointIndex, shape );
+				break;
+			default:
+				break;
 		}
 	}
 
@@ -268,7 +260,20 @@ public partial class VerletRope
 		ci.CollidingPoints.Add( pointindex );
 	}
 
-	private void CaptureMeshCollision( int pointIndex, PhysicsShape shape, MeshDistanceField mdf )
+	private void CaptureMeshCollision( int pointIndex, PhysicsShape shape )
+	{
+		var useMdf = UseMeshDistanceFields && !shape.Tags.Has( "nomdf" );
+		if ( useMdf && MeshDistanceSystem.Current.GetMdf( shape ) is MeshDistanceField mdf )
+		{
+			CaptureMdfCollision( pointIndex, shape, mdf );
+		}
+		else
+		{
+			CaptureGenericCollision( pointIndex, shape );
+		}
+	}
+
+	private void CaptureMdfCollision( int pointIndex, PhysicsShape shape, MeshDistanceField mdf )
 	{
 		if ( !_meshColliders.TryGetValue( mdf.Id, out var ci ) )
 		{

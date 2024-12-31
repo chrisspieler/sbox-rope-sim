@@ -48,7 +48,7 @@ public class MeshDistanceFieldDemo : Component
 
 	private void UpdateInput()
 	{
-		if ( Mdf is null )
+		if ( Mdf?.VoxelSdf is null )
 			return;
 
 		var camera = Scene.Camera;
@@ -120,6 +120,9 @@ public class MeshDistanceFieldDemo : Component
 
 	private static void DrawSlicePlane( MeshDistanceField mdf, GameObject go, int slice )
 	{
+		if ( mdf?.VoxelSdf is null )
+			return;
+
 		var overlay = DebugOverlaySystem.Current;
 		var mins = mdf.Bounds.Mins;
 		var maxs = mdf.Bounds.Maxs;
@@ -151,11 +154,11 @@ public class MeshDistanceFieldDemo : Component
 
 	private static void DrawOctree( MeshDistanceField mdf, GameObject go )
 	{
-		if ( mdf?.Octree is null || !go.IsValid() )
+		if ( mdf is null || !go.IsValid() )
 			return;
 
 		var tx = go.WorldTransform;
-		mdf.Octree.DebugDraw( tx );
+		mdf.DebugDraw( tx );
 	}
 
 	private void PaintWindow()

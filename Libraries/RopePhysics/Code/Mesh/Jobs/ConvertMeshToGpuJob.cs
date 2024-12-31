@@ -8,8 +8,8 @@ internal class ConvertMeshToGpuJob : Job<CpuMeshData, GpuMeshData>
 	
 	protected override bool RunInternal( out GpuMeshData result )
 	{
-		var cpuVertices = InputData?.Vertices;
-		var cpuIndices = InputData?.Indices;
+		var cpuVertices = Input?.Vertices;
+		var cpuIndices = Input?.Indices;
 		Assert.NotNull( cpuVertices);
 		Assert.NotNull( cpuIndices );
 
@@ -36,7 +36,7 @@ internal class ConvertMeshToGpuJob : Job<CpuMeshData, GpuMeshData>
 			idxBuffer = new GpuBuffer<uint>( indexCount, GpuBuffer.UsageFlags.Structured | GpuBuffer.UsageFlags.Index );
 			idxBuffer.SetData( cpuIndices );
 		}
-		result = new GpuMeshData( InputData, vtxBuffer, idxBuffer );
+		result = new GpuMeshData( Input, vtxBuffer, idxBuffer );
 		return true;
 	}
 }

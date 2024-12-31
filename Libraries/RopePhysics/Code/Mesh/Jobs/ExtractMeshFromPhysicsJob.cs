@@ -20,6 +20,5 @@ internal class ExtractMeshFromPhysicsJob : Job<PhysicsShape, CpuMeshData>
 		
 		result = new CpuMeshData( vertices, indices );
 		return true;
-		return true;
 	}
 }

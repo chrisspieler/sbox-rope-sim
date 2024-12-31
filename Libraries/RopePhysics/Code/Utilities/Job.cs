@@ -30,7 +30,7 @@ internal abstract class Job
 
 	protected record RunResult<T>( bool Completed, T Output );
 
-	protected bool Run<T>( out T resultData, Func<RunResult<T>> runner )
+	protected bool Run<T>( out T output, Func<RunResult<T>> runner )
 	{
 		DebugLogStart();
 
@@ -41,7 +41,7 @@ internal abstract class Job
 		bool completed;
 		using ( Timer.RecordTime() )
 		{
-			(completed, resultData) = runner.Invoke();
+			(completed, output) = runner.Invoke();
 		}
 		Status = completed ? JobStatus.Completed : JobStatus.InProgress;
 
@@ -82,14 +82,14 @@ internal abstract class Job<TInput, TOutput> : Job
 {
 	public Job( int id, TInput inputData ) : base( id )
 	{
-		InputData = inputData;
+		Input = inputData;
 	}
 
-	public TInput InputData { get; }
+	public TInput Input { get; }
 
-	protected abstract bool RunInternal( out TOutput result );
+	protected abstract bool RunInternal( out TOutput output );
 
-	public bool Run( out TOutput result )
+	public bool Run( out TOutput output )
 	{
 		RunResult<TOutput> Runner()
 		{
@@ -97,6 +97,20 @@ internal abstract class Job<TInput, TOutput> : Job
 			return new RunResult<TOutput>( completed, outData );
 		}
 
-		return Run( out result, Runner );
+		return Run( out output, Runner );
+	}
+}
+
+internal static class JobExtensions
+{
+	/// <summary>
+	/// Returns true if the job is not null and hasn't yet completed.
+	/// </summary>
+	public static bool IsActive( this Job job )
+	{
+		if ( job is null )
+			return false;
+
+		return job.Status != Job.JobStatus.Completed;
 	}
 }

@@ -6,39 +6,52 @@ public partial class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 	public static float VoxelsPerWorldUnit { get; set; } = 1f;
 	public static float VoxelSize => 1f / VoxelsPerWorldUnit;
 
+	public int MdfCount => _meshDistanceFields.Count;
+	public int MdfTotalDataSize { get; private set; }
+	private MeshDistanceBuildSystem BuildSystem { get; set; }
+
 	public MeshDistanceSystem( Scene scene ) : base( scene ) { }
 
 	private readonly Dictionary<int, MeshDistanceField> _meshDistanceFields = new();
 
-	public int MdfCount => _meshDistanceFields.Count;
-	public int MdfTotalDataSize { get; private set; }
+
+	public MeshDistanceField GetMdf( PhysicsShape shape )
+	{
+		var id = shape.GetHashCode();
+		var mdf = GetMdf( id );
+
+		BuildSystem ??= MeshDistanceBuildSystem.Current;
+		if ( mdf.ExtractMeshJob is null )
+		{
+			BuildSystem.AddExtractMeshJob( id, shape );
+		}
+		return mdf;
+	}
+
+	internal MeshDistanceField GetMdf( int id )
+	{
+		// Did we already build a mesh distance field?
+		if ( _meshDistanceFields.TryGetValue( id, out var mdf ) )
+			return mdf;
+
+		mdf = new MeshDistanceField( MeshDistanceBuildSystem.Current, id );
+		AddMdf( id, mdf );
+		return mdf;
+	}
+
+	internal MeshDistanceField this[int id] => GetMdf( id );
 
 	internal void AddMdf( int id, MeshDistanceField mdf )
 	{
-		if ( mdf is null )
-		{
-			RemoveMdf( id );
-			return;
-		}
-
-		_meshDistanceFields.TryGetValue( id, out var previousMdf );
 		_meshDistanceFields[id] = mdf;
-		if ( previousMdf is null )
-		{
-			MdfTotalDataSize += mdf.DataSize;
-		}
-		else if ( previousMdf != mdf )
-		{
-			MdfTotalDataSize += mdf.DataSize - previousMdf.DataSize;
-		}
 	}
 
 	public void RemoveMdf( int id )
 	{
 		if ( _meshDistanceFields.TryGetValue( id, out var mdf ) )
 		{
-			_meshDistanceFields.Remove( id );
 			MeshDistanceBuildSystem.Current.StopBuild( id );
+			_meshDistanceFields.Remove( id );
 			MdfTotalDataSize -= mdf.DataSize;
 		}
 	}
@@ -74,24 +87,4 @@ public partial class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		}
 		return -1;
 	}
-
-	public bool TryGetMdf( PhysicsShape shape, out MeshDistanceField meshDistanceField )
-	{
-		var id = shape.GetHashCode();
-
-		// Did we already build a mesh distance field?
-		if ( _meshDistanceFields.TryGetValue( id, out meshDistanceField ) )
-			return true;
-
-		var builder = MeshDistanceBuildSystem.Current;
-		// Should we begin building a mesh distance field?
-		if ( !builder.IsBuilding( id ) )
-		{
-			builder.BuildFromPhysicsShape( id, shape );
-		}
-
-		return false;
-	}
-
-
 }

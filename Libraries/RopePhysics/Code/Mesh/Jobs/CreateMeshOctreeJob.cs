@@ -26,7 +26,7 @@ internal class CreateMeshOctreeJob : Job<GpuMeshData, SparseVoxelOctree<VoxelSdf
 			return v;
 		}
 
-		var bounds = InputData.Bounds;
+		var bounds = Input.Bounds;
 
 		// The size of the octree should fully contain the bounds of the mesh...
 		int svoSize = (int)Math.Max( Math.Max( bounds.Size.x, bounds.Size.y ), bounds.Size.z );
@@ -43,8 +43,8 @@ internal class CreateMeshOctreeJob : Job<GpuMeshData, SparseVoxelOctree<VoxelSdf
 
 	private Triangle[] GetTriangles()
 	{
-		var indices = InputData.CpuMesh.Indices;
-		var vertices = InputData.CpuMesh.Vertices;
+		var indices = Input.CpuMesh.Indices;
+		var vertices = Input.CpuMesh.Vertices;
 		var tris = new Triangle[indices.Length / 3];
 		for ( int i = 0; i < indices.Length; i += 3 )
 		{

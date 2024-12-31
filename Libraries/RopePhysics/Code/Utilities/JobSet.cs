@@ -17,7 +17,7 @@ internal class JobSet<TInput, TOutput>
 
 		double remainingTime = RunTimeLimit;
 		bool anyJobsSuspended = false;
-		foreach ( var job in InputData )
+		foreach ( var job in Input )
 		{
 			// If the job completed, add it to the result list.
 			if ( job.Run( out TOutput jobResult ) )
