@@ -91,20 +91,19 @@
             "_type": "gameobject",
             "go": "5033acc0-1340-4e28-b4fe-0ae364eed887"
           },
-          "SelectedMeshIndex": 0,
-          "ShouldDrawOctree": true,
-          "ShouldDrawSlicePlane": true,
-          "ShouldDrawSliceVoxels": false,
-          "TextureViewer": {
+          "ModelViewer": {
             "_type": "component",
-            "component_id": "f07bef6e-f9f8-4d7c-828f-2499f8efab51",
+            "component_id": "31926279-0e3c-4e2f-9b95-0829005bcc99",
             "go": "ab3d85b6-7d7b-4b14-b598-380b906e8998",
-            "component_type": "MdfTextureViewer"
-          }
+            "component_type": "MdfModelViewer"
+          },
+          "SelectedMeshIndex": 0
         },
         {
-          "__type": "MdfTextureViewer",
-          "__guid": "f07bef6e-f9f8-4d7c-828f-2499f8efab51"
+          "__type": "Sandbox.MdfModelViewer",
+          "__guid": "31926279-0e3c-4e2f-9b95-0829005bcc99",
+          "ShouldDrawOctree": true,
+          "ShowTextureViewer": false
         }
       ]
     },

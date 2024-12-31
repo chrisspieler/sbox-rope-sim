@@ -16,30 +16,11 @@ public class MdfTextureViewer : Component
 	public MeshDistanceField Mdf { get; set; }
 
 	readonly ComputeShader _textureSliceCs = new( "mesh_sdf_preview_cs" );
-	int _lastMdfId;
 	int _maxSlice;
 	Texture _copiedTex;
 
 	protected override void OnUpdate()
 	{
-		var system = MeshDistanceSystem.Current;
-
-		if ( system.TryGetMdfByIndex( MdfIndex, out var mdf ) )
-		{
-			if ( _lastMdfId != mdf.Id )
-			{
-				_copiedTex?.Dispose();
-				_copiedTex = null;
-			}
-			_lastMdfId = mdf.Id;
-		}
-		else
-		{
-			_copiedTex?.Dispose();
-			_copiedTex = null;
-		}
-		Mdf = mdf;
-
 		ImGui.SetNextWindowPos( new Vector2( 50, 50 ) * ImGuiStyle.UIScale );
 		if ( ImGui.Begin( "Volume Texture Viewer" ) )
 		{

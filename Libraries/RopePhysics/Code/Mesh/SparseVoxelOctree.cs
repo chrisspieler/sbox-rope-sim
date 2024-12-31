@@ -35,7 +35,9 @@ public class SparseVoxelOctree<T>
 	public OctreeNode RootNode { get; private set; }
 	public Vector3Int PositionToVoxel( Vector3 localPos )
 	{
-		return (Vector3Int)(localPos + Size / 2f);
+		// Remap -halfSize to halfSize -> 0 to size
+		var voxel = (Vector3Int)(localPos + Size / 2f);
+		return voxel.SnapToGrid( Size >> MaxDepth );
 	}
 
 	public Vector3 VoxelToPosition( Vector3Int voxel )
@@ -55,11 +57,14 @@ public class SparseVoxelOctree<T>
 		return found.Size == Size >> MaxDepth;
 	}
 
+
 	public OctreeNode Find( Vector3 point )
 	{
 		var normalized = PositionToVoxel( point );
 		return FindRecursive( RootNode, normalized, 0 );
 	}
+
+	public OctreeNode Find( Vector3Int voxel ) => FindRecursive( RootNode, voxel, 0 );
 
 	private OctreeNode FindRecursive( OctreeNode node, Vector3Int point, int depth )
 	{
@@ -94,9 +99,11 @@ public class SparseVoxelOctree<T>
 
 	public void Insert( Vector3 point, T data )
 	{
-		var normalized = PositionToVoxel( point );
-		InsertRecursive( RootNode, normalized, data, 0 );
+		var voxel = PositionToVoxel( point );
+		InsertRecursive( RootNode, voxel, data, 0 );
 	}
+
+	public void Insert( Vector3Int voxel, T data ) => InsertRecursive( RootNode, voxel, data, 0 );
 
 	private void InsertRecursive( OctreeNode node, Vector3Int point, T data, int depth )
 	{

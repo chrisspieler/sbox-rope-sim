@@ -21,18 +21,66 @@ public class MeshDistanceField
 
 	public int Id { get; }
 	public VoxelSdfData VoxelSdf { get; internal set; }
-	public int DataSize => VoxelSdf?.DataSize ?? 0;
+	public int DataSize { get; private set; }
+	// TODO: Read this from the octree itself?
+	public int OctreeLeafCount { get; private set; }
+	
 	public BBox Bounds => MeshData?.Bounds ?? BBox.FromPositionAndSize( Vector3.Zero, 16f );
 
+	public int VertexCount => MeshData?.Vertices?.ElementCount ?? -1;
+	public int IndexCount => MeshData?.Indices?.ElementCount ?? -1;
+	public int TriangleCount => IndexCount / 3;
 	internal GpuMeshData MeshData { get; set; }
-	internal SparseVoxelOctree<VoxelSdfData> Octree { get; set; }
+	internal void SetOctree( SparseVoxelOctree<VoxelSdfData> octree ) => Octree = octree;
+	private SparseVoxelOctree<VoxelSdfData> Octree { get; set; }
+	private PhysicsShape MeshSource { get; set; }
 
 	#region Build Jobs
+	public int QueuedJumpFloodJobs => JumpFloodJobs.Count;
+	public TimeSince SinceBuildStarted { get; set; }
+	public TimeSince SinceBuildFinished { get; set; }
+
 	private MeshDistanceBuildSystem BuildSystem { get; set; }
 	internal ExtractMeshFromPhysicsJob ExtractMeshJob { get; set; }
 	internal ConvertMeshToGpuJob ConvertMeshJob { get; set; }
 	internal CreateMeshOctreeJob CreateOctreeJob { get; set; }
-	internal List<JumpFloodSdfJob> JumpFloodJobs { get; set; } = new();
+	internal Dictionary<Vector3Int, JumpFloodSdfJob> JumpFloodJobs { get; set; } = new();
+
+	public void RebuildAll()
+	{
+		Octree = null;
+		DataSize = 0;
+		OctreeLeafCount = 0;
+
+		SinceBuildStarted = 0;
+		BuildSystem.AddCreateMeshOctreeJob( this );
+	}
+
+	internal void RebuildOctreeVoxel( Vector3Int voxel )
+	{
+		var job = BuildSystem.AddJumpFloodSdfJob( this, voxel );
+		JumpFloodJobs[voxel] = job;
+	}
+
+	internal void SetOctreeVoxel( Vector3Int voxel, VoxelSdfData data )
+	{
+		JumpFloodJobs.Remove( voxel );
+
+		var node = Octree.Find( voxel );
+		if ( node.IsLeaf && node.Data is not null )
+		{
+			DataSize -= node.Data.DataSize;
+			OctreeLeafCount--;
+		}
+		Octree.Insert( voxel, data );
+		DataSize += data.DataSize;
+		OctreeLeafCount++;
+
+		if ( JumpFloodJobs.Count == 0 )
+		{
+			SinceBuildFinished = 0;
+		}
+	}
 
 	public bool IsBuilding
 	{

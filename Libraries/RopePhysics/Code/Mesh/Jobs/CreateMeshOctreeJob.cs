@@ -1,8 +1,21 @@
 ﻿namespace Duccsoft;
 
-internal class CreateMeshOctreeJob : Job<GpuMeshData, SparseVoxelOctree<VoxelSdfData>>
+internal class CreateMeshOctreeJob : Job<CreateMeshOctreeJob.InputData, CreateMeshOctreeJob.OutputData>
 {
-	public CreateMeshOctreeJob( int id, GpuMeshData cpuMesh ) : base( id, cpuMesh ) { }
+	public struct InputData
+	{
+		public MeshDistanceField Mdf;
+	}
+
+	public struct OutputData
+	{
+		public MeshDistanceField Mdf;
+		public SparseVoxelOctree<VoxelSdfData> Octree;
+		// TODO: Traverse the Octree itself to get this.
+		public HashSet<Vector3Int> LeafPoints;
+	}
+
+	public CreateMeshOctreeJob( int id, InputData input ) : base( id, input ) { }
 
 	private const int LEAF_SIZE_LOG2 = 4;
 	private const int LEAF_SIZE = 2 << LEAF_SIZE_LOG2 - 1;
@@ -11,6 +24,7 @@ internal class CreateMeshOctreeJob : Job<GpuMeshData, SparseVoxelOctree<VoxelSdf
 	private int _triProgress = 0;
 	private SparseVoxelOctree<VoxelSdfData> Octree { get; set; }
 	private Triangle[] Tris { get; set; }
+	private HashSet<Vector3Int> LeafPoints { get; set; } = new();
 
 	private SparseVoxelOctree<VoxelSdfData> CreateOctree()
 	{
@@ -26,7 +40,7 @@ internal class CreateMeshOctreeJob : Job<GpuMeshData, SparseVoxelOctree<VoxelSdf
 			return v;
 		}
 
-		var bounds = Input.Bounds;
+		var bounds = Input.Mdf.MeshData.Bounds;
 
 		// The size of the octree should fully contain the bounds of the mesh...
 		int svoSize = (int)Math.Max( Math.Max( bounds.Size.x, bounds.Size.y ), bounds.Size.z );
@@ -43,8 +57,8 @@ internal class CreateMeshOctreeJob : Job<GpuMeshData, SparseVoxelOctree<VoxelSdf
 
 	private Triangle[] GetTriangles()
 	{
-		var indices = Input.CpuMesh.Indices;
-		var vertices = Input.CpuMesh.Vertices;
+		var indices = Input.Mdf.MeshData.CpuMesh.Indices;
+		var vertices = Input.Mdf.MeshData.CpuMesh.Vertices;
 		var tris = new Triangle[indices.Length / 3];
 		for ( int i = 0; i < indices.Length; i += 3 )
 		{
@@ -64,12 +78,14 @@ internal class CreateMeshOctreeJob : Job<GpuMeshData, SparseVoxelOctree<VoxelSdf
 	{
 		var triBounds = tri.GetBounds().Grow( 0.01f );
 		var voxelMins = Octree.PositionToVoxel( triBounds.Mins );
+		voxelMins -= LEAF_SIZE;
 		var voxelMaxs = Octree.PositionToVoxel( triBounds.Maxs );
-		for ( int z = voxelMins.z; z < voxelMaxs.z; z++ )
+		voxelMaxs += LEAF_SIZE;
+		for ( int z = voxelMins.z; z < voxelMaxs.z; z += LEAF_SIZE )
 		{
-			for ( int y = voxelMins.y; y < voxelMaxs.y; y++ )
+			for ( int y = voxelMins.y; y < voxelMaxs.y; y += LEAF_SIZE )
 			{
-				for ( int x = voxelMins.x; x < voxelMaxs.x; x++ )
+				for ( int x = voxelMins.x; x < voxelMaxs.x; x += LEAF_SIZE )
 				{
 					var voxel = new Vector3Int( x, y, z );
 					var voxelPos = Octree.VoxelToPosition( voxel );
@@ -79,17 +95,23 @@ internal class CreateMeshOctreeJob : Job<GpuMeshData, SparseVoxelOctree<VoxelSdf
 					var voxelBounds = BBox.FromPositionAndSize( voxelPos, LEAF_SIZE );
 					if ( tri.IntersectsAABB( voxelBounds ) )
 					{
-						Octree.Insert( voxelBounds.Center, null );
+						LeafPoints.Add( voxel );
+						// Octree.Insert( voxelBounds.Center, null );
 					}
 				}
 			}
 		}
 	}
 
-	protected override bool RunInternal( out SparseVoxelOctree<VoxelSdfData> result )
+	protected override bool RunInternal( out OutputData output )
 	{
 		Octree ??= CreateOctree();
-		result = Octree;
+		output = new OutputData()
+		{
+			Mdf = Input.Mdf,
+			LeafPoints = LeafPoints,
+			Octree = Octree
+		};
 
 		Tris ??= GetTriangles();
 

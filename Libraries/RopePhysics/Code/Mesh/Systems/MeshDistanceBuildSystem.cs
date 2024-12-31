@@ -1,4 +1,6 @@
-﻿namespace Duccsoft;
+﻿using System.Security.Cryptography;
+
+namespace Duccsoft;
 
 internal class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSystem>
 {
@@ -19,7 +21,7 @@ internal class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSyste
 
 	private readonly Dictionary<int, Job<PhysicsShape, CpuMeshData>> _meshExtractionJobs = new();
 	private readonly Dictionary<int, Job<CpuMeshData, GpuMeshData>> _convertMeshToGpuJobs = new();
-	private readonly Dictionary<int, Job<GpuMeshData, SparseVoxelOctree<VoxelSdfData>>> _createSvoJobs = new();
+	private readonly Dictionary<int, Job<CreateMeshOctreeJob.InputData, CreateMeshOctreeJob.OutputData>> _createSvoJobs = new();
 	private readonly Dictionary<int, Job<JumpFloodSdfJob.InputData, JumpFloodSdfJob.OutputData>> _jumpFloodSdfJobs = new();
 
 	private Dictionary<int, TOutput> RunJobSet<TInput, TOutput>( Dictionary<int, Job<TInput, TOutput>> jobSource, ref double remainingTime )
@@ -62,9 +64,9 @@ internal class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSyste
 			return;
 
 		var createMeshOctreeResults = RunJobSet( _createSvoJobs, ref remainingTime );
-		foreach ( (var jobId, var octree) in createMeshOctreeResults )
+		foreach ( (var jobId, var output) in createMeshOctreeResults )
 		{
-			MdfSystem[jobId].Octree = octree;
+			output.Mdf.SetOctree( output.Octree );
 		}
 		AddJumpFloodSdfJobs( createMeshOctreeResults );
 		if ( remainingTime <= 0 )
@@ -75,7 +77,7 @@ internal class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSyste
 		foreach ( (var jobId, var output) in jumpFloodSdfResults )
 		{
 			output.Mdf.VoxelSdf = output.Sdf;
-			output.Mdf.Octree.Insert( output.LocalPosition, output.Sdf );
+			output.Mdf.SetOctreeVoxel( output.OctreeVoxel, output.Sdf );
 			StopBuild( jobId );
 		}
 	}
@@ -95,13 +97,23 @@ internal class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSyste
 
 	private void AddCreateMeshOctreeJobs( Dictionary<int, GpuMeshData> inputs )
 	{
-		foreach ( (var id, var input) in inputs )
+		foreach ( ( var id, _ ) in inputs )
 		{
 			var mdf = MdfSystem[id];
-			mdf.CreateOctreeJob = new CreateMeshOctreeJob( id, input );
-			// TODO: Cancel the previous job.
-			_createSvoJobs[id] = mdf.CreateOctreeJob;
+			mdf.RebuildAll();
 		}
+	}
+
+	public CreateMeshOctreeJob AddCreateMeshOctreeJob( MeshDistanceField mdf )
+	{
+		var nextInput = new CreateMeshOctreeJob.InputData
+		{
+			Mdf = mdf
+		};
+		var job = new CreateMeshOctreeJob( mdf.Id, nextInput );
+		// TODO: Cancel the previous job.
+		_createSvoJobs[mdf.Id] = job;
+		return job;
 	}
 
 	private void AddConvertMeshToGpuJobs( Dictionary<int, CpuMeshData> inputs )
@@ -114,36 +126,38 @@ internal class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSyste
 			_convertMeshToGpuJobs[id] = mdf.ConvertMeshJob;
 		}
 	}
-	private void AddJumpFloodSdfJobs( Dictionary<int, SparseVoxelOctree<VoxelSdfData>> inputs )
+	private void AddJumpFloodSdfJobs( Dictionary<int, CreateMeshOctreeJob.OutputData> inputs )
 	{
-		foreach ( (var id, _) in inputs )
+		foreach ( (var id, var input ) in inputs )
 		{
-			var mdf = MdfSystem[id];
-			// TODO: Add a JFA job for each leaf of the octree.
-			AddJumpFloodSdfJob( mdf, Vector3.Zero );
+			foreach( var voxel in input.LeafPoints )
+			{
+				input.Mdf.RebuildOctreeVoxel( voxel );;
+			}
 		}
 	}
 
-	internal void AddJumpFloodSdfJob( MeshDistanceField mdf, Vector3 position )
+	internal JumpFloodSdfJob AddJumpFloodSdfJob( MeshDistanceField mdf, Vector3Int position )
 	{
 		var inputData = new JumpFloodSdfJob.InputData()
 		{
 			Mdf = mdf,
-			LocalPosition = position,
+			OctreeVoxel = position,
 		};
 		var jobId = HashCode.Combine( mdf.Id, position );
 		var job = new JumpFloodSdfJob( jobId, inputData );
-		mdf.JumpFloodJobs.Add( job );
 		// TODO: Cancel the previous job.
 		_jumpFloodSdfJobs[jobId] = job;
+		return job;
 	}
 
-	internal void AddExtractMeshJob( int id, PhysicsShape shape )
+	internal ExtractMeshFromPhysicsJob AddExtractMeshJob( int id, PhysicsShape shape )
 	{
 		var mdf = MdfSystem[id];
 		mdf.ExtractMeshJob = new ExtractMeshFromPhysicsJob( id, shape );
 		_meshExtractionJobs[id] = mdf.ExtractMeshJob;
 		DebugLog( $"Queue {nameof( ExtractMeshFromPhysicsJob )} # {id}" );
+		return mdf.ExtractMeshJob;
 	}
 
 #endregion

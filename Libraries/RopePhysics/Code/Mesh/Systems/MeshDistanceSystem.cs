@@ -55,36 +55,4 @@ public partial class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 			MdfTotalDataSize -= mdf.DataSize;
 		}
 	}
-
-	public bool TryGetMdfByIndex( int index, out MeshDistanceField mdf )
-	{
-		index = index.Clamp( 0, MdfCount - 1 );
-		if ( index < 0 )
-		{
-			mdf = null;
-			return false;
-		}
-		mdf = _meshDistanceFields.Values
-			.Skip( index )
-			.FirstOrDefault();
-		return mdf is not null;
-	}
-
-	public int IndexOf( MeshDistanceField mdf )
-	{
-		if ( MdfCount < 1 )
-			return -1;
-
-		int i = 0;
-		foreach ( var foundMdf in _meshDistanceFields.Values )
-		{
-			if ( foundMdf == mdf )
-			{
-				return i;
-			}
-
-			i++;
-		}
-		return -1;
-	}
 }

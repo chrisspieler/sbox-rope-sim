@@ -8,13 +8,13 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 	public struct InputData
 	{
 		public MeshDistanceField Mdf;
-		public Vector3 LocalPosition;
+		public Vector3Int OctreeVoxel;
 	}
 
 	public struct OutputData
 	{
 		public MeshDistanceField Mdf;
-		public Vector3 LocalPosition;
+		public Vector3Int OctreeVoxel;
 		public VoxelSdfData Sdf;
 	}
 
@@ -138,7 +138,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		result = new OutputData()
 		{
 			Mdf = Input.Mdf,
-			LocalPosition = Input.LocalPosition,
+			OctreeVoxel = Input.OctreeVoxel,
 			Sdf = new VoxelSdfData( voxelSdf, size )
 		};
 		return true;
