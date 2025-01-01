@@ -2,7 +2,7 @@
 
 namespace Duccsoft.ImGui.Elements;
 
-internal class TextWidget : Element
+public class TextWidget : Element
 {
 	public TextWidget( Window parent, string text ) : base( parent )
 	{

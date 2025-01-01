@@ -201,6 +201,9 @@ public class MeshDistanceField
 	public void DebugDraw( Transform tx, Vector3Int highlightedPosition, Vector3 selectedPosition, int currentSlice )
 	{
 		var overlay = DebugOverlaySystem.Current;
+		var camera = Game.ActiveScene.Camera;
+		var hasSelectedPosition = selectedPosition.x > -1;
+		var hasHighlightedPosition = highlightedPosition.x > -1;
 
 		if ( Octree?.RootNode is null || overlay is null )
 			return;
@@ -211,8 +214,9 @@ public class MeshDistanceField
 		{
 			var pos = node.Position - Octree.Size / 2;
 			var bbox = new BBox( pos, pos + node.Size );
-			var color = Color.Blue.WithAlpha( 0.15f );
+			var color = Color.Blue.WithAlpha( 0.05f );
 			var ignoreDepth = false;
+			var depthOffset = 0f;
 			if ( node.IsLeaf )
 			{
 				var isActiveSlice = currentSlice < 0 || node.Position.z == currentSlice;
@@ -220,11 +224,13 @@ public class MeshDistanceField
 				{
 					color = Color.Magenta.WithAlpha( 1f );
 					ignoreDepth = true;
+					depthOffset = 0.5f;
 				}
 				else if ( node.Position == highlightedPosition )
 				{
 					color = Color.Green.WithAlpha( 1f );
 					ignoreDepth = true;
+					depthOffset = 0.5f;
 				}
 				else if ( node.Data is null )
 				{
@@ -242,14 +248,22 @@ public class MeshDistanceField
 				{
 					if ( isActiveSlice )
 					{
-						color = Color.Yellow.WithAlpha( 0.35f );
+						var camPoint = Bounds.ClosestPoint( tx.PointToLocal( camera.WorldPosition ) );
+						var camDir = tx.NormalToLocal( camera.WorldRotation.Forward );
+						var closeness = camPoint.Distance( pos ) / ( OctreeSize );
+						color = Color.Lerp( Color.Yellow, Color.Gray, closeness );
+						color = color.WithAlpha( 1f );
 						ignoreDepth = true;
 					}
 					else
 					{
-						color = Color.Yellow.WithAlpha( 0.01f );
+						color = Color.Gray.WithAlpha( 0.05f );
 					}
 				}
+			}
+			if ( depthOffset > 0f )
+			{
+				bbox = bbox.Grow( depthOffset );
 			}
 			overlay.Box( bbox, color, transform: tx, overlay: ignoreDepth );
 			foreach ( var child in node.Children )

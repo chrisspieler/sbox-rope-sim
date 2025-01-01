@@ -209,16 +209,16 @@ public class MdfModelViewer : Component
 		ImGui.Text( "Texture Slice:" ); ImGui.SameLine();
 		_maxSlice = Mdf.OctreeLeafDims - 1;
 		
+		var sdfTex = Mdf.GetSdfTexture( SelectedVoxel );
 		var textureSlice = TextureSlice;
 		ImGui.SliderInt( nameof( TextureSlice ), ref textureSlice, 0, _maxSlice );
 		if ( _copiedTex is null || textureSlice != TextureSlice || SelectedVoxel != _lastSelectedVoxel )
 		{
 			TextureSlice = textureSlice;
-			var sdfTex = Mdf.GetSdfTexture( SelectedVoxel );
 			_copiedTex = CopyMdfTexture( sdfTex, TextureSlice );
 			_lastSelectedVoxel = SelectedVoxel;
 		}
-		ImGui.Image( _copiedTex, new Vector2( 400 ) * ImGuiStyle.UIScale, new Vector2( 0, 0 ), new Vector2( 1, 1 ), Color.Transparent, ImGui.GetColorU32( ImGuiCol.Border ), Duccsoft.ImGui.Rendering.ImDrawList.ImageTextureFiltering.Point );
+		_ = new TextureInfoWidget( ImGui.CurrentWindow, sdfTex, TextureSlice, _copiedTex, new Vector2( 400 ) * ImGuiStyle.UIScale, new Vector2( 0, 0 ), new Vector2( 1, 1 ), Color.Transparent, ImGui.GetColorU32( ImGuiCol.Border ), Duccsoft.ImGui.Rendering.ImDrawList.ImageTextureFiltering.Point );
 	}
 
 	readonly ComputeShader _textureSliceCs = new( "mesh_sdf_preview_cs" );

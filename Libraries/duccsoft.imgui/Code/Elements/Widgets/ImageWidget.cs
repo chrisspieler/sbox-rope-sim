@@ -2,7 +2,7 @@
 
 namespace Duccsoft.ImGui.Elements;
 
-internal class ImageWidget : Element
+public class ImageWidget : Element
 {
     public ImageWidget( Window parent, Texture texture, Vector2 size, 
 		Vector2 uv0, Vector2 uv1, Color tintColor, Color borderColor,

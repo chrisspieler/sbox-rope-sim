@@ -2,7 +2,7 @@
 
 namespace Duccsoft.ImGui.Elements;
 
-internal class ButtonWidget : Element
+public class ButtonWidget : Element
 {
 	public ButtonWidget( Window parent, string label ) : base( parent )
 	{
