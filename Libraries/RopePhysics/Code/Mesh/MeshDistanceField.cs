@@ -39,9 +39,12 @@ public class MeshDistanceField
 	public TimeSince SinceBuildFinished { get; set; }
 
 	private MeshDistanceBuildSystem BuildSystem { get; set; }
+
 	internal ExtractMeshFromPhysicsJob ExtractMeshJob { get; set; }
 	internal ConvertMeshToGpuJob ConvertMeshJob { get; set; }
+	public bool IsMeshBuilt => MeshData is not null;
 	internal CreateMeshOctreeJob CreateOctreeJob { get; set; }
+	public bool IsOctreeBuilt => Octree is not null;
 	internal Dictionary<Vector3Int, JumpFloodSdfJob> JumpFloodJobs { get; set; } = new();
 
 	public void RebuildAll()
@@ -237,7 +240,6 @@ public class MeshDistanceField
 					if ( isActiveSlice )
 					{
 						color = Color.Red.WithAlpha( 0.5f );
-						ignoreDepth = true;
 					}
 					else
 					{
@@ -253,7 +255,6 @@ public class MeshDistanceField
 						var closeness = camPoint.Distance( pos ) / ( OctreeSize );
 						color = Color.Lerp( Color.Yellow, Color.Gray, closeness );
 						color = color.WithAlpha( 1f );
-						ignoreDepth = true;
 					}
 					else
 					{

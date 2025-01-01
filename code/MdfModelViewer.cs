@@ -186,6 +186,7 @@ public class MdfModelViewer : Component
 
 		PaintTextureViewerStats();
 		PaintTextureViewerViewport();
+		DrawTextureViewerOverlay();
 	}
 
 	private int _octreeSlice = 0;
@@ -203,6 +204,9 @@ public class MdfModelViewer : Component
 	}
 
 	private Vector3Int _lastSelectedVoxel;
+	private Vector3? _hoveredTexelPos;
+	private float? _hoveredTexelDistance;
+	private Vector3? _hoveredTexelNormal;
 
 	private void PaintTextureViewerViewport()
 	{
@@ -218,7 +222,28 @@ public class MdfModelViewer : Component
 			_copiedTex = CopyMdfTexture( sdfTex, TextureSlice );
 			_lastSelectedVoxel = SelectedVoxel;
 		}
-		_ = new TextureInfoWidget( ImGui.CurrentWindow, sdfTex, TextureSlice, _copiedTex, new Vector2( 400 ) * ImGuiStyle.UIScale, new Vector2( 0, 0 ), new Vector2( 1, 1 ), Color.Transparent, ImGui.GetColorU32( ImGuiCol.Border ), Duccsoft.ImGui.Rendering.ImDrawList.ImageTextureFiltering.Point );
+		var texImage = new TextureInfoWidget( ImGui.CurrentWindow, sdfTex, TextureSlice, _copiedTex, new Vector2( 400 ) * ImGuiStyle.UIScale, new Vector2( 0, 0 ), new Vector2( 1, 1 ), Color.Transparent, ImGui.GetColorU32( ImGuiCol.Border ), Duccsoft.ImGui.Rendering.ImDrawList.ImageTextureFiltering.Point );
+		if ( texImage.IsHovered )
+		{
+			var hoveredTexel = new Vector3Int( texImage.HoveredPixel.x, texImage.HoveredPixel.y, _textureSlice );
+			_hoveredTexelPos = sdfTex.VoxelToPosition( hoveredTexel );
+			_hoveredTexelDistance = sdfTex[hoveredTexel];
+			_hoveredTexelNormal = sdfTex.EstimateVoxelSurfaceNormal( hoveredTexel );
+		}
+	}
+
+	private void DrawTextureViewerOverlay()
+	{
+		if ( _hoveredTexelPos.HasValue && Mdf is not null && MdfGameObject.IsValid() )
+		{
+			var tx = MdfGameObject.WorldTransform;
+			var size = MeshDistanceSystem.VoxelSize;
+			var pos = _hoveredTexelPos.Value + size * 0.5f;
+			var bbox = BBox.FromPositionAndSize( pos, size );
+			var color = _hoveredTexelDistance.Value < 0 ? Color.Cyan.WithAlpha( 0.15f ) : Color.Green;
+			DebugOverlay.Box( bbox, color: color, transform: tx, overlay: true );
+			DebugOverlay.Line( pos, pos + _hoveredTexelNormal.Value * 3f, color: Color.Blue, transform: tx, overlay: true );
+		}
 	}
 
 	readonly ComputeShader _textureSliceCs = new( "mesh_sdf_preview_cs" );

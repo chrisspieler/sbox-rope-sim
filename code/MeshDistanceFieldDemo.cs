@@ -29,16 +29,16 @@ public class MeshDistanceFieldDemo : Component
 
 	public GameObject SelectedMeshGameObject => MeshContainer?.Children[SelectedMeshIndex];
 	public MeshDistanceField Mdf { get; private set; }
-	
+	private bool _waitForMesh = true;
+
 	protected override void OnUpdate()
 	{
 		UpdateMdf();
-		UpdateInput();
+		UpdateCamera();
 		UpdateUI();
 	}
 
-	private Angles _cameraAngles => new Angles( -25f, -180f, 0 );
-	private float _cameraDistance = 200;
+	private Angles _cameraAngles;
 
 	private void UpdateMdf()
 	{
@@ -52,21 +52,47 @@ public class MeshDistanceFieldDemo : Component
 		Mdf = mq.Mdf;
 		ModelViewer.Mdf = mq.Mdf;
 		ModelViewer.MdfGameObject = mq.GameObject;
+
+		if ( Mdf?.IsMeshBuilt == true && _waitForMesh )
+		{
+			_waitForMesh = false;
+			LookAtMesh();
+		}
 	}
 
-	private void UpdateInput()
+	private void LookAtMesh()
 	{
-		if ( Mdf is null )
-			return;
-
 		var camera = Scene.Camera;
 		var tx = SelectedMeshGameObject.WorldTransform;
-		_cameraDistance = Mdf.Bounds.Maxs.x * 8f;
-
 		var worldCenter = tx.PointToWorld( Mdf.Bounds.Center );
 		
-		camera.WorldPosition = worldCenter + _cameraAngles.Forward * _cameraDistance;
-		camera.WorldRotation = Rotation.LookAt( Vector3.Direction( camera.WorldPosition, worldCenter ) );
+		camera.WorldPosition = tx.Position + new Vector3( Mdf.Bounds.Size.x * -4f, 0f, Mdf.Bounds.Size.z * 1.5f );
+		_cameraAngles = Rotation.LookAt( Vector3.Direction( camera.WorldPosition, worldCenter ) );
+	}
+
+	private float FreecamSpeed => 75f;
+
+	private void UpdateCamera()
+	{
+		if ( Input.Down( "attack2" ) )
+		{
+			// For some reason, Input.AnalogMove doesn't work. A problem with ImGui?
+			var mouseDelta = new Angles( Mouse.Delta.y, -Mouse.Delta.x, 0f );
+			_cameraAngles += mouseDelta * Time.Delta * Preferences.Sensitivity;
+		}
+
+		var camera = Scene.Camera;
+		if ( !camera.IsValid() )
+			return;
+
+		var speed = FreecamSpeed;
+		if ( Input.Down( "duck" ) )
+			speed *= 0.5f;
+		else if ( Input.Down( "run" ) )
+			speed *= 2.5f;
+
+		camera.WorldPosition += Input.AnalogMove * _cameraAngles * speed * Time.Delta;
+		camera.WorldRotation = _cameraAngles;
 	}
 
 	private void UpdateUI()
@@ -98,6 +124,7 @@ public class MeshDistanceFieldDemo : Component
 		}
 		if ( previousMeshIndex != SelectedMeshIndex )
 		{
+			_waitForMesh = true;
 			// TODO: Create an MDF cache with a reference counter so I don't have to delete this.
 			system.RemoveMdf( Mdf.Id );
 		}

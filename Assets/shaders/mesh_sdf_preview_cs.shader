@@ -40,9 +40,9 @@ CS
 			else 
 			{
 				sdf /= Voxel::GetVolumeSize().x * 0.5;
-				sdf += 0.5;
+				sdf += 0.6;
 				sdf = saturate( sdf );
-				texCol = float4( sdf * 0.2, sdf * 0.7, sdf, 1 );
+				texCol = float4( max( 0.1, sdf * 0.2), max( 0.15, sdf * 0.7 ), max( 0.3, sdf ), 1 );
 			}
 			int2 iTex = int2(
 				quadVoxel.x + i,
