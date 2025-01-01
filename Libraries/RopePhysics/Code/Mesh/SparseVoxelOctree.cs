@@ -79,9 +79,10 @@ public class SparseVoxelOctree<T>
 	}
 
 	public OctreeNode Trace( Vector3 point, Vector3 direction, out float hitDistance )
-	{
-		return TraceRecursive( RootNode, point, direction, 0f, out hitDistance );
-	}
+		=> TraceRecursive( RootNode, point, direction, 0f, out hitDistance, new Vector3Int( -1, -1, -1 ) );
+
+	public OctreeNode Trace( Vector3 point, Vector3 direction, out float hitDistance, Vector3Int filter )
+		=> TraceRecursive( RootNode, point, direction, 0f, out hitDistance, filter );
 
 	private struct RayTraceResult
 	{
@@ -89,7 +90,7 @@ public class SparseVoxelOctree<T>
 		public float Distance;
 	}
 
-	private OctreeNode TraceRecursive( OctreeNode node, Vector3 point, Vector3 direction, float lastDistance, out float hitDistance )
+	private OctreeNode TraceRecursive( OctreeNode node, Vector3 point, Vector3 direction, float lastDistance, out float hitDistance, Vector3Int filter )
 	{
 		hitDistance = lastDistance;
 		if ( node.IsLeaf && node.Data is not null )
@@ -127,9 +128,17 @@ public class SparseVoxelOctree<T>
 		var sorted = hits.OrderBy( h => h.Distance );
 		foreach( var hit in sorted )
 		{
-			var foundNode = TraceRecursive( hit.Node, point, direction, hit.Distance, out hitDistance );
+			var foundNode = TraceRecursive( hit.Node, point, direction, hit.Distance, out hitDistance, filter );
 			if ( foundNode is not null )
+			{
+				if ( filter.x > -1 && foundNode.Position.x != filter.x )
+					continue;
+				if ( filter.y > -1 && foundNode.Position.y != filter.y )
+					continue;
+				if ( filter.z > -1 && foundNode.Position.z != filter.z )
+					continue;
 				return foundNode;
+			}
 		}
 		return null;
 	}

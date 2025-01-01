@@ -43,6 +43,7 @@ public class VoxelSdfData
 	{
 		get
 		{
+			
 			int x = voxel.x.Clamp( 0, VoxelGridDims - 1 );
 			int y = voxel.y.Clamp( 0, VoxelGridDims - 1 );
 			int z = voxel.z.Clamp( 0, VoxelGridDims - 1 );

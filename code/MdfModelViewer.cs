@@ -1,6 +1,5 @@
 ﻿using Duccsoft;
 using Duccsoft.ImGui;
-using System;
 
 namespace Sandbox;
 
@@ -55,11 +54,14 @@ public class MdfModelViewer : Component
 		MouseSignedDistance = 0f;
 		HighlightedVoxel = new Vector3Int( -1 );
 
+		if ( ImGui.GetIO().WantCaptureMouse )
+			return;
+
 		var mouseRay = Scene.Camera.ScreenPixelToRay( Mouse.Position );
 		var tracePos = MdfGameObject.WorldTransform.PointToLocal( mouseRay.Position );
 		var traceDir = MdfGameObject.WorldTransform.NormalToLocal( mouseRay.Forward );
-		DebugOverlay.Line( MdfGameObject.WorldTransform.PointToWorld( tracePos ), MdfGameObject.WorldTransform.PointToWorld( tracePos ) + MdfGameObject.WorldTransform.NormalToWorld( traceDir ) * 1000f, Color.Green );
-		var tr = Mdf.Trace( tracePos, traceDir, out float hitDistance );
+		var filter = new Vector3Int( -1, -1, ShowTextureViewer ? _octreeSlice * 16 : -1 );
+		var tr = Mdf.Trace( tracePos, traceDir, out float hitDistance, filter );
 		if ( tr is not null )
 		{
 			HighlightedVoxel = tr.Position;
@@ -129,7 +131,7 @@ public class MdfModelViewer : Component
 		ShouldDrawOctree = drawOctree;
 		if ( ShouldDrawOctree )
 		{
-			ImGui.Text( $"mouseover voxel: {HighlightedVoxel}" );
+			ImGui.Text( $"mouseover voxel: {HighlightedVoxel / 16}" );
 			ImGui.Text( $"mouse to voxel distance: {MouseToVoxelDistance}" );
 			ImGui.Text( $"mouseover signed distance: {MouseSignedDistance}" );
 		}
@@ -145,7 +147,7 @@ public class MdfModelViewer : Component
 		if ( ShouldDrawOctree )
 		{
 			// Draw the octree
-			var slice = ShowTextureViewer ? TextureSlice : -1;
+			var slice = ShowTextureViewer ? _octreeSlice * 16 : -1;
 			Mdf.DebugDraw( tx, HighlightedVoxel, SelectedVoxel, slice );
 		}
 	}
@@ -186,19 +188,25 @@ public class MdfModelViewer : Component
 		PaintTextureViewerViewport();
 	}
 
+	private int _octreeSlice = 0;
+
 	private void PaintTextureViewerStats()
 	{
 		var size = Mdf.OctreeLeafDims;
-		ImGui.Text( $"Selected Voxel: {SelectedVoxel / 16}" );
-		ImGui.Text( $"Dimensions: {size}x{size}x{size}" ); ImGui.SameLine();
-		ImGui.Text( $"Data Size: {Mdf.DataSize.FormatBytes()}" );
+		ImGui.Text( $"Octree Slice:" ); ImGui.SameLine();
+		var octreeSlice = _octreeSlice;
+		ImGui.SliderInt( "octreeSlice", ref octreeSlice, 0, Mdf.OctreeSize / 16 - 1 );
+		_octreeSlice = octreeSlice;
+		ImGui.Text( $"Selected Octree Voxel: {SelectedVoxel / 16}" );
+		ImGui.NewLine();
+		ImGui.Text( $"Texture: {size}x{size}x{size}, {Mdf.DataSize.FormatBytes()}" );
 	}
 
 	private Vector3Int _lastSelectedVoxel;
 
 	private void PaintTextureViewerViewport()
 	{
-		ImGui.Text( "Slice:" ); ImGui.SameLine();
+		ImGui.Text( "Texture Slice:" ); ImGui.SameLine();
 		_maxSlice = Mdf.OctreeLeafDims - 1;
 		
 		var textureSlice = TextureSlice;
@@ -210,7 +218,7 @@ public class MdfModelViewer : Component
 			_copiedTex = CopyMdfTexture( sdfTex, TextureSlice );
 			_lastSelectedVoxel = SelectedVoxel;
 		}
-		ImGui.Image( _copiedTex, new Vector2( 400 ) * ImGuiStyle.UIScale, new Vector2( 0, 0 ), new Vector2( 1, 1 ), Color.Transparent, ImGui.GetColorU32( ImGuiCol.Border ) );
+		ImGui.Image( _copiedTex, new Vector2( 400 ) * ImGuiStyle.UIScale, new Vector2( 0, 0 ), new Vector2( 1, 1 ), Color.Transparent, ImGui.GetColorU32( ImGuiCol.Border ), Duccsoft.ImGui.Rendering.ImDrawList.ImageTextureFiltering.Point );
 	}
 
 	readonly ComputeShader _textureSliceCs = new( "mesh_sdf_preview_cs" );

@@ -5,7 +5,8 @@ namespace Duccsoft.ImGui.Elements;
 internal class ImageWidget : Element
 {
     public ImageWidget( Window parent, Texture texture, Vector2 size, 
-		Vector2 uv0, Vector2 uv1, Color tintColor, Color borderColor  ) 
+		Vector2 uv0, Vector2 uv1, Color tintColor, Color borderColor,
+		ImDrawList.ImageTextureFiltering textureFiltering = ImDrawList.ImageTextureFiltering.Anisotropic ) 
 		: base( parent )
     {
 		ColorTexture = texture;
@@ -14,6 +15,7 @@ internal class ImageWidget : Element
 		UV1 = uv1;
 		TintColor = tintColor;
 		BorderColor = borderColor;
+		TextureFiltering = textureFiltering;
 
 		Size = ImageSize;
 
@@ -27,10 +29,11 @@ internal class ImageWidget : Element
 	public Vector2 UV1 { get; set; }
 	public Color TintColor { get; set; }
 	public Color BorderColor { get; set; }
+	public ImDrawList.ImageTextureFiltering TextureFiltering { get; set; } = ImDrawList.ImageTextureFiltering.Anisotropic;
 
 	protected override void OnDrawSelf( ImDrawList drawList )
 	{
 		drawList.AddRect( ScreenRect.TopLeft, ScreenRect.BottomRight, BorderColor, rounding: 0f, flags: ImDrawFlags.None, thickness: 2f );
-		drawList.AddImage( ColorTexture, ScreenRect.TopLeft, ScreenRect.BottomRight, UV0, UV1, TintColor );
+		drawList.AddImage( ColorTexture, ScreenRect.TopLeft, ScreenRect.BottomRight, UV0, UV1, TintColor, TextureFiltering );
 	}
 }

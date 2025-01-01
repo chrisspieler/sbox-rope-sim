@@ -469,7 +469,7 @@ public partial class VerletRope
 				if ( !ci.Mdf.TrySample( currentPos, out var sample ) )
 					continue;
 				
-				if ( sample.SignedDistance > SolidRadius )
+				if ( sample.SignedDistance >= SolidRadius )
 					continue;
 
 				// Signed distance is negative, so invert it to travel along normal to surface.

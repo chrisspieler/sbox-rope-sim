@@ -8,7 +8,10 @@ namespace Duccsoft.ImGui;
 internal partial class ImGuiSystem
 {
 	public bool UseSceneCamera { get; } = true;
-	public CommandList MainCommandList { get; } = new CommandList( "ImGui Main CommandList" );
+	public CommandList MainCommandList { get; } = new CommandList( "ImGui Main CommandList" )
+	{
+		Flags = CommandList.Flag.Hud,
+	};
 	private CameraComponent TargetCamera { get; set; }
 
 	private void UpdateTargetCamera()

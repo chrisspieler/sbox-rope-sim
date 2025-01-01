@@ -1,4 +1,5 @@
 ﻿using Duccsoft.ImGui.Elements;
+using Duccsoft.ImGui.Rendering;
 
 namespace Duccsoft.ImGui;
 
@@ -78,6 +79,13 @@ public static partial class ImGui
 		_ = new Slider<int>( CurrentWindow, label, ref components, min, max, format );
 		value = components[0];
 		return true;
+	}
+
+	public static void Image( Texture texture, Vector2 size, Vector2 uv0, 
+		Vector2 uv1, Color tintColor, Color borderColor,
+		ImDrawList.ImageTextureFiltering textureFiltering )
+	{
+		_ = new ImageWidget( CurrentWindow, texture, size, uv0, uv1, tintColor, borderColor, textureFiltering );
 	}
 
 	public static void Image( Texture texture, Vector2 size, Vector2 uv0, Vector2 uv1, Color tintColor, Color borderColor )

@@ -1,5 +1,4 @@
 ﻿using Sandbox.Rendering;
-using System;
 
 namespace Duccsoft.ImGui.Rendering;
 
@@ -9,7 +8,7 @@ public class ImDrawList
 	{
 		CommandList = new CommandList( $"ImGui DrawList {name}" )
 		{
-			Flags = CommandList.Flag.Hud
+			Flags = CommandList.Flag.Hud,
 		};
 	}
 
@@ -77,13 +76,23 @@ public class ImDrawList
 	#endregion
 
 	#region Image
+	public enum ImageTextureFiltering
+	{
+		Anisotropic = 0,
+		Bilinear	= 1,
+		Trilinear	= 2,
+		Point		= 3
+	}
+	public void AddImage( Texture texture, Vector2 upperLeft, Vector2 lowerRight, Vector2 uv0, Vector2 uv1, Color32 tintColor, ImageTextureFiltering filtering )
+		=> DrawImage( texture, upperLeft, lowerRight, uv0, uv1, tintColor, filtering );
+
 	public void AddImage( Texture texture, Vector2 upperLeft, Vector2 lowerRight, Vector2 uv0, Vector2 uv1, Color32 tintColor )
-		=> DrawImage( texture, upperLeft, lowerRight, uv0, uv1, tintColor );
+		=> DrawImage( texture, upperLeft, lowerRight, uv0, uv1, tintColor, ImageTextureFiltering.Point );
 
 	public void AddImage( Texture texture, Vector2 upperLeft, Vector2 lowerRight )
 		=> AddImage( texture, upperLeft, lowerRight, uv0: new Vector2( 0, 0 ), uv1: new Vector2( 1, 1 ), tintColor: Color.White );
 
-	private void DrawImage( Texture texture, Vector2 upperLeft, Vector2 lowerRight, Vector2 uv0, Vector2 uv1, Color32 tintColor )
+	private void DrawImage( Texture texture, Vector2 upperLeft, Vector2 lowerRight, Vector2 uv0, Vector2 uv1, Color32 tintColor, ImageTextureFiltering filtering )
 	{
 		if ( !texture.IsValid() )
 			return;
@@ -94,6 +103,7 @@ public class ImDrawList
 
 		// Background
 		CommandList.SetCombo( "D_BACKGROUND_IMAGE", 1 );
+		CommandList.SetCombo( "D_TEXTURE_FILTERING", filtering );
 		CommandList.Set( "BgRepeat", -1 );
 		CommandList.Set( "TextureIndex", texture.Index );
 		var texToRectScale = 1f / (texture.Size / (lowerRight - upperLeft));

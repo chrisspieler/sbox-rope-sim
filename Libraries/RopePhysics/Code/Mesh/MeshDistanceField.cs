@@ -92,6 +92,7 @@ public class MeshDistanceField
 	}
 	#endregion
 
+	public int OctreeSize => Octree?.Size ?? -1;
 	public int OctreeLeafDims => Octree?.LeafSize ?? -1;
 	public float OctreeLeafSize => OctreeLeafDims * MeshDistanceSystem.VoxelSize;
 	public bool IsInBounds( Vector3 localPos ) => Bounds.Contains( localPos );
@@ -112,9 +113,12 @@ public class MeshDistanceField
 	#region Queries
 
 	public SparseVoxelOctree<VoxelSdfData>.OctreeNode Trace( Vector3 localPos, Vector3 localDir, out float hitDistance )
+		=> Trace( localPos, localDir, out hitDistance, new Vector3Int( -1, -1, -1 ) );
+
+	public SparseVoxelOctree<VoxelSdfData>.OctreeNode Trace( Vector3 localPos, Vector3 localDir, out float hitDistance, Vector3Int filter )
 	{
 		hitDistance = -1f;
-		return Octree?.Trace( localPos, localDir, out hitDistance );
+		return Octree?.Trace( localPos, localDir, out hitDistance, filter );
 	}
 
 	public VoxelSdfData GetSdfTexture( Vector3Int voxel )
@@ -208,32 +212,46 @@ public class MeshDistanceField
 			var pos = node.Position - Octree.Size / 2;
 			var bbox = new BBox( pos, pos + node.Size );
 			var color = Color.Blue.WithAlpha( 0.15f );
+			var ignoreDepth = false;
 			if ( node.IsLeaf )
 			{
-				var alphaFactor = 1f;
-				if ( currentSlice >= 0 && node.Position.z != currentSlice )
-				{
-					alphaFactor = 0.05f;
-				}
-
+				var isActiveSlice = currentSlice < 0 || node.Position.z == currentSlice;
 				if ( node.Position == selectedPosition )
 				{
 					color = Color.Magenta.WithAlpha( 1f );
+					ignoreDepth = true;
 				}
 				else if ( node.Position == highlightedPosition )
 				{
 					color = Color.Green.WithAlpha( 1f );
+					ignoreDepth = true;
 				}
 				else if ( node.Data is null )
 				{
-					color = Color.Red.WithAlpha( 0.5f * alphaFactor );
+					if ( isActiveSlice )
+					{
+						color = Color.Red.WithAlpha( 0.5f );
+						ignoreDepth = true;
+					}
+					else
+					{
+						color = Color.Red.WithAlpha( 0.01f );
+					}
 				}
 				else
 				{
-					color = Color.Yellow.WithAlpha( 0.35f * alphaFactor );
+					if ( isActiveSlice )
+					{
+						color = Color.Yellow.WithAlpha( 0.35f );
+						ignoreDepth = true;
+					}
+					else
+					{
+						color = Color.Yellow.WithAlpha( 0.01f );
+					}
 				}
 			}
-			overlay.Box( bbox, color, transform: tx );
+			overlay.Box( bbox, color, transform: tx, overlay: ignoreDepth );
 			foreach ( var child in node.Children )
 			{
 				if ( child is null )

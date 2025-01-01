@@ -5,7 +5,10 @@ namespace Duccsoft.ImGui;
 
 public class ImGuiStyle
 {
-	public static float UIScale => MathF.Min( Screen.Width, Screen.Height ) * Screen.DesktopScale / 1080f;
+	[ConVar( "imgui_scale_factor" )]
+	public static float GlobalScaleFactor { get; set; } = 0.66f;
+
+	public static float UIScale => MathF.Min( Screen.Width, Screen.Height ) * Screen.DesktopScale / 1080f * GlobalScaleFactor;
 	public Vector2 WindowPadding
 	{
 		get => _windowPadding * UIScale;
