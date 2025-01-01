@@ -15904,6 +15904,50 @@
               "SurfaceVelocity": "0,0,0"
             }
           ]
+        },
+        {
+          "__guid": "4f092c2e-6366-451c-ba83-c747eceaa674",
+          "Flags": 0,
+          "Name": "dingus",
+          "Rotation": "0,0,0.7071067,0.7071068",
+          "Components": [
+            {
+              "__type": "Sandbox.SkinnedModelRenderer",
+              "__guid": "b77feb72-e616-40aa-bf85-17058b5a49c4",
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "CreateBoneObjects": false,
+              "Model": "models/props/dingus.vmdl",
+              "Morphs": {},
+              "Parameters": {
+                "bools": {},
+                "ints": {},
+                "floats": {},
+                "vectors": {},
+                "rotations": {}
+              },
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Sequence": {
+                "Name": null
+              },
+              "Tint": "1,1,1,1",
+              "UseAnimGraph": true
+            },
+            {
+              "__type": "Sandbox.ModelCollider",
+              "__guid": "dc6170e7-b50b-4b99-abb9-f0283c1b57a9",
+              "IsTrigger": false,
+              "Model": "models/props/dingus.vmdl",
+              "Static": false,
+              "SurfaceVelocity": "0,0,0"
+            }
+          ]
         }
       ]
     },
@@ -16128,7 +16172,8 @@
   "Title": null,
   "Description": null,
   "__references": [
-    "duccsoft.duck_decoration#16326"
+    "duccsoft.duck_decoration#16326",
+    "nerd.dingus#11094"
   ],
   "__version": 2
 }

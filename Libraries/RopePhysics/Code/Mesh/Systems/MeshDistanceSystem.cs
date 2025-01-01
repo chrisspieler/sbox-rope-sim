@@ -7,7 +7,7 @@ public partial class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 	public static float VoxelSize => 1f / VoxelsPerWorldUnit;
 
 	public int MdfCount => _meshDistanceFields.Count;
-	public int MdfTotalDataSize { get; private set; }
+	public int MdfTotalDataSize => _meshDistanceFields.Select( mdf => mdf.Value.DataSize ).Sum();
 	private MeshDistanceBuildSystem BuildSystem { get; set; }
 
 	public MeshDistanceSystem( Scene scene ) : base( scene ) { }
@@ -52,7 +52,6 @@ public partial class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		{
 			MeshDistanceBuildSystem.Current.StopBuild( id );
 			_meshDistanceFields.Remove( id );
-			MdfTotalDataSize -= mdf.DataSize;
 		}
 	}
 }

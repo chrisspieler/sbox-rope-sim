@@ -56,6 +56,9 @@ public class MeshDistanceFieldDemo : Component
 
 	private void UpdateInput()
 	{
+		if ( Mdf is null )
+			return;
+
 		var camera = Scene.Camera;
 		var tx = SelectedMeshGameObject.WorldTransform;
 		_cameraDistance = Mdf.Bounds.Maxs.x * 8f;
