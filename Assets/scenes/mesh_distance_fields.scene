@@ -15961,7 +15961,7 @@
           "Duplicates": "1,0,1",
           "FixedEnd": false,
           "FixedStart": true,
-          "FollowMouse": true,
+          "FollowMouse": false,
           "Iterations": 80,
           "OscillateEnd": false,
           "OscillateEndAmplitude": "0,100",

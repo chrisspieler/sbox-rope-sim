@@ -2,14 +2,37 @@
 
 public class VoxelSdfData
 {
-	public VoxelSdfData( int[] voxelSdf, int voxelGridDims )
+	public VoxelSdfData( int[] voxelSdf, int voxelGridDims, BBox bounds )
 	{
+		Bounds = bounds;
 		VoxelGridDims = voxelGridDims;
 		VoxelSdf = voxelSdf;
 	}
+
+	public BBox Bounds { get; init; }
 	public int VoxelGridDims { get; init; }
 	public int[] VoxelSdf { get; init; }
 	public int DataSize => VoxelGridDims * VoxelGridDims * VoxelGridDims * sizeof( byte );
+
+	public Vector3Int PositionToVoxel( Vector3 localPos )
+	{
+		if ( VoxelSdf is null )
+			return default;
+
+		var normalized = (localPos - Bounds.Mins) / Bounds.Size;
+		var voxel = normalized * (VoxelGridDims - 1);
+		return (Vector3Int)voxel;
+	}
+
+	public Vector3 VoxelToPosition( Vector3Int voxel )
+	{
+		if ( VoxelSdf is null )
+			return default;
+
+		var normalized = (Vector3)voxel / VoxelGridDims;
+		var positionCorner = Bounds.Mins + normalized * Bounds.Size;
+		return positionCorner + MeshDistanceSystem.VoxelSize * 0.5f;
+	}
 
 	private int Index3DTo1D( int x, int y, int z )
 	{

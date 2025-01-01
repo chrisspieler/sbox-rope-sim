@@ -154,6 +154,8 @@ public class VerletDemo : Component
 		if ( Rope is null )
 			return;
 
+		UpdateInput();
+
 		if ( FollowMouse )
 		{
 			var ropePos = RopeStart;
@@ -209,6 +211,14 @@ public class VerletDemo : Component
 			DrawWindow();
 		}
 		ImGui.End();
+	}
+
+	private void UpdateInput()
+	{
+		if ( Input.Pressed( "RopeFollow" ) )
+		{
+			FollowMouse = !FollowMouse;
+		}
 	}
 
 	private bool _collapseWindow = true;

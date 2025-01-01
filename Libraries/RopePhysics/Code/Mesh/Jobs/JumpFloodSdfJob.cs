@@ -37,8 +37,9 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 	protected override bool RunInternal( out OutputData result )
 	{
 		var gpuMesh = Input.Mdf.MeshData;
+		var bounds = Input.Mdf.VoxelToLocalBounds( Input.OctreeVoxel );
 
-		int size = 16;
+		int size = (int)Input.Mdf.OctreeLeafDims;
 		int triCount = gpuMesh.Indices.ElementCount / 3;
 		int voxelCount = size * size * size;
 
@@ -48,8 +49,8 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 			scratchVoxelSdfGpu = new GpuBuffer<float>( voxelCount, GpuBuffer.UsageFlags.Structured );
 		}
 		// Set the attributes for the signed distance field.
-		_meshSdfCs.Attributes.Set( "VoxelMinsOs", gpuMesh.Bounds.Mins );
-		_meshSdfCs.Attributes.Set( "VoxelMaxsOs", gpuMesh.Bounds.Maxs );
+		_meshSdfCs.Attributes.Set( "VoxelMinsOs", bounds.Mins );
+		_meshSdfCs.Attributes.Set( "VoxelMaxsOs", bounds.Maxs );
 		_meshSdfCs.Attributes.Set( "VoxelVolumeDims", new Vector3( size ) );
 		_meshSdfCs.Attributes.Set( "ScratchVoxelSdf", scratchVoxelSdfGpu );
 
@@ -139,7 +140,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		{
 			Mdf = Input.Mdf,
 			OctreeVoxel = Input.OctreeVoxel,
-			Sdf = new VoxelSdfData( voxelSdf, size )
+			Sdf = new VoxelSdfData( voxelSdf, size, bounds ),
 		};
 		return true;
 	}

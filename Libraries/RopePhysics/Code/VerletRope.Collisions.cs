@@ -466,12 +466,14 @@ public partial class VerletRope
 			{
 				var point = _points[collision];
 				var currentPos = ci.Transform.PointToLocal( point.Position );
-				var result = ci.Mdf.Sample( currentPos );
-				if ( result.SignedDistance > SolidRadius )
+				if ( !ci.Mdf.TrySample( currentPos, out var sample ) )
+					continue;
+				
+				if ( sample.SignedDistance > SolidRadius )
 					continue;
 
 				// Signed distance is negative, so invert it to travel along normal to surface.
-				currentPos += result.SurfaceNormal * -( result.SignedDistance - SolidRadius );
+				currentPos += sample.SurfaceNormal * -( sample.SignedDistance - SolidRadius );
 				currentPos = ci.Transform.PointToWorld( currentPos );
 				_points[collision] = point with { Position = currentPos };
 			}

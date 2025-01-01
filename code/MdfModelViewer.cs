@@ -1,5 +1,6 @@
 ﻿using Duccsoft;
 using Duccsoft.ImGui;
+using System;
 
 namespace Sandbox;
 
@@ -7,7 +8,7 @@ public class MdfModelViewer : Component
 {
 	[Property] public bool ShouldDrawOctree { get; set; } = true;
 	[Property] public bool ShowTextureViewer { get; set; } = false;
-	public GameObject SelectedMeshGameObject { get; set; }
+	public GameObject MdfGameObject { get; set; }
 	public MeshDistanceField Mdf { get; set; }
 
 	protected override void OnUpdate()
@@ -20,7 +21,7 @@ public class MdfModelViewer : Component
 			PaintTextureViewer();
 		}
 
-		if ( !SelectedMeshGameObject.IsValid() )
+		if ( !MdfGameObject.IsValid() )
 			return;
 
 		UpdateInput();
@@ -31,34 +32,80 @@ public class MdfModelViewer : Component
 	#region GameObject Viewer
 
 	private float MouseSignedDistance { get; set; }
+	private Vector3Int HighlightedVoxel { get; set; }
+	private Vector3Int SelectedVoxel { get; set; }
+	private float MouseToVoxelDistance { get; set; }
 	private void UpdateInput()
 	{
+		UpdateHighlightedVoxel();
 
+		if ( Input.Released( "attack1" ) )
+		{
+			SelectedVoxel = HighlightedVoxel;
+			if ( SelectedVoxel.x > -1 )
+			{
+				ShowTextureViewer = true;
+			}
+		}
+	}
+
+	private void UpdateHighlightedVoxel()
+	{
+		MouseToVoxelDistance = -1f;
+		MouseSignedDistance = 0f;
+		HighlightedVoxel = new Vector3Int( -1 );
+
+		var mouseRay = Scene.Camera.ScreenPixelToRay( Mouse.Position );
+		var tracePos = MdfGameObject.WorldTransform.PointToLocal( mouseRay.Position );
+		var traceDir = MdfGameObject.WorldTransform.NormalToLocal( mouseRay.Forward );
+		DebugOverlay.Line( MdfGameObject.WorldTransform.PointToWorld( tracePos ), MdfGameObject.WorldTransform.PointToWorld( tracePos ) + MdfGameObject.WorldTransform.NormalToWorld( traceDir ) * 1000f, Color.Green );
+		var tr = Mdf.Trace( tracePos, traceDir, out float hitDistance );
+		if ( tr is not null )
+		{
+			HighlightedVoxel = tr.Position;
+			MouseToVoxelDistance = hitDistance;
+			if ( tr.Data is not null )
+			{
+				var hitPos = new Ray( tracePos, traceDir ).Project( hitDistance );
+				var hitSdfVoxel = tr.Data.PositionToVoxel( hitPos );
+				MouseSignedDistance = tr.Data[hitSdfVoxel];
+			}
+		}
 	}
 
 	private void PaintInstanceViewer()
 	{
-		if ( ImGui.Begin( $"Mesh Distance Field ({SelectedMeshGameObject?.Name ?? "null"})" ) )
+		ImGui.SetNextWindowPos( new Vector2( 50, 500 ) * ImGuiStyle.UIScale );
+		if ( ImGui.Begin( $"Mesh Distance Field ({MdfGameObject?.Name ?? "null"})" ) )
 		{
-			if ( !SelectedMeshGameObject.IsValid() )
-			{
-				ImGui.Text( "No instance is selected." );
-				return;
-			}
-
-			if ( Mdf is null )
-			{
-				ImGui.Text( "No mesh distance field exists for this instance." );
-				return;
-			}
-
-			PaintInstanceStats();
-			if ( ImGui.Button( "Regenerate MDF" ) )
-			{
-				MeshDistanceSystem.Current.RemoveMdf( Mdf.Id );
-			}
+			PaintInstanceViewerWindow();	
 		}
 		ImGui.End();
+	}
+
+	private void PaintInstanceViewerWindow()
+	{
+		if ( !MdfGameObject.IsValid() )
+		{
+			ImGui.Text( "No instance is selected." );
+			return;
+		}
+
+		if ( Mdf is null )
+		{
+			ImGui.Text( "No mesh distance field exists for this instance." );
+			return;
+		}
+
+		var showTextureViewer = ShowTextureViewer;
+		ImGui.Checkbox( "Show Texture Viewer", ref showTextureViewer );
+		ShowTextureViewer = showTextureViewer;
+
+		PaintInstanceStats();
+		if ( ImGui.Button( "Regenerate MDF" ) )
+		{
+			MeshDistanceSystem.Current.RemoveMdf( Mdf.Id );
+		}
 	}
 
 	private void PaintInstanceStats()
@@ -75,33 +122,117 @@ public class MdfModelViewer : Component
 		if ( Mdf.VertexCount < 0 )
 			return;
 		ImGui.Text( $"size: {Mdf.Bounds.Size.x:F2},{Mdf.Bounds.Size.y:F2},{Mdf.Bounds.Size.z:F2} tris: {Mdf.TriangleCount}" );
+		ImGui.Text( $"Octree Leaves: {Mdf.OctreeLeafCount}/{Mdf.OctreeLeafCount + Mdf.QueuedJumpFloodJobs}" );
+		ImGui.Text( $"Data Size: {Mdf.DataSize.FormatBytes():F3}" );
 		var drawOctree = ShouldDrawOctree;
 		ImGui.Checkbox( "Draw Octree", ref drawOctree );
 		ShouldDrawOctree = drawOctree;
-		ImGui.Text( $"Octree Leaves: {Mdf.OctreeLeafCount}/{Mdf.OctreeLeafCount + Mdf.QueuedJumpFloodJobs}" );
-		ImGui.Text( $"Data Size: {Mdf.DataSize.FormatBytes():F3}" );
+		if ( ShouldDrawOctree )
+		{
+			ImGui.Text( $"mouseover voxel: {HighlightedVoxel}" );
+			ImGui.Text( $"mouse to voxel distance: {MouseToVoxelDistance}" );
+			ImGui.Text( $"mouseover signed distance: {MouseSignedDistance}" );
+		}
 	}
 
 	private void DrawInstanceViewerOverlay()
 	{
-		if ( Mdf is null || !SelectedMeshGameObject.IsValid() )
+		if ( Mdf is null || !MdfGameObject.IsValid() )
 			return;
 
-		var tx = SelectedMeshGameObject.WorldTransform;
+		var tx = MdfGameObject.WorldTransform;
 
 		if ( ShouldDrawOctree )
 		{
 			// Draw the octree
-			Mdf.DebugDraw( tx );
+			var slice = ShowTextureViewer ? TextureSlice : -1;
+			Mdf.DebugDraw( tx, HighlightedVoxel, SelectedVoxel, slice );
 		}
 	}
 	#endregion
 
 	#region Texture Viewer
+
+	public int TextureSlice 
+	{
+		get => _textureSlice.Clamp( 0, _maxSlice );
+		set => _textureSlice = value.Clamp( 0, _maxSlice );
+	}
+	private int _textureSlice = 0;
+	int _maxSlice;
+	Texture _copiedTex;
 	private void PaintTextureViewer()
 	{
-		if ( Mdf is null )
+		if ( Mdf is null || Mdf.OctreeLeafDims < 0 )
 			return;
+
+		ImGui.SetNextWindowPos( new Vector2( 50, 50 ) * ImGuiStyle.UIScale );
+		if ( ImGui.Begin( $"Volume Texture Viewer ({Mdf.Id})" ) )
+		{
+			PaintTextureViewerWindow();
+		}
+		ImGui.End();
+	}
+
+	private void PaintTextureViewerWindow()
+	{
+		if ( Mdf.IsBuilding )
+		{
+			ImGui.Text( $"No mesh distance field exists yet." );
+			return;
+		}
+
+		PaintTextureViewerStats();
+		PaintTextureViewerViewport();
+	}
+
+	private void PaintTextureViewerStats()
+	{
+		var size = Mdf.OctreeLeafDims;
+		ImGui.Text( $"Selected Voxel: {SelectedVoxel / 16}" );
+		ImGui.Text( $"Dimensions: {size}x{size}x{size}" ); ImGui.SameLine();
+		ImGui.Text( $"Data Size: {Mdf.DataSize.FormatBytes()}" );
+	}
+
+	private Vector3Int _lastSelectedVoxel;
+
+	private void PaintTextureViewerViewport()
+	{
+		ImGui.Text( "Slice:" ); ImGui.SameLine();
+		_maxSlice = Mdf.OctreeLeafDims - 1;
+		
+		var textureSlice = TextureSlice;
+		ImGui.SliderInt( nameof( TextureSlice ), ref textureSlice, 0, _maxSlice );
+		if ( _copiedTex is null || textureSlice != TextureSlice || SelectedVoxel != _lastSelectedVoxel )
+		{
+			TextureSlice = textureSlice;
+			var sdfTex = Mdf.GetSdfTexture( SelectedVoxel );
+			_copiedTex = CopyMdfTexture( sdfTex, TextureSlice );
+			_lastSelectedVoxel = SelectedVoxel;
+		}
+		ImGui.Image( _copiedTex, new Vector2( 400 ) * ImGuiStyle.UIScale, new Vector2( 0, 0 ), new Vector2( 1, 1 ), Color.Transparent, ImGui.GetColorU32( ImGuiCol.Border ) );
+	}
+
+	readonly ComputeShader _textureSliceCs = new( "mesh_sdf_preview_cs" );
+
+	private Texture CopyMdfTexture( VoxelSdfData voxelData, int z )
+	{
+		var size = voxelData.VoxelGridDims;
+
+		var outputTex = Texture.Create( size, size )
+			.WithUAVBinding()
+			.Finish();
+
+		var voxelSdfGpu = new GpuBuffer<int>( size * size * size / 4, GpuBuffer.UsageFlags.Structured );
+		voxelSdfGpu.SetData( voxelData.VoxelSdf );
+		_textureSliceCs.Attributes.Set( "VoxelMinsOs", voxelData.Bounds.Mins );
+		_textureSliceCs.Attributes.Set( "VoxelMaxsOs", voxelData.Bounds.Maxs );
+		_textureSliceCs.Attributes.Set( "VoxelVolumeDims", new Vector3( size ) );
+		_textureSliceCs.Attributes.Set( "VoxelSdf", voxelSdfGpu );
+		_textureSliceCs.Attributes.Set( "ZLayer", z );
+		_textureSliceCs.Attributes.Set( "OutputTexture", outputTex );
+		_textureSliceCs.Dispatch( size, size, size );
+		return outputTex;
 	}
 
 	#endregion

@@ -76,7 +76,6 @@ internal class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSyste
 		var jumpFloodSdfResults = RunJobSet( _jumpFloodSdfJobs, ref remainingTime );
 		foreach ( (var jobId, var output) in jumpFloodSdfResults )
 		{
-			output.Mdf.VoxelSdf = output.Sdf;
 			output.Mdf.SetOctreeVoxel( output.OctreeVoxel, output.Sdf );
 			StopBuild( jobId );
 		}

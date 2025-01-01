@@ -46,12 +46,12 @@ public class MeshDistanceFieldDemo : Component
 		if ( !mq.Hit )
 		{
 			Mdf = null;
-			ModelViewer.SelectedMeshGameObject = null;
+			ModelViewer.MdfGameObject = null;
 		}
 
 		Mdf = mq.Mdf;
 		ModelViewer.Mdf = mq.Mdf;
-		ModelViewer.SelectedMeshGameObject = mq.GameObject;
+		ModelViewer.MdfGameObject = mq.GameObject;
 	}
 
 	private void UpdateInput()
@@ -78,6 +78,10 @@ public class MeshDistanceFieldDemo : Component
 
 	private void PaintWindow()
 	{
+		var system = MeshDistanceSystem.Current;
+
+		ImGui.Text( $"MDF Count: {system.MdfCount}" ); ImGui.SameLine();
+		ImGui.Text( $"Total Data Size: {system.MdfTotalDataSize.FormatBytes()}" );
 		ImGui.Text( $"Selected GameObject: {SelectedMeshGameObject.Name}" );
 		var previousMeshIndex = SelectedMeshIndex;
 		if ( ImGui.Button( "Previous Mesh" ) )
@@ -92,7 +96,7 @@ public class MeshDistanceFieldDemo : Component
 		if ( previousMeshIndex != SelectedMeshIndex )
 		{
 			// TODO: Create an MDF cache with a reference counter so I don't have to delete this.
-			MeshDistanceSystem.Current.RemoveMdf( Mdf.Id );
+			system.RemoveMdf( Mdf.Id );
 		}
 	}
 }

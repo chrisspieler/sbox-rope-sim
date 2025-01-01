@@ -2,7 +2,6 @@
 
 /// <summary>
 /// Provides a signed distance field that was calculated using the triangles of a <see cref="PhysicsShape"/>.
-/// 
 /// </summary>
 public class MeshDistanceField
 {
@@ -20,7 +19,6 @@ public class MeshDistanceField
 	}
 
 	public int Id { get; }
-	public VoxelSdfData VoxelSdf { get; internal set; }
 	public int DataSize { get; private set; }
 	// TODO: Read this from the octree itself?
 	public int OctreeLeafCount { get; private set; }
@@ -94,47 +92,65 @@ public class MeshDistanceField
 	}
 	#endregion
 
+	public int OctreeLeafDims => Octree?.LeafSize ?? -1;
+	public float OctreeLeafSize => OctreeLeafDims * MeshDistanceSystem.VoxelSize;
 	public bool IsInBounds( Vector3 localPos ) => Bounds.Contains( localPos );
 
 	public Vector3Int PositionToVoxel( Vector3 localPos )
 	{
-		if ( VoxelSdf is null )
-			return default;
-
-		var normalized = ( localPos - Bounds.Mins ) / Bounds.Size;
-		var voxel = normalized * ( VoxelSdf.VoxelGridDims - 1 );
-		return (Vector3Int)voxel;
+		return Octree.PositionToVoxel( localPos );
 	}
 
-	public Vector3 VoxelToPositionCenter( Vector3Int voxel )
+	public Vector3 VoxelToLocalCenter( Vector3Int voxel )
 	{
-		if ( VoxelSdf is null )
-			return default;
-
-		var normalized = (Vector3)voxel / VoxelSdf.VoxelGridDims;
-		var positionCorner = Bounds.Mins + normalized * Bounds.Size;
-		return positionCorner + MeshDistanceSystem.VoxelSize * 0.5f;
+		var pos = Octree.VoxelToPosition( voxel );
+		return pos += Octree.LeafSize;
 	}
+
+	public BBox VoxelToLocalBounds( Vector3Int voxel ) => Octree.GetVoxelBounds( voxel );
 
 	#region Queries
 
-	public MeshDistanceSample Sample( Vector3 localSamplePos )
+	public SparseVoxelOctree<VoxelSdfData>.OctreeNode Trace( Vector3 localPos, Vector3 localDir, out float hitDistance )
 	{
-		if ( VoxelSdf is null )
-			return default;
+		hitDistance = -1f;
+		return Octree?.Trace( localPos, localDir, out hitDistance );
+	}
 
+	public VoxelSdfData GetSdfTexture( Vector3Int voxel )
+	{
+		
+		return Octree?.Find( voxel )?.Data;
+	}
+
+	public bool TrySample( Vector3 localSamplePos, out MeshDistanceSample sample )
+	{
 		// Snap sample point to bounds, in case it's out of bounds.
 		var closestPoint = Bounds.ClosestPoint( localSamplePos );
-		var voxel = PositionToVoxel( closestPoint );
-		var signedDistance = VoxelSdf[voxel];
+		if ( Octree is null )
+		{
+			sample = default;
+			return false;
+		}
+		var octreeVoxel = Octree.Find( closestPoint );
+		if ( octreeVoxel?.Data is null )
+		{
+			// TODO: Trace ray to nearest leaf and sample its SDF instead.
+			sample = default;
+			return false;
+		}
+		var sdf = octreeVoxel.Data;
+		var sdfVoxel = sdf.PositionToVoxel( closestPoint );
+		var signedDistance = sdf[sdfVoxel];
 		// If we were out of bounds, add the amount by which we were out of bounds to the distance.
 		signedDistance += closestPoint.Distance( localSamplePos );
-		var surfaceNormal = VoxelSdf.EstimateVoxelSurfaceNormal( voxel );
-		return new MeshDistanceSample()
+		var surfaceNormal = sdf.EstimateVoxelSurfaceNormal( sdfVoxel );
+		sample = new MeshDistanceSample()
 		{
 			SurfaceNormal = surfaceNormal,
 			SignedDistance = signedDistance,
 		};
+		return true;
 	}
 	public struct MdfQueryResult
 	{
@@ -178,7 +194,7 @@ public class MeshDistanceField
 
 	#endregion
 
-	public void DebugDraw( Transform tx )
+	public void DebugDraw( Transform tx, Vector3Int highlightedPosition, Vector3 selectedPosition, int currentSlice )
 	{
 		var overlay = DebugOverlaySystem.Current;
 
@@ -194,13 +210,27 @@ public class MeshDistanceField
 			var color = Color.Blue.WithAlpha( 0.15f );
 			if ( node.IsLeaf )
 			{
-				if ( node.Data is null )
+				var alphaFactor = 1f;
+				if ( currentSlice >= 0 && node.Position.z != currentSlice )
 				{
-					color = Color.Red.WithAlpha( 0.5f );
+					alphaFactor = 0.05f;
+				}
+
+				if ( node.Position == selectedPosition )
+				{
+					color = Color.Magenta.WithAlpha( 1f );
+				}
+				else if ( node.Position == highlightedPosition )
+				{
+					color = Color.Green.WithAlpha( 1f );
+				}
+				else if ( node.Data is null )
+				{
+					color = Color.Red.WithAlpha( 0.5f * alphaFactor );
 				}
 				else
 				{
-					color = Color.Yellow.WithAlpha( 0.35f );
+					color = Color.Yellow.WithAlpha( 0.35f * alphaFactor );
 				}
 			}
 			overlay.Box( bbox, color, transform: tx );

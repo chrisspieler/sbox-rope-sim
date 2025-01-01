@@ -23,6 +23,11 @@
     "LeaderboardType": "None",
     "CsProjName": "",
     "StartupScene": "scenes/pachinko.scene",
-    "LaunchMode": "Normal"
+    "LaunchMode": "Normal",
+    "ControlModes": {
+      "Keyboard": false,
+      "VR": false,
+      "Gamepad": false
+    }
   }
 }

@@ -19,6 +19,12 @@ public class SparseVoxelOctree<T>
 		}
 		public Vector3Int Position { get; private set; }
 		public int Size { get; private set; }
+		public bool ContainsVoxel( Vector3Int voxel )
+		{
+			var maxs = Position + ( Size - 1 );
+			return voxel.x >= Position.x && voxel.y >= Position.y && voxel.z >= Position.z
+				&& voxel.x <= maxs.x && voxel.y <= maxs.y && voxel.z <= maxs.z;
+		}
 
 		public readonly OctreeNode[] Children = [null, null, null, null, null, null, null, null];
 	}
@@ -32,17 +38,32 @@ public class SparseVoxelOctree<T>
 
 	public int Size { get; private set; }
 	public int MaxDepth { get; private set; }
+	public int LeafSize => Size >> MaxDepth;
 	public OctreeNode RootNode { get; private set; }
+
+	public bool ContainsPoint( Vector3 localPos )
+	{
+		var voxel = PositionToVoxel( localPos );
+		return RootNode.ContainsVoxel( voxel );
+	}
+
 	public Vector3Int PositionToVoxel( Vector3 localPos )
 	{
 		// Remap -halfSize to halfSize -> 0 to size
 		var voxel = (Vector3Int)(localPos + Size / 2f);
-		return voxel.SnapToGrid( Size >> MaxDepth );
+		return voxel.SnapToGrid( LeafSize );
 	}
 
 	public Vector3 VoxelToPosition( Vector3Int voxel )
 	{
 		return (Vector3)voxel - Size / 2f;
+	}
+
+	public BBox GetVoxelBounds( Vector3Int voxel )
+	{
+		var mins = VoxelToPosition( voxel );
+		var maxs = mins + LeafSize * MeshDistanceSystem.VoxelSize;
+		return new BBox( mins, maxs );
 	}
 
 	public bool HasLeaf( Vector3 point )
@@ -54,9 +75,64 @@ public class SparseVoxelOctree<T>
 	public bool HasLeaf( Vector3Int leaf )
 	{
 		var found = FindRecursive( RootNode, leaf, 0 );
-		return found.Size == Size >> MaxDepth;
+		return found.Size == LeafSize;
 	}
 
+	public OctreeNode Trace( Vector3 point, Vector3 direction, out float hitDistance )
+	{
+		return TraceRecursive( RootNode, point, direction, 0f, out hitDistance );
+	}
+
+	private struct RayTraceResult
+	{
+		public OctreeNode Node;
+		public float Distance;
+	}
+
+	private OctreeNode TraceRecursive( OctreeNode node, Vector3 point, Vector3 direction, float lastDistance, out float hitDistance )
+	{
+		hitDistance = lastDistance;
+		if ( node.IsLeaf && node.Data is not null )
+		{
+			return node;
+		}
+
+		var hits = new List<RayTraceResult>();
+		for ( int i = 0; i < 8; i++ )
+		{
+			var child = node[i];
+			if ( child is null )
+				continue;
+
+			var ray = new Ray( point, direction );
+			var childLocalPos = VoxelToPosition( child.Position );
+			var bounds = BBox.FromPositionAndSize( childLocalPos + child.Size * 0.5f, child.Size );
+			var hit = bounds.Trace( ray, 1e20f, out float childDistance );
+			if ( !hit )
+			{
+				continue;
+			}
+
+			hits.Add( new RayTraceResult()
+			{
+				Node = child,
+				Distance = childDistance,
+			});
+		}
+
+		if ( hits.Count < 1 )
+		{
+			return null;
+		}
+		var sorted = hits.OrderBy( h => h.Distance );
+		foreach( var hit in sorted )
+		{
+			var foundNode = TraceRecursive( hit.Node, point, direction, hit.Distance, out hitDistance );
+			if ( foundNode is not null )
+				return foundNode;
+		}
+		return null;
+	}
 
 	public OctreeNode Find( Vector3 point )
 	{
@@ -76,7 +152,7 @@ public class SparseVoxelOctree<T>
 		if ( node[childIndex] is null )
 			return node;
 
-		return FindRecursive( node, point, depth + 1 );
+		return FindRecursive( node[childIndex], point, depth + 1 );
 	}
 
 	private static int GetChildIndex( Vector3Int point, Vector3Int parentPosition, int childSize )
