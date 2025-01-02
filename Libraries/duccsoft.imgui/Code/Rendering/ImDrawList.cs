@@ -43,6 +43,10 @@ public class ImDrawList
 			CommandList.Set( "BorderColorB", borderColor );
 			CommandList.SetCombo( "D_BORDER_IMAGE", 0 );
 		}
+		else
+		{
+			CommandList.Set( "HasBorder", 0 );
+		}
 
 		CommandList.DrawQuad( new Rect( upperLeft, lowerRight - upperLeft ), Material.UI.Box, fillColor );
 	}
@@ -83,16 +87,16 @@ public class ImDrawList
 		Trilinear	= 2,
 		Point		= 3
 	}
-	public void AddImage( Texture texture, Vector2 upperLeft, Vector2 lowerRight, Vector2 uv0, Vector2 uv1, Color32 tintColor, ImageTextureFiltering filtering )
-		=> DrawImage( texture, upperLeft, lowerRight, uv0, uv1, tintColor, filtering );
+	public void AddImage( Texture texture, Vector2 upperLeft, Vector2 lowerRight, Vector2 uv0, Vector2 uv1, Color32 tintColor, ImageTextureFiltering filtering, float angle )
+		=> DrawImage( texture, upperLeft, lowerRight, uv0, uv1, tintColor, filtering, angle );
 
 	public void AddImage( Texture texture, Vector2 upperLeft, Vector2 lowerRight, Vector2 uv0, Vector2 uv1, Color32 tintColor )
-		=> DrawImage( texture, upperLeft, lowerRight, uv0, uv1, tintColor, ImageTextureFiltering.Point );
+		=> DrawImage( texture, upperLeft, lowerRight, uv0, uv1, tintColor );
 
 	public void AddImage( Texture texture, Vector2 upperLeft, Vector2 lowerRight )
 		=> AddImage( texture, upperLeft, lowerRight, uv0: new Vector2( 0, 0 ), uv1: new Vector2( 1, 1 ), tintColor: Color.White );
 
-	private void DrawImage( Texture texture, Vector2 upperLeft, Vector2 lowerRight, Vector2 uv0, Vector2 uv1, Color32 tintColor, ImageTextureFiltering filtering )
+	private void DrawImage( Texture texture, Vector2 upperLeft, Vector2 lowerRight, Vector2 uv0, Vector2 uv1, Color32 tintColor, ImageTextureFiltering filtering = ImageTextureFiltering.Anisotropic, float angle = 0f)
 	{
 		if ( !texture.IsValid() )
 			return;
@@ -105,6 +109,7 @@ public class ImDrawList
 		CommandList.SetCombo( "D_BACKGROUND_IMAGE", 1 );
 		CommandList.SetCombo( "D_TEXTURE_FILTERING", filtering );
 		CommandList.Set( "BgRepeat", -1 );
+		CommandList.Set( "BgAngle", angle );
 		CommandList.Set( "TextureIndex", texture.Index );
 		var texToRectScale = 1f / (texture.Size / (lowerRight - upperLeft));
 		var offset = uv0 * texture.Size * texToRectScale;

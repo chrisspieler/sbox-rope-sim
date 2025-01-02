@@ -22,7 +22,7 @@ public class MeshDistanceField
 	public int DataSize { get; private set; }
 	// TODO: Read this from the octree itself?
 	public int OctreeLeafCount { get; private set; }
-	
+
 	public BBox Bounds => MeshData?.Bounds ?? BBox.FromPositionAndSize( Vector3.Zero, 16f );
 
 	public int VertexCount => MeshData?.Vertices?.ElementCount ?? -1;
@@ -99,6 +99,14 @@ public class MeshDistanceField
 	public int OctreeLeafDims => Octree?.LeafSize ?? -1;
 	public float OctreeLeafSize => OctreeLeafDims * MeshDistanceSystem.VoxelSize;
 	public bool IsInBounds( Vector3 localPos ) => Bounds.Contains( localPos );
+	public bool IsInBounds( Vector3Int voxel )
+	{
+		if ( !IsOctreeBuilt )
+			return false;
+
+		var localPos = Octree.VoxelToPosition( voxel );
+		return Octree.ContainsPoint( localPos );
+	}
 
 	public Vector3Int PositionToVoxel( Vector3 localPos )
 	{
@@ -126,7 +134,9 @@ public class MeshDistanceField
 
 	public VoxelSdfData GetSdfTexture( Vector3Int voxel )
 	{
-		
+		if ( Octree?.HasLeaf( voxel ) != true )
+			return null;
+
 		return Octree?.Find( voxel )?.Data;
 	}
 

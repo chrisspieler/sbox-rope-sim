@@ -1,5 +1,8 @@
 ﻿using Duccsoft;
 using Duccsoft.ImGui;
+using Duccsoft.ImGui.Extensions;
+using System;
+using System.Runtime.CompilerServices;
 
 namespace Sandbox;
 
@@ -8,7 +11,24 @@ public class MdfModelViewer : Component
 	[Property] public bool ShouldDrawOctree { get; set; } = true;
 	[Property] public bool ShowTextureViewer { get; set; } = false;
 	public GameObject MdfGameObject { get; set; }
-	public MeshDistanceField Mdf { get; set; }
+	public MeshDistanceField Mdf 
+	{
+		get => _mdf;
+		set
+		{
+			var changed = value != _mdf;
+			_mdf = value;
+			if ( changed )
+			{
+				_copiedTex = null;
+				_octreeSlice = 0;
+				_textureSlice = 0;
+				SelectedVoxel = -1;
+				HighlightedVoxel = -1;
+			}
+		}
+	}
+	private MeshDistanceField _mdf;
 
 	protected override void OnUpdate()
 	{
@@ -32,10 +52,34 @@ public class MdfModelViewer : Component
 
 	private float MouseSignedDistance { get; set; }
 	private Vector3Int HighlightedVoxel { get; set; }
-	private Vector3Int SelectedVoxel { get; set; }
+	private Vector3Int SelectedVoxel 
+	{
+		get => _selectedVoxel;
+		set
+		{
+			if ( Mdf?.GetSdfTexture( value ) is null )
+			{
+				value = -1;
+			}
+			var changed = _selectedVoxel != value;
+			if ( value.x > -1 )
+			{
+				_octreeSlice = value.z / 16;
+				LastValidVoxel = value;
+			}
+			_selectedVoxel = value;
+			if ( changed )
+			{
+				_shouldRefreshTexture = true;
+			}
+		}
+	}
+	private Vector3Int _selectedVoxel;
+	private Vector3Int LastValidVoxel { get; set; } = new Vector3Int( -1 );
 	private float MouseToVoxelDistance { get; set; }
 	private void UpdateInput()
 	{
+		var lastSelectedVoxel = SelectedVoxel;
 		UpdateHighlightedVoxel();
 
 		if ( Input.Released( "attack1" ) )
@@ -44,6 +88,14 @@ public class MdfModelViewer : Component
 			if ( SelectedVoxel.x > -1 )
 			{
 				ShowTextureViewer = true;
+			}
+			else
+			{
+				if ( lastSelectedVoxel.x < 0 )
+				{
+					_octreeSlice = 0;
+					ShowTextureViewer = false;
+				}
 			}
 		}
 	}
@@ -168,7 +220,7 @@ public class MdfModelViewer : Component
 		if ( Mdf is null || Mdf.OctreeLeafDims < 0 )
 			return;
 
-		ImGui.SetNextWindowPos( new Vector2( 50, 50 ) * ImGuiStyle.UIScale );
+		ImGui.SetNextWindowPos( new Vector2( 1400, 200 ) * ImGuiStyle.UIScale );
 		if ( ImGui.Begin( $"Volume Texture Viewer ({Mdf.Id})" ) )
 		{
 			PaintTextureViewerWindow();
@@ -196,53 +248,114 @@ public class MdfModelViewer : Component
 		var size = Mdf.OctreeLeafDims;
 		ImGui.Text( $"Octree Slice:" ); ImGui.SameLine();
 		var octreeSlice = _octreeSlice;
-		ImGui.SliderInt( "octreeSlice", ref octreeSlice, 0, Mdf.OctreeSize / 16 - 1 );
-		_octreeSlice = octreeSlice;
-		ImGui.Text( $"Selected Octree Voxel: {SelectedVoxel / 16}" );
+		if ( ImGui.SliderInt( "octreeSlice", ref octreeSlice, 0, Mdf.OctreeSize / 16 - 1 ) )
+		{
+			var diff = octreeSlice - _octreeSlice;
+			Scene.Camera.WorldPosition += new Vector3( 0f, 0f, Mdf.OctreeLeafSize * diff );
+			_octreeSlice = octreeSlice;
+			SelectedVoxel = LastValidVoxel.WithZ( octreeSlice * 16 );
+		}
+		
+		ImGui.Text( $"Selected Octree Voxel: {SelectedVoxel}" );
 		ImGui.NewLine();
 		ImGui.Text( $"Texture: {size}x{size}x{size}, {Mdf.DataSize.FormatBytes()}" );
 	}
 
-	private Vector3Int _lastSelectedVoxel;
-	private Vector3? _hoveredTexelPos;
-	private float? _hoveredTexelDistance;
-	private Vector3? _hoveredTexelNormal;
+	private bool _shouldRefreshTexture;
+	private Vector3Int? _selectedTexel;
+	private Vector3Int? _hoveredTexel;
 
 	private void PaintTextureViewerViewport()
 	{
+		if ( SelectedVoxel.x < 0 || !Mdf.IsInBounds( SelectedVoxel ) )
+			return;
+
 		ImGui.Text( "Texture Slice:" ); ImGui.SameLine();
 		_maxSlice = Mdf.OctreeLeafDims - 1;
-		
 		var sdfTex = Mdf.GetSdfTexture( SelectedVoxel );
 		var textureSlice = TextureSlice;
-		ImGui.SliderInt( nameof( TextureSlice ), ref textureSlice, 0, _maxSlice );
-		if ( _copiedTex is null || textureSlice != TextureSlice || SelectedVoxel != _lastSelectedVoxel )
+		if ( ImGui.SliderInt( nameof( TextureSlice ), ref textureSlice, 0, _maxSlice ) )
+		{
+			var diff = textureSlice - TextureSlice;
+			Scene.Camera.WorldPosition += new Vector3( 0f, 0f, MeshDistanceSystem.VoxelSize * diff );
+		}
+		if ( _copiedTex is null || textureSlice != TextureSlice || _shouldRefreshTexture )
 		{
 			TextureSlice = textureSlice;
 			_copiedTex = CopyMdfTexture( sdfTex, TextureSlice );
-			_lastSelectedVoxel = SelectedVoxel;
+			if ( _selectedTexel is Vector3Int texel )
+			{
+				_selectedTexel = texel.WithZ( textureSlice );
+			}
+			_shouldRefreshTexture = false;
 		}
-		var texImage = new TextureInfoWidget( ImGui.CurrentWindow, sdfTex, TextureSlice, _copiedTex, new Vector2( 400 ) * ImGuiStyle.UIScale, new Vector2( 0, 0 ), new Vector2( 1, 1 ), Color.Transparent, ImGui.GetColorU32( ImGuiCol.Border ), Duccsoft.ImGui.Rendering.ImDrawList.ImageTextureFiltering.Point );
-		if ( texImage.IsHovered )
+		var localRot = MdfGameObject.WorldTransform.RotationToLocal( Scene.Camera.WorldRotation ).Angles();
+		localRot *= -1f;
+		float angle = localRot.yaw;
+		angle -= 90f;
+		angle += 45f;
+		angle -= MathX.UnsignedMod( angle, 90f );
+		angle = angle.DegreeToRadian();
+		var uv0 = new Vector2( 1f, 0f );
+		var uv1 = new Vector2( 0f, 1f );
+		var texImage = new TextureInfoWidget( ImGui.CurrentWindow, sdfTex, TextureSlice, _copiedTex, new Vector2( 400 ) * ImGuiStyle.UIScale, uv0, uv1, Color.Transparent, ImGui.GetColorU32( ImGuiCol.Border ), Duccsoft.ImGui.Rendering.ImDrawList.ImageTextureFiltering.Point, angle );
+		if ( texImage.SelectedPixel is Vector2Int selected)
 		{
-			var hoveredTexel = new Vector3Int( texImage.HoveredPixel.x, texImage.HoveredPixel.y, _textureSlice );
-			_hoveredTexelPos = sdfTex.VoxelToPosition( hoveredTexel );
-			_hoveredTexelDistance = sdfTex[hoveredTexel];
-			_hoveredTexelNormal = sdfTex.EstimateVoxelSurfaceNormal( hoveredTexel );
+			_selectedTexel = new Vector3Int( selected.x, selected.y, _textureSlice );
+		}
+		else if ( _selectedTexel is not null )
+		{
+			texImage.SelectedPixel = new Vector2Int( _selectedTexel.Value.x, _selectedTexel.Value.y );
+		}
+		if ( texImage.HoveredPixel is Vector2Int hovered )
+		{
+			_hoveredTexel = new Vector3Int( hovered.x, hovered.y, _textureSlice );
+		}
+		else
+		{
+			_hoveredTexel = null;
 		}
 	}
 
 	private void DrawTextureViewerOverlay()
 	{
-		if ( _hoveredTexelPos.HasValue && Mdf is not null && MdfGameObject.IsValid() )
+		if ( SelectedVoxel.x < 0 )
+			return;
+
+		if ( Mdf is null || !MdfGameObject.IsValid() )
+			return;
+
+		var sdfTex = Mdf.GetSdfTexture( SelectedVoxel );
+		if ( sdfTex is null )
+			return;
+
+		DrawTexel( _selectedTexel, Color.Green );
+		if ( _selectedTexel != _hoveredTexel )
 		{
+			DrawTexel( _hoveredTexel, Color.White );
+		}
+
+		void DrawTexel( Vector3Int? maybeTexel, Color color )
+		{
+			if ( maybeTexel is not Vector3Int texel )
+				return;
+
+			var texelPos = sdfTex.VoxelToPosition( texel );
+			var texelDistance = sdfTex[texel];
+			var texelNormal = sdfTex.EstimateVoxelSurfaceNormal( texel );
 			var tx = MdfGameObject.WorldTransform;
 			var size = MeshDistanceSystem.VoxelSize;
-			var pos = _hoveredTexelPos.Value + size * 0.5f;
+			var pos = texelPos + size * 0.5f;
 			var bbox = BBox.FromPositionAndSize( pos, size );
-			var color = _hoveredTexelDistance.Value < 0 ? Color.Cyan.WithAlpha( 0.15f ) : Color.Green;
-			DebugOverlay.Box( bbox, color: color, transform: tx, overlay: true );
-			DebugOverlay.Line( pos, pos + _hoveredTexelNormal.Value * 3f, color: Color.Blue, transform: tx, overlay: true );
+			// color.a = texelDistance < 0 ? 0.15f : 1f;
+			var insideColor = (color * 0.2f).WithAlpha( 0.25f );
+			DebugOverlay.Box( bbox, color: color.WithAlpha( 1f ), transform: tx, overlay: false );
+			DebugOverlay.Box( bbox, color: insideColor, transform: tx, overlay: true );
+			DebugOverlay.Line( pos, pos + texelNormal * 3f, color: Color.Blue, transform: tx, overlay: true );
+			var bounds = Mdf.VoxelToLocalBounds( SelectedVoxel );
+			var z = ((float)_textureSlice).Remap( 0f, Mdf.OctreeLeafSize, bounds.Mins.z, bounds.Maxs.z );
+			var slice = BBox.FromPositionAndSize( bounds.Center.WithZ( z + 0.5f ), bounds.Size.WithZ( 0.2f ) );
+			DebugOverlay.Box( slice, color: Color.White, transform: tx, overlay: true );
 		}
 	}
 
