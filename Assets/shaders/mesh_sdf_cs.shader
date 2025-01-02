@@ -126,6 +126,19 @@ CS
 				
 				return u*V1 + v*V2 + w*V0;
 		}
+
+		bool IsInBounds()
+		{
+			int trisInBounds = 0;
+			if ( all( V0 >= ( VoxelMinsOs ) ) && all( V0 <= ( VoxelMaxsOs  ) ) )
+				trisInBounds++;
+			if ( all( V1 >= ( VoxelMinsOs ) ) && all( V1 <= ( VoxelMaxsOs  ) ) )
+				trisInBounds++;
+			if ( all( V2 >= ( VoxelMinsOs ) ) && all( V2 <= ( VoxelMaxsOs  ) ) )
+				trisInBounds++;
+			
+			return trisInBounds >= 1;
+		}
 	};
 
 	struct Cell
@@ -142,7 +155,7 @@ CS
 		{
 			int i = Voxel::Index3DTo1D( voxel );
 			VoxelSeeds[i] = -1;
-			Voxel::Store( voxel, 1e20 );
+			Voxel::Store( voxel, 1e5 );
 		}
 
 		bool IsValid()
@@ -248,6 +261,10 @@ CS
 		if ( seedId >= (int)numSeeds )
 			return;
 
+		Triangle tri = Triangle::FromSeed( seedId );
+		if ( !tri.IsInBounds() )
+			return;
+
 		// Get data such as the object space position and normal for this seed id.
 		SeedData seedData = Seeds[seedId];
 		uint3 voxel = Voxel::FromPosition( seedData.PositionOs.xyz );
@@ -302,13 +319,24 @@ CS
 		float sign = 1;
 
 		float3 qToLocalDir = normalize( localPos - qClosest );
-		bool qFacesAway = dot( qToLocalDir, qTri.Normal ) <= 0;
+		bool qFacesAway = dot( qToLocalDir, qTri.Normal ) < 0;
 		if ( qFacesAway )
 		{
 			sign = -1;
 		}
 
 		pCell.SignedDistance = qDist * sign;
+		return pCell;
+	}
+
+	Cell FixLeak( uint3 voxel, Cell pCell, Cell qCell)
+	{
+		// Heuristic to plug leaks that might escape from janky geometry with weird normals.
+		// We assume that once the number of jump steps is 1, every neighbor will have difference
+		// in signed distance of less than two, otherwise some sort of error has occurred.
+		if ( abs( pCell.SignedDistance - qCell.SignedDistance ) > 2 )
+			pCell.SignedDistance = abs(pCell.SignedDistance );
+			
 		return pCell;
 	}
 
@@ -363,6 +391,15 @@ CS
 		for( int i = 0; i < 26; i++ )
 		{
 			pCell = Flood( voxel, pCell, nCells[i] );
+		}
+		pCell.StoreData();
+		
+		if ( JumpStep > 1 )
+			return;
+
+		for ( int j = 0; j < 26; j++ )
+		{
+			pCell = FixLeak( voxel, pCell, nCells[j] );
 		}
 		pCell.StoreData();
 	}

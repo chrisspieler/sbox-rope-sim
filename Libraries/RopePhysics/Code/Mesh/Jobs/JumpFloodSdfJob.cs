@@ -39,7 +39,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		var gpuMesh = Input.Mdf.MeshData;
 		var bounds = Input.Mdf.VoxelToLocalBounds( Input.OctreeVoxel );
 
-		int size = (int)Input.Mdf.OctreeLeafDims;
+		int size = Input.Mdf.OctreeLeafDims;
 		int triCount = gpuMesh.Indices.ElementCount / 3;
 		int voxelCount = size * size * size;
 

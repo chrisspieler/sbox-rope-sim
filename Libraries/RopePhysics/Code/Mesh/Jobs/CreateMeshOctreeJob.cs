@@ -76,7 +76,7 @@ internal class CreateMeshOctreeJob : Job<CreateMeshOctreeJob.InputData, CreateMe
 
 	private void InitializeOverlappingLeaves( Triangle tri )
 	{
-		var triBounds = tri.GetBounds().Grow( 0.01f );
+		var triBounds = tri.GetBounds().Grow( 1f );
 		var voxelMins = Octree.PositionToVoxel( triBounds.Mins );
 		voxelMins -= LEAF_SIZE;
 		var voxelMaxs = Octree.PositionToVoxel( triBounds.Maxs );
@@ -96,7 +96,6 @@ internal class CreateMeshOctreeJob : Job<CreateMeshOctreeJob.InputData, CreateMe
 					if ( tri.IntersectsAABB( voxelBounds ) )
 					{
 						LeafPoints.Add( voxel );
-						// Octree.Insert( voxelBounds.Center, null );
 					}
 				}
 			}

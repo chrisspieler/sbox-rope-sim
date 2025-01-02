@@ -256,7 +256,7 @@ public class MdfModelViewer : Component
 			SelectedVoxel = LastValidVoxel.WithZ( octreeSlice * 16 );
 		}
 		
-		ImGui.Text( $"Selected Octree Voxel: {SelectedVoxel}" );
+		ImGui.Text( $"Selected Octree Voxel: {SelectedVoxel / 16}" );
 		ImGui.NewLine();
 		ImGui.Text( $"Texture: {size}x{size}x{size}, {Mdf.DataSize.FormatBytes()}" );
 	}

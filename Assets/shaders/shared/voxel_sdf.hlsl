@@ -11,9 +11,9 @@ int FloatToByte( float value, float minValue, float maxValue )
 	return int( lerp( -128.0, 127.0, invLerp ) );
 }
 
-float ByteToFloat(int byte, float minValue, float maxValue )
+float ByteToFloat(uint byte, float minValue, float maxValue )
 {
-	float invLerp = ( float(byte) - (-128.0 ) ) / ( 127.0 - (-128.0) );
+	float invLerp = ( float(byte) - 128.0 ) / ( 127.0 );
 	invLerp = saturate( invLerp );
 	return lerp( minValue, maxValue, invLerp );
 }
@@ -34,20 +34,18 @@ int PackFloats( float4 values, float minValue, float maxValue )
 
 float4 UnpackFloats( int packed, float minValue, float maxValue )
 {
-	int4 ubytes = int4(
+	uint4 ubytes = uint4(
 		(packed) & 0xFF,
 		(packed >> 8 ) & 0xFF,
 		(packed >> 16 ) & 0xFF,
 		(packed >> 24 ) & 0xFF
 	);
 
-	int4 bytes = int4(ubytes) - 128;
-
 	return float4(
-		ByteToFloat( bytes.x, minValue, maxValue ),
-		ByteToFloat( bytes.y, minValue, maxValue ),
-		ByteToFloat( bytes.z, minValue, maxValue ),
-		ByteToFloat( bytes.w, minValue, maxValue )
+		ByteToFloat( ubytes.x, minValue, maxValue ),
+		ByteToFloat( ubytes.y, minValue, maxValue ),
+		ByteToFloat( ubytes.z, minValue, maxValue ),
+		ByteToFloat( ubytes.w, minValue, maxValue )
 	);
 }
 
@@ -139,7 +137,7 @@ struct Voxel
 	{
 		// By this point, the voxel distance field should have been stored 
 		// as a buffer of floats. We need to fetch those.
-		float4 floats = float4( 0, 0, 0, 0 );
+		float4 floats = float4( 16, 16, 16, 16 );
 		voxel.x *= 4;
 		int index = Index3DTo1D( voxel );
 		for( int i = 0; i < 4; i++ )
