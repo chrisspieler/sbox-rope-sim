@@ -59,10 +59,17 @@ public class SparseVoxelOctree<T>
 		return (Vector3)voxel - Size / 2f;
 	}
 
+	public BBox GetNodeBounds( OctreeNode node )
+	{
+		var mins = VoxelToPosition( node.Position );
+		var maxs = mins + node.Size;
+		return new BBox( mins, maxs );
+	}
+
 	public BBox GetVoxelBounds( Vector3Int voxel )
 	{
 		var mins = VoxelToPosition( voxel );
-		var maxs = mins + LeafSize * MeshDistanceSystem.VoxelSize;
+		var maxs = mins + LeafSize;
 		return new BBox( mins, maxs );
 	}
 

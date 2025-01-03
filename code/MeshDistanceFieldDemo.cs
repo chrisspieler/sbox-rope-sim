@@ -11,16 +11,27 @@ public class MeshDistanceFieldDemo : Component
 		get => _selectedMeshIndex;
 		set
 		{
+			if ( MeshContainer.IsValid() )
+			{
+				value = value.UnsignedMod( MeshContainer.Children.Count );
+			}
+			var changed = value != _selectedMeshIndex;
 			_selectedMeshIndex = value;
 
 			if ( !Game.IsPlaying )
 				return;
 
-			_selectedMeshIndex = _selectedMeshIndex.UnsignedMod( MeshContainer.Children.Count );
 			for ( int i = 0; i < MeshContainer.Children.Count; i++ )
 			{
 				var child = MeshContainer.Children[i];
 				child.Enabled = _selectedMeshIndex == i;
+			}
+			if ( changed )
+			{
+				_waitForMesh = true;
+				// TODO: Create an MDF cache with a reference counter so I don't have to delete this.
+				MeshDistanceSystem.Current.RemoveMdf( Mdf.Id );
+				OnSelectedGameObjectChanged();
 			}
 		}
 	}
@@ -31,33 +42,74 @@ public class MeshDistanceFieldDemo : Component
 	public MeshDistanceField Mdf { get; private set; }
 	private bool _waitForMesh = true;
 
+	protected override void OnStart()
+	{
+		OnSelectedGameObjectChanged();
+	}
+
 	protected override void OnUpdate()
 	{
-		UpdateMdf();
+		UpdateWaitForMesh();
 		UpdateCamera();
 		UpdateUI();
 	}
 
 	private Angles _cameraAngles;
 
-	private void UpdateMdf()
+	private void UpdateWaitForMesh()
 	{
-		var mq = MeshDistanceField.FindInSphere( Vector3.Zero, 100f );
-		if ( !mq.Hit )
-		{
-			Mdf = null;
-			ModelViewer.MdfGameObject = null;
-		}
-
-		Mdf = mq.Mdf;
-		ModelViewer.Mdf = mq.Mdf;
-		ModelViewer.MdfGameObject = mq.GameObject;
-
+		// TODO: Use a Job callback instead.
 		if ( Mdf?.IsMeshBuilt == true && _waitForMesh )
 		{
 			_waitForMesh = false;
 			LookAtMesh();
 		}
+	}
+
+	private void OnSelectedGameObjectChanged()
+	{
+		Log.Info( $"Selected gameobject changed" );
+		if ( !SelectedMeshGameObject.IsValid() || (!TryUpdateMdfFromPhysics() && !TryUpdateMdfFromModel()) )
+		{
+			ClearMdf();
+		}
+	}
+
+	private void ClearMdf()
+	{
+		Mdf = null;
+		ModelViewer.Mdf = null;
+		ModelViewer.MdfGameObject = null;
+	}
+
+	private bool TryUpdateMdfFromPhysics()
+	{
+		if ( !SelectedMeshGameObject.Components.TryGet<Collider>( out var collider ) )
+			return false;
+
+		var physicsShape = collider?.KeyframeBody?.Shapes?.FirstOrDefault();
+		if ( !physicsShape.IsValid() )
+			return false;
+
+		Mdf = MeshDistanceSystem.Current.GetMdf( physicsShape );
+		ModelViewer.Mdf = Mdf;
+		ModelViewer.MdfGameObject = SelectedMeshGameObject;
+		return true;
+	}
+
+	private bool TryUpdateMdfFromModel()
+	{
+		if ( !SelectedMeshGameObject.Components.TryGet<ModelRenderer>( out var renderer ) )
+			return false;
+
+		var model = renderer.Model;
+		if ( model is null )
+			return false;
+
+		Mdf = MeshDistanceSystem.Current.GetMdf( model );
+		ModelViewer.Mdf = Mdf;
+		ModelViewer.MdfGameObject = SelectedMeshGameObject;
+		return true;
 	}
 
 	private void LookAtMesh()
@@ -112,7 +164,6 @@ public class MeshDistanceFieldDemo : Component
 		ImGui.Text( $"MDF Count: {system.MdfCount}" ); ImGui.SameLine();
 		ImGui.Text( $"Total Data Size: {system.MdfTotalDataSize.FormatBytes()}" );
 		ImGui.Text( $"Selected GameObject: {SelectedMeshGameObject.Name}" );
-		var previousMeshIndex = SelectedMeshIndex;
 		if ( ImGui.Button( "Previous Mesh" ) )
 		{
 			SelectedMeshIndex--;
@@ -121,12 +172,6 @@ public class MeshDistanceFieldDemo : Component
 		if ( ImGui.Button( "Next Mesh" ) )
 		{
 			SelectedMeshIndex++;
-		}
-		if ( previousMeshIndex != SelectedMeshIndex )
-		{
-			_waitForMesh = true;
-			// TODO: Create an MDF cache with a reference counter so I don't have to delete this.
-			system.RemoveMdf( Mdf.Id );
 		}
 	}
 }

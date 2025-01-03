@@ -1,12 +1,11 @@
 ﻿using Sandbox.Diagnostics;
-using System.Security.Cryptography.X509Certificates;
 
 namespace Duccsoft;
 
 /// <summary>
 /// Provides a signed distance field that was calculated using the triangles of a <see cref="PhysicsShape"/>.
 /// </summary>
-public class MeshDistanceField
+public partial class MeshDistanceField
 {
 	public struct MeshDistanceSample
 	{
@@ -32,9 +31,8 @@ public class MeshDistanceField
 	public int IndexCount => MeshData?.Indices?.ElementCount ?? -1;
 	public int TriangleCount => IndexCount / 3;
 	internal GpuMeshData MeshData { get; set; }
-	internal void SetOctree( SparseVoxelOctree<VoxelSdfData> octree ) => Octree = octree;
-	private SparseVoxelOctree<VoxelSdfData> Octree { get; set; }
-	private PhysicsShape MeshSource { get; set; }
+	internal void SetOctree( SparseVoxelOctree<SignedDistanceField> octree ) => Octree = octree;
+	private SparseVoxelOctree<SignedDistanceField> Octree { get; set; }
 
 	#region Build Jobs
 	public int QueuedJumpFloodJobs => JumpFloodJobs.Count;
@@ -43,14 +41,31 @@ public class MeshDistanceField
 
 	private MeshDistanceBuildSystem BuildSystem { get; set; }
 
-	internal ExtractMeshFromPhysicsJob ExtractMeshJob { get; set; }
+	public static int GetId( PhysicsShape shape )
+	{
+		return GetId( shape.Collider as Collider );
+	}
+
+	public static int GetId( Collider collider )
+	{
+		return collider.Id.GetHashCode();
+	}
+
+	public static int GetId( Model model )
+	{
+		return model.IsProcedural
+			? model.GetHashCode()
+			: model.ResourceId;
+	}
+
+	internal Job ExtractMeshJob { get; set; }
 	internal ConvertMeshToGpuJob ConvertMeshJob { get; set; }
 	public bool IsMeshBuilt => MeshData is not null;
 	internal CreateMeshOctreeJob CreateOctreeJob { get; set; }
 	public bool IsOctreeBuilt => Octree is not null;
 	internal Dictionary<Vector3Int, JumpFloodSdfJob> JumpFloodJobs { get; set; } = new();
 
-	public void RebuildAll()
+	public void RebuildFromMesh()
 	{
 		Octree = null;
 		DataSize = 0;
@@ -62,7 +77,7 @@ public class MeshDistanceField
 
 	public void RebuildOctreeVoxel( Vector3Int voxel, bool dumpDebugData, Action onCompleted = null )
 	{
-		if ( GetSdfTexture( voxel ) is VoxelSdfData existingData )
+		if ( GetSdfTexture( voxel ) is SignedDistanceField existingData )
 		{
 			existingData.IsRebuilding = true;
 		}
@@ -71,9 +86,11 @@ public class MeshDistanceField
 		JumpFloodJobs[voxel] = job;
 	}
 
-	internal void SetOctreeVoxel( Vector3Int voxel, VoxelSdfData data )
+	internal void SetOctreeVoxel( Vector3Int voxel, SignedDistanceField data )
 	{
-		if ( IsBuilding && JumpFloodJobs.Count == 1 && JumpFloodJobs.Remove( voxel ) )
+		var jobCount = JumpFloodJobs.Count;
+		var jobRemoved = JumpFloodJobs.Remove( voxel );
+		if ( IsBuilding && jobCount == 1 && jobRemoved )
 		{
 			SinceBuildFinished = 0;
 		}
@@ -82,8 +99,8 @@ public class MeshDistanceField
 		if ( node?.IsLeaf == true && node.Data is not null )
 		{
 			Assert.AreEqual( data.DataSize, node.Data.DataSize );
-			Assert.AreEqual( data.VoxelGridDims, node.Data.VoxelGridDims );
-			node.Data.VoxelSdf = data.VoxelSdf;
+			Assert.AreEqual( data.TextureSize, node.Data.TextureSize );
+			node.Data.Data = data.Data;
 			node.Data.IsRebuilding = false;
 		}
 		else
@@ -108,7 +125,7 @@ public class MeshDistanceField
 
 	public int OctreeSize => Octree?.Size ?? -1;
 	public int OctreeLeafDims => Octree?.LeafSize ?? -1;
-	public float OctreeLeafSize => OctreeLeafDims * MeshDistanceSystem.VoxelSize;
+	public float OctreeLeafSize => OctreeLeafDims * MeshDistanceSystem.TexelSize;
 	public bool IsInBounds( Vector3 localPos ) => Bounds.Contains( localPos );
 	public bool IsInBounds( Vector3Int voxel )
 	{
@@ -119,109 +136,41 @@ public class MeshDistanceField
 		return Octree.ContainsPoint( localPos );
 	}
 
+	private BBox OctreeBoundsToLocal( BBox bounds ) => bounds.Translate( MeshData.Bounds.Center );
+	private BBox LocalBoundsToOctree( BBox bounds ) => bounds.Translate( -MeshData.Bounds.Center );
+	private Vector3 OctreePosToLocal( Vector3 octreePos ) => octreePos + MeshData.Bounds.Center;
+	private Vector3 LocalPosToOctree( Vector3 pos ) =>  pos - MeshData.Bounds.Center;
+
 	public Vector3Int PositionToVoxel( Vector3 localPos )
 	{
+		localPos = LocalPosToOctree( localPos );
 		return Octree.PositionToVoxel( localPos );
 	}
 
 	public Vector3 VoxelToLocalCenter( Vector3Int voxel )
 	{
 		var pos = Octree.VoxelToPosition( voxel );
-		return pos += Octree.LeafSize;
+		pos += Octree.LeafSize;
+		return OctreePosToLocal( pos );
 	}
 
-	public BBox VoxelToLocalBounds( Vector3Int voxel ) => Octree.GetVoxelBounds( voxel );
-
-	#region Queries
-
-	public SparseVoxelOctree<VoxelSdfData>.OctreeNode Trace( Vector3 localPos, Vector3 localDir, out float hitDistance )
-		=> Trace( localPos, localDir, out hitDistance, new Vector3Int( -1, -1, -1 ) );
-
-	public SparseVoxelOctree<VoxelSdfData>.OctreeNode Trace( Vector3 localPos, Vector3 localDir, out float hitDistance, Vector3Int filter )
+	public BBox VoxelToLocalBounds( Vector3Int voxel )
 	{
-		hitDistance = -1f;
-		return Octree?.Trace( localPos, localDir, out hitDistance, filter );
+		var bounds = Octree.GetVoxelBounds( voxel );
+		return OctreeBoundsToLocal( bounds );
 	}
 
-	public VoxelSdfData GetSdfTexture( Vector3Int voxel )
+	public BBox GetTexelBounds( Vector3Int voxel, Vector3Int texel )
 	{
-		if ( Octree?.HasLeaf( voxel ) != true )
-			return null;
-
-		return Octree?.Find( voxel )?.Data;
+		var sdf = GetSdfTexture( voxel );
+		return sdf.TexelToBounds( texel );
 	}
 
-	public bool TrySample( Vector3 localSamplePos, out MeshDistanceSample sample )
+	private BBox GetNodeBounds( SparseVoxelOctree<SignedDistanceField>.OctreeNode node )
 	{
-		// Snap sample point to bounds, in case it's out of bounds.
-		var closestPoint = Bounds.ClosestPoint( localSamplePos );
-		if ( Octree is null )
-		{
-			sample = default;
-			return false;
-		}
-		var octreeVoxel = Octree.Find( closestPoint );
-		if ( octreeVoxel?.Data is null )
-		{
-			// TODO: Trace ray to nearest leaf and sample its SDF instead.
-			sample = default;
-			return false;
-		}
-		var sdf = octreeVoxel.Data;
-		var sdfVoxel = sdf.PositionToVoxel( closestPoint );
-		var signedDistance = sdf[sdfVoxel];
-		// If we were out of bounds, add the amount by which we were out of bounds to the distance.
-		signedDistance += closestPoint.Distance( localSamplePos );
-		var surfaceNormal = sdf.EstimateVoxelSurfaceNormal( sdfVoxel );
-		sample = new MeshDistanceSample()
-		{
-			SurfaceNormal = surfaceNormal,
-			SignedDistance = signedDistance,
-		};
-		return true;
+		var bounds = Octree.GetNodeBounds( node );
+		return OctreeBoundsToLocal( bounds );
 	}
-	public struct MdfQueryResult
-	{
-		public bool Hit;
-		public GameObject GameObject;
-		public PhysicsShape Shape;
-		public RopeColliderType ColliderType;
-		public MeshDistanceField Mdf;
-		public Vector3 LocalPosition;
-	}
-
-	public static MdfQueryResult FindInSphere( Vector3 worldPos, float radius )
-	{
-		var scene = Game.ActiveScene;
-		if ( !scene.IsValid() || !Game.IsPlaying )
-			return default;
-
-		var tr = scene.PhysicsWorld
-			.Trace
-			.Sphere( radius, worldPos, worldPos )
-			.WithoutTags( "noblockrope" )
-			.RunAll();
-		if ( !tr.Any( tr => tr.Hit ) )
-			return default;
-
-		// Possibly not the nearest due to how sphere traces ignore the point of collision.
-		var nearest = tr.OrderBy( tr => tr.Distance ).First();
-		var gameObject = (nearest.Shape?.Collider as Component)?.GameObject;
-		var localPos = nearest.Shape.Body.Transform.PointToLocal( worldPos );
-
-		return new MdfQueryResult
-		{
-			Hit = true,
-			GameObject = gameObject,
-			Shape = nearest.Shape,
-			ColliderType = nearest.ClassifyColliderType(),
-			Mdf = MeshDistanceSystem.Current.GetMdf( nearest.Shape ),
-			LocalPosition = localPos,
-		};
-	}
-
-	#endregion
-
 	public void DebugDraw( Transform tx, Vector3Int highlightedPosition, Vector3 selectedPosition, int currentSlice )
 	{
 		var overlay = DebugOverlaySystem.Current;
@@ -234,10 +183,9 @@ public class MeshDistanceField
 
 		DrawChildren( Octree.RootNode );
 
-		void DrawChildren( SparseVoxelOctree<VoxelSdfData>.OctreeNode node )
+		void DrawChildren( SparseVoxelOctree<SignedDistanceField>.OctreeNode node )
 		{
-			var pos = node.Position - Octree.Size / 2;
-			var bbox = new BBox( pos, pos + node.Size );
+			var bbox = GetNodeBounds( node );
 			var color = Color.Blue.WithAlpha( 0.05f );
 			var ignoreDepth = false;
 			var depthOffset = 0f;
@@ -279,7 +227,7 @@ public class MeshDistanceField
 					{
 						var camPoint = Bounds.ClosestPoint( tx.PointToLocal( camera.WorldPosition ) );
 						var camDir = tx.NormalToLocal( camera.WorldRotation.Forward );
-						var closeness = camPoint.Distance( pos ) / ( OctreeSize );
+						var closeness = camPoint.Distance( bbox.Center ) / (OctreeSize);
 						color = Color.Lerp( Color.Yellow, Color.Gray, closeness );
 						color = color.WithAlpha( 1f );
 					}
@@ -303,5 +251,4 @@ public class MeshDistanceField
 			}
 		}
 	}
-
 }

@@ -146,18 +146,26 @@ public partial class VerletRope
 			.WithAnyTags( CollisionInclude )
 			.RunAll();
 
+		var mdfs = MeshDistanceSystem.FindInBox( CollisionBounds );
 		for ( int i = 0; i < _points.Length; i++ )
 		{
 			foreach ( var tr in trs )
 			{
 				var collisionType = tr.ClassifyColliderType();
-				CaptureCollision( i, collisionType, tr.Shape );
+				CaptureConvexCollision( i, collisionType, tr.Shape );
+			}
+			foreach( var mdf in mdfs )
+			{
+				var useMdf = UseMeshDistanceFields && !mdf.GameObject.Tags.Has( "mdf_disable" );
+				if ( useMdf )
+				{
+					CaptureMdfCollision( i, mdf.GameObject.WorldTransform, mdf.Mdf );
+				}
 			}
 		}
-		
 	}
 
-	private void CaptureCollision( int pointIndex, RopeColliderType colliderType, PhysicsShape shape )
+	private void CaptureConvexCollision( int pointIndex, RopeColliderType colliderType, PhysicsShape shape )
 	{
 		switch( colliderType )
 		{
@@ -175,9 +183,6 @@ public partial class VerletRope
 				break;
 			case RopeColliderType.Plane:
 				CapturePlaneCollision( pointIndex, shape.Collider as PlaneCollider );
-				break;
-			case RopeColliderType.Mesh:
-				CaptureMeshCollision( pointIndex, shape );
 				break;
 			default:
 				break;
@@ -260,20 +265,7 @@ public partial class VerletRope
 		ci.CollidingPoints.Add( pointindex );
 	}
 
-	private void CaptureMeshCollision( int pointIndex, PhysicsShape shape )
-	{
-		var useMdf = UseMeshDistanceFields && !shape.Tags.Has( "nomdf" );
-		if ( useMdf && MeshDistanceSystem.Current.GetMdf( shape ) is MeshDistanceField mdf )
-		{
-			CaptureMdfCollision( pointIndex, shape, mdf );
-		}
-		else
-		{
-			CaptureGenericCollision( pointIndex, shape );
-		}
-	}
-
-	private void CaptureMdfCollision( int pointIndex, PhysicsShape shape, MeshDistanceField mdf )
+	private void CaptureMdfCollision( int pointIndex, Transform tx, MeshDistanceField mdf )
 	{
 		if ( !_meshColliders.TryGetValue( mdf.Id, out var ci ) )
 		{
@@ -281,7 +273,7 @@ public partial class VerletRope
 			{
 				Id = mdf.Id,
 				Mdf = mdf,
-				Transform = shape.Body.Transform,
+				Transform = tx,
 			};
 			_meshColliders[mdf.Id] = ci;
 		}

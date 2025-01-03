@@ -8,6 +8,7 @@ internal class GpuMeshData
 		Vertices = vertices;
 		Indices = indices;
 	}
+
 	public CpuMeshData CpuMesh { get; }
 	public BBox Bounds => CpuMesh.Bounds;
 	public GpuBuffer<Vector4> Vertices { get; }

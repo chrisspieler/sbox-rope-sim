@@ -19,7 +19,8 @@ internal class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSyste
 
 #region Build Management
 
-	private readonly Dictionary<int, Job<PhysicsShape, CpuMeshData>> _meshExtractionJobs = new();
+	private readonly Dictionary<int, Job<PhysicsShape, CpuMeshData>> _meshExtractionFromPhysicsJobs = new();
+	private readonly Dictionary<int, Job<Model, CpuMeshData>> _meshExtractionFromModelJobs = new();
 	private readonly Dictionary<int, Job<CpuMeshData, GpuMeshData>> _convertMeshToGpuJobs = new();
 	private readonly Dictionary<int, Job<CreateMeshOctreeJob.InputData, CreateMeshOctreeJob.OutputData>> _createSvoJobs = new();
 	private readonly Dictionary<int, Job<JumpFloodSdfJob.InputData, JumpFloodSdfJob.OutputData>> _jumpFloodSdfJobs = new();
@@ -48,8 +49,13 @@ internal class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSyste
 	private void RunJobsInternal( ref double remainingTime )
 	{
 		// Triangulate PhysicsShapes and return their vertices and indices in CpuMeshData.
-		var extractMeshFromPhysicsResults = RunJobSet( _meshExtractionJobs, ref remainingTime );
+		var extractMeshFromPhysicsResults = RunJobSet( _meshExtractionFromPhysicsJobs, ref remainingTime );
 		AddConvertMeshToGpuJobs( extractMeshFromPhysicsResults );
+		if ( remainingTime <= 0 )
+			return;
+
+		var extractMeshFromModelResults = RunJobSet( _meshExtractionFromModelJobs, ref remainingTime );
+		AddConvertMeshToGpuJobs( extractMeshFromModelResults );
 		if ( remainingTime <= 0 )
 			return;
 
@@ -84,7 +90,7 @@ internal class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSyste
 	public void StopBuild( int id )
 	{
 		DebugLog( $"Stopping build for MDF ID # {id}" );
-		_meshExtractionJobs.Remove( id );
+		_meshExtractionFromPhysicsJobs.Remove( id );
 		_convertMeshToGpuJobs.Remove( id );
 		_createSvoJobs.Remove( id );
 		_jumpFloodSdfJobs.Remove( id );
@@ -99,7 +105,7 @@ internal class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSyste
 		foreach ( ( var id, _ ) in inputs )
 		{
 			var mdf = MdfSystem[id];
-			mdf.RebuildAll();
+			mdf.RebuildFromMesh();
 		}
 	}
 
@@ -138,10 +144,14 @@ internal class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSyste
 
 	internal JumpFloodSdfJob AddJumpFloodSdfJob( MeshDistanceField mdf, Vector3Int position, bool dumpDebugData )
 	{
+		var numEmptySeeds = mdf.MeshData.Vertices.ElementCount > 1000
+			? 0
+			: JumpFloodSdfJob.NumEmptySeeds;
 		var inputData = new JumpFloodSdfJob.InputData()
 		{
 			Mdf = mdf,
 			OctreeVoxel = position,
+			EmptySeedCount = numEmptySeeds,
 			DumpDebugData = dumpDebugData,
 		};
 		var jobId = HashCode.Combine( mdf.Id, position );
@@ -154,10 +164,22 @@ internal class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSyste
 	internal ExtractMeshFromPhysicsJob AddExtractMeshJob( int id, PhysicsShape shape )
 	{
 		var mdf = MdfSystem[id];
-		mdf.ExtractMeshJob = new ExtractMeshFromPhysicsJob( id, shape );
-		_meshExtractionJobs[id] = mdf.ExtractMeshJob;
+		var job = new ExtractMeshFromPhysicsJob( id, shape );
+		mdf.ExtractMeshJob = job;
+		_meshExtractionFromPhysicsJobs[id] = job;
 		DebugLog( $"Queue {nameof( ExtractMeshFromPhysicsJob )} # {id}" );
-		return mdf.ExtractMeshJob;
+		return job;
+	}
+
+	internal ExtractMeshFromModelJob AddExtractMeshJob( int id, Model model )
+	{
+		var mdf = MdfSystem[id];
+		var job = new ExtractMeshFromModelJob( id, model );
+		mdf.ExtractMeshJob = job;
+		_meshExtractionFromModelJobs[id] = job;
+		DebugLog( $"Queue {nameof( ExtractMeshFromModelJob )} # {id}" );
+		return job;
+		
 	}
 
 #endregion

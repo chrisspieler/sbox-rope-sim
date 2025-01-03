@@ -6,7 +6,7 @@ using Duccsoft.ImGui.Rendering;
 
 public class TextureInfoWidget : ImageWidget
 {
-	public TextureInfoWidget( Window parent, VoxelSdfData voxelData, int textureSlice, Texture texture, 
+	public TextureInfoWidget( Window parent, SignedDistanceField voxelData, int textureSlice, Texture texture, 
 		Vector2 size, Vector2 uv0, Vector2 uv1, Color tintColor, Color borderColor, 
 		ImDrawList.ImageTextureFiltering textureFiltering, float angle ) 
 		: base( parent, texture, size, uv0, uv1, tintColor, borderColor, textureFiltering, angle )
@@ -15,7 +15,7 @@ public class TextureInfoWidget : ImageWidget
 		TextureSlice = textureSlice;
 	}
 
-	public VoxelSdfData VoxelData { get; }
+	public SignedDistanceField VoxelData { get; }
 	public int TextureSlice { get; }
 	public Vector2 MouseLocalPos { get; private set; }
 	public Vector2? HoveredNormal { get; private set; }
@@ -88,7 +88,7 @@ public class TextureInfoWidget : ImageWidget
 			var distance = VoxelData[voxel];
 			var distanceText = $"{distance:F3}";
 			var distanceTextSize = ImGui.CalcTextSize( distanceText );
-			var normal = VoxelData.EstimateVoxelSurfaceNormal( voxel );
+			var normal = VoxelData.EstimateSurfaceNormal( voxel );
 			var normalText = $"({normal.x:F3},{normal.y:F3},{normal.z:F3})";
 			var normalTextSize = ImGui.CalcTextSize( normalText );
 			var textSizeMaxs = distanceTextSize.ComponentMax( normalTextSize );

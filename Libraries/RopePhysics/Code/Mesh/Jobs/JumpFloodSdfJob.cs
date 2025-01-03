@@ -13,6 +13,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 	{
 		public MeshDistanceField Mdf;
 		public Vector3Int OctreeVoxel;
+		public int EmptySeedCount;
 		public bool DumpDebugData;
 	}
 
@@ -20,7 +21,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 	{
 		public MeshDistanceField Mdf;
 		public Vector3Int OctreeVoxel;
-		public VoxelSdfData Sdf;
+		public SignedDistanceField Sdf;
 	}
 
 	public JumpFloodSdfJob( int id, InputData input ) : base( id, input ) { }
@@ -74,7 +75,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 			_meshSdfCs.Dispatch( size, size, size );
 		}
 
-		var seedCount = triCount * 4 + NumEmptySeeds;
+		var seedCount = triCount * 4 + Input.EmptySeedCount;
 		GpuBuffer<MeshSeedData> seedDataGpu;
 		using ( PerfLog.Scope( Id, $"Create {nameof( seedDataGpu )}" ) )
 		{
@@ -86,9 +87,9 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.FindSeeds );
 			_meshSdfCs.Attributes.Set( "Vertices", gpuMesh.Vertices );
 			_meshSdfCs.Attributes.Set( "Indices", gpuMesh.Indices );
-			_meshSdfCs.Attributes.Set( "NumEmptySeeds", NumEmptySeeds );
+			_meshSdfCs.Attributes.Set( "NumEmptySeeds", Input.EmptySeedCount);
 			_meshSdfCs.Attributes.Set( "Seeds", seedDataGpu );
-			_meshSdfCs.Dispatch( threadsX: triCount + NumEmptySeeds );
+			_meshSdfCs.Dispatch( threadsX: triCount + Input.EmptySeedCount );
 		}
 
 		if ( Input.DumpDebugData )
@@ -154,7 +155,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		{
 			Mdf = Input.Mdf,
 			OctreeVoxel = Input.OctreeVoxel,
-			Sdf = new VoxelSdfData( voxelSdf, size, bounds ),
+			Sdf = new SignedDistanceField( voxelSdf, size, bounds ),
 		};
 		return true;
 	}
@@ -204,7 +205,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 			var triCount = Input.Mdf.MeshData.Indices.ElementCount / 3;
 			var emptySeedStartIdx = triCount * 4;
 			sb.AppendLine( $"SeedData dump for {Input.OctreeVoxel}[{Input.OctreeVoxel/16}] of MDF # {Input.Mdf.Id}" );
-			sb.AppendLine( $"{triCount} tris, {NumEmptySeeds} empty seeds, data: {seedData.Length}, expected data: {triCount * 4 + NumEmptySeeds}" );
+			sb.AppendLine( $"{triCount} tris, {Input.EmptySeedCount} empty seeds, data: {seedData.Length}, expected data: {triCount * 4 + Input.EmptySeedCount}" );
 			for ( int i = 0; i < seedData.Length; i++ )
 			{
 				if ( i == emptySeedStartIdx )

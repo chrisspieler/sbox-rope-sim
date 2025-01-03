@@ -10,7 +10,7 @@ internal class CreateMeshOctreeJob : Job<CreateMeshOctreeJob.InputData, CreateMe
 	public struct OutputData
 	{
 		public MeshDistanceField Mdf;
-		public SparseVoxelOctree<VoxelSdfData> Octree;
+		public SparseVoxelOctree<SignedDistanceField> Octree;
 		// TODO: Traverse the Octree itself to get this.
 		public HashSet<Vector3Int> LeafPoints;
 	}
@@ -22,11 +22,11 @@ internal class CreateMeshOctreeJob : Job<CreateMeshOctreeJob.InputData, CreateMe
 
 	public double FrameTimeBudget { get; set; } = 4.0;
 	private int _triProgress = 0;
-	private SparseVoxelOctree<VoxelSdfData> Octree { get; set; }
+	private SparseVoxelOctree<SignedDistanceField> Octree { get; set; }
 	private Triangle[] Tris { get; set; }
 	private HashSet<Vector3Int> LeafPoints { get; set; } = new();
 
-	private SparseVoxelOctree<VoxelSdfData> CreateOctree()
+	private SparseVoxelOctree<SignedDistanceField> CreateOctree()
 	{
 		static int NearestPowerOf2( int v )
 		{
@@ -52,13 +52,14 @@ internal class CreateMeshOctreeJob : Job<CreateMeshOctreeJob.InputData, CreateMe
 		// Ensure that the octree depth is set such that we guarantee a leaf size of 2^LEAF_SIZE_LOG2
 		int octreeDepth = Math.Max( 1, logDiff );
 
-		return new SparseVoxelOctree<VoxelSdfData>( svoSize, octreeDepth );
+		return new SparseVoxelOctree<SignedDistanceField>( svoSize, octreeDepth );
 	}
 
 	private Triangle[] GetTriangles()
 	{
-		var indices = Input.Mdf.MeshData.CpuMesh.Indices;
-		var vertices = Input.Mdf.MeshData.CpuMesh.Vertices;
+		var mesh = Input.Mdf.MeshData.CpuMesh;
+		var indices = mesh.Indices;
+		var vertices = mesh.Vertices;
 		var tris = new Triangle[indices.Length / 3];
 		for ( int i = 0; i < indices.Length; i += 3 )
 		{
@@ -68,6 +69,11 @@ internal class CreateMeshOctreeJob : Job<CreateMeshOctreeJob.InputData, CreateMe
 			Vector3 v0 = vertices[i0];
 			Vector3 v1 = vertices[i1];
 			Vector3 v2 = vertices[i2];
+
+			// Move each vertex so that the origin of the mesh is in the center of the octree.
+			v0 -= mesh.Bounds.Center;
+			v1 -= mesh.Bounds.Center;
+			v2 -= mesh.Bounds.Center;
 
 			tris[i / 3] = new Triangle( v0, v1, v2 );
 		}

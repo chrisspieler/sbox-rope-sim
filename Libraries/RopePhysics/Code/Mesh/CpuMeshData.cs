@@ -2,14 +2,11 @@
 
 public class CpuMeshData
 {
-	public CpuMeshData( Vector3[] vertices, uint[] indices, BBox bounds = default )
+	public CpuMeshData( Vector3[] vertices, uint[] indices )
 	{
 		Vertices = vertices;
 		Indices = indices;
-		if ( bounds == default )
-		{
-			Bounds = CalculateBounds( Vertices );
-		}
+		Bounds = CalculateBounds( Vertices );
 	}
 
 	public Vector3[] Vertices { get; }
@@ -18,16 +15,12 @@ public class CpuMeshData
 
 	private static BBox CalculateBounds( Vector3[] vertices )
 	{
-		var bbox = BBox.FromPositionAndSize( Vector3.Zero, 16f );
-
-		if ( vertices.Length > 1 )
+		var firstVtx = vertices[0];
+		var bbox = BBox.FromPositionAndSize( firstVtx, 0f );
+		for ( int i = 1; i < vertices.Length; i++ )
 		{
-			bbox = BBox.FromPositionAndSize( vertices[0] );
-			for ( int i = 1; i < vertices.Length; i++ )
-			{
-				bbox = bbox.AddPoint( vertices[i] );
-			}
-			bbox = bbox.Grow( 4f );
+			var vtx = vertices[i];
+			bbox = bbox.AddPoint( vtx );
 		}
 		return bbox;
 	}

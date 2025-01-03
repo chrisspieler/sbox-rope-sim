@@ -118,8 +118,8 @@ public class MdfModelViewer : Component
 			if ( tr.Data is not null )
 			{
 				var hitPos = new Ray( tracePos, traceDir ).Project( hitDistance );
-				var hitSdfVoxel = tr.Data.PositionToVoxel( hitPos );
-				MouseSignedDistance = tr.Data[hitSdfVoxel];
+				var hitTexel = tr.Data.PositionToTexel( hitPos );
+				MouseSignedDistance = tr.Data[hitTexel];
 			}
 		}
 	}
@@ -170,6 +170,7 @@ public class MdfModelViewer : Component
 			float buildTime = Mdf.SinceBuildStarted - Mdf.SinceBuildFinished;
 			ImGui.Text( $"Build complete in: {buildTime:F3}ms" );
 		}
+		ImGui.Text( $"HasMesh: {Mdf.IsMeshBuilt}, HasOctree: {Mdf.IsOctreeBuilt}, JFAJobs: {Mdf.QueuedJumpFloodJobs}" );
 		if ( Mdf.VertexCount < 0 )
 			return;
 		ImGui.Text( $"size: {Mdf.Bounds.Size.x:F2},{Mdf.Bounds.Size.y:F2},{Mdf.Bounds.Size.z:F2} tris: {Mdf.TriangleCount}" );
@@ -266,7 +267,7 @@ public class MdfModelViewer : Component
 		var dumpDebugInfo = _dumpDebugInfo;
 		if ( ImGui.Checkbox( "Dump Debug Info", ref dumpDebugInfo ) )
 		_dumpDebugInfo = dumpDebugInfo;
-		if ( Mdf.GetSdfTexture( SelectedVoxel ) is VoxelSdfData existingData )
+		if ( Mdf.GetSdfTexture( SelectedVoxel ) is SignedDistanceField existingData )
 		{
 			if ( !existingData.IsRebuilding && ImGui.Button( "Rebuild Texture" ) )
 			{
@@ -291,7 +292,7 @@ public class MdfModelViewer : Component
 		if ( ImGui.SliderInt( nameof( TextureSlice ), ref textureSlice, 0, _maxSlice ) )
 		{
 			var diff = textureSlice - TextureSlice;
-			Scene.Camera.WorldPosition += new Vector3( 0f, 0f, MeshDistanceSystem.VoxelSize * diff );
+			Scene.Camera.WorldPosition += new Vector3( 0f, 0f, MeshDistanceSystem.TexelSize * diff );
 		}
 		if ( _copiedTex is null || textureSlice != TextureSlice || _shouldRefreshTexture )
 		{
@@ -354,10 +355,10 @@ public class MdfModelViewer : Component
 			if ( maybeTexel is not Vector3Int texel )
 				return;
 
-			var texelPos = sdfTex.VoxelToPosition( texel );
-			var texelNormal = sdfTex.EstimateVoxelSurfaceNormal( texel );
+			var texelPos = sdfTex.TexelToPosition( texel );
+			var texelNormal = sdfTex.EstimateSurfaceNormal( texel );
 			var tx = MdfGameObject.WorldTransform;
-			var size = MeshDistanceSystem.VoxelSize;
+			var size = MeshDistanceSystem.TexelSize;
 			var pos = texelPos + size * 0.5f;
 			var bbox = BBox.FromPositionAndSize( pos, size );
 			var insideColor = (color * 0.2f).WithAlpha( 0.25f );
@@ -373,16 +374,16 @@ public class MdfModelViewer : Component
 
 	readonly ComputeShader _textureSliceCs = new( "mesh_sdf_preview_cs" );
 
-	private Texture CopyMdfTexture( VoxelSdfData voxelData, int z )
+	private Texture CopyMdfTexture( SignedDistanceField voxelData, int z )
 	{
-		var size = voxelData.VoxelGridDims;
+		var size = voxelData.TextureSize;
 
 		var outputTex = Texture.Create( size, size )
 			.WithUAVBinding()
 			.Finish();
 
 		var voxelSdfGpu = new GpuBuffer<int>( size * size * size / 4, GpuBuffer.UsageFlags.Structured );
-		voxelSdfGpu.SetData( voxelData.VoxelSdf );
+		voxelSdfGpu.SetData( voxelData.Data );
 		_textureSliceCs.Attributes.Set( "VoxelMinsOs", voxelData.Bounds.Mins );
 		_textureSliceCs.Attributes.Set( "VoxelMaxsOs", voxelData.Bounds.Maxs );
 		_textureSliceCs.Attributes.Set( "VoxelVolumeDims", new Vector3( size ) );
