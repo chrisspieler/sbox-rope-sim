@@ -1,8 +1,5 @@
 ﻿using Duccsoft;
 using Duccsoft.ImGui;
-using Duccsoft.ImGui.Extensions;
-using System;
-using System.Runtime.CompilerServices;
 
 namespace Sandbox;
 
@@ -230,13 +227,14 @@ public class MdfModelViewer : Component
 
 	private void PaintTextureViewerWindow()
 	{
-		if ( Mdf.IsBuilding )
+		if ( !Mdf.IsOctreeBuilt )
 		{
 			ImGui.Text( $"No mesh distance field exists yet." );
 			return;
 		}
 
 		PaintTextureViewerStats();
+		PaintTextureViewerDebugOptions();
 		PaintTextureViewerViewport();
 		DrawTextureViewerOverlay();
 	}
@@ -259,6 +257,22 @@ public class MdfModelViewer : Component
 		ImGui.Text( $"Selected Octree Voxel: {SelectedVoxel / 16}" );
 		ImGui.NewLine();
 		ImGui.Text( $"Texture: {size}x{size}x{size}, {Mdf.DataSize.FormatBytes()}" );
+	}
+
+	private bool _dumpDebugInfo;
+
+	private void PaintTextureViewerDebugOptions()
+	{
+		var dumpDebugInfo = _dumpDebugInfo;
+		if ( ImGui.Checkbox( "Dump Debug Info", ref dumpDebugInfo ) )
+		_dumpDebugInfo = dumpDebugInfo;
+		if ( Mdf.GetSdfTexture( SelectedVoxel ) is VoxelSdfData existingData )
+		{
+			if ( !existingData.IsRebuilding && ImGui.Button( "Rebuild Texture" ) )
+			{
+				Mdf.RebuildOctreeVoxel( _selectedVoxel, _dumpDebugInfo, onCompleted: () => _shouldRefreshTexture = true );
+			}
+		}
 	}
 
 	private bool _shouldRefreshTexture;
@@ -341,13 +355,11 @@ public class MdfModelViewer : Component
 				return;
 
 			var texelPos = sdfTex.VoxelToPosition( texel );
-			var texelDistance = sdfTex[texel];
 			var texelNormal = sdfTex.EstimateVoxelSurfaceNormal( texel );
 			var tx = MdfGameObject.WorldTransform;
 			var size = MeshDistanceSystem.VoxelSize;
 			var pos = texelPos + size * 0.5f;
 			var bbox = BBox.FromPositionAndSize( pos, size );
-			// color.a = texelDistance < 0 ? 0.15f : 1f;
 			var insideColor = (color * 0.2f).WithAlpha( 0.25f );
 			DebugOverlay.Box( bbox, color: color.WithAlpha( 1f ), transform: tx, overlay: false );
 			DebugOverlay.Box( bbox, color: insideColor, transform: tx, overlay: true );

@@ -12,7 +12,7 @@ internal abstract class Job
 		Completed
 	}
 
-	protected Job( int id ) 
+	protected Job( int id )
 	{
 		Id = id;
 		Timer = new MultiTimer();
@@ -27,6 +27,7 @@ internal abstract class Job
 	public bool IsPending => Status == JobStatus.Pending;
 	public bool IsInProgress => Status == JobStatus.InProgress;
 	public bool IsCompleted => Status == JobStatus.Completed;
+	public Action OnCompleted { get; set; }
 
 	protected record RunResult<T>( bool Completed, T Output );
 
@@ -46,6 +47,11 @@ internal abstract class Job
 		Status = completed ? JobStatus.Completed : JobStatus.InProgress;
 
 		DebugLogEnd();
+
+		if ( completed )
+		{
+			OnCompleted?.Invoke();
+		}
 
 		return completed;
 	}

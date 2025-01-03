@@ -1,4 +1,7 @@
-﻿namespace Duccsoft;
+﻿using Sandbox.Diagnostics;
+using System.Security.Cryptography.X509Certificates;
+
+namespace Duccsoft;
 
 /// <summary>
 /// Provides a signed distance field that was calculated using the triangles of a <see cref="PhysicsShape"/>.
@@ -57,29 +60,37 @@ public class MeshDistanceField
 		BuildSystem.AddCreateMeshOctreeJob( this );
 	}
 
-	internal void RebuildOctreeVoxel( Vector3Int voxel )
+	public void RebuildOctreeVoxel( Vector3Int voxel, bool dumpDebugData, Action onCompleted = null )
 	{
-		var job = BuildSystem.AddJumpFloodSdfJob( this, voxel );
+		if ( GetSdfTexture( voxel ) is VoxelSdfData existingData )
+		{
+			existingData.IsRebuilding = true;
+		}
+		var job = BuildSystem.AddJumpFloodSdfJob( this, voxel, dumpDebugData );
+		job.OnCompleted += onCompleted;
 		JumpFloodJobs[voxel] = job;
 	}
 
 	internal void SetOctreeVoxel( Vector3Int voxel, VoxelSdfData data )
 	{
-		JumpFloodJobs.Remove( voxel );
-
-		var node = Octree.Find( voxel );
-		if ( node.IsLeaf && node.Data is not null )
-		{
-			DataSize -= node.Data.DataSize;
-			OctreeLeafCount--;
-		}
-		Octree.Insert( voxel, data );
-		DataSize += data.DataSize;
-		OctreeLeafCount++;
-
-		if ( JumpFloodJobs.Count == 0 )
+		if ( IsBuilding && JumpFloodJobs.Count == 1 && JumpFloodJobs.Remove( voxel ) )
 		{
 			SinceBuildFinished = 0;
+		}
+
+		var node = Octree.Find( voxel );
+		if ( node?.IsLeaf == true && node.Data is not null )
+		{
+			Assert.AreEqual( data.DataSize, node.Data.DataSize );
+			Assert.AreEqual( data.VoxelGridDims, node.Data.VoxelGridDims );
+			node.Data.VoxelSdf = data.VoxelSdf;
+			node.Data.IsRebuilding = false;
+		}
+		else
+		{
+			Octree.Insert( voxel, data );
+			DataSize += data.DataSize;
+			OctreeLeafCount++;
 		}
 	}
 
@@ -233,7 +244,13 @@ public class MeshDistanceField
 			if ( node.IsLeaf )
 			{
 				var isActiveSlice = currentSlice < 0 || node.Position.z == currentSlice;
-				if ( node.Position == selectedPosition )
+				if ( node.Data?.IsRebuilding == true )
+				{
+					color = Color.Orange.WithAlpha( 1f );
+					ignoreDepth = true;
+					depthOffset = 0.5f;
+				}
+				else if ( node.Position == selectedPosition )
 				{
 					color = Color.Magenta.WithAlpha( 1f );
 					ignoreDepth = true;

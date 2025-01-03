@@ -9,9 +9,10 @@ public class VoxelSdfData
 		VoxelSdf = voxelSdf;
 	}
 
+	public bool IsRebuilding { get; set; }
 	public BBox Bounds { get; init; }
 	public int VoxelGridDims { get; init; }
-	public int[] VoxelSdf { get; init; }
+	public int[] VoxelSdf { get; internal set; }
 	public int DataSize => VoxelGridDims * VoxelGridDims * VoxelGridDims * sizeof( byte );
 
 	public Vector3Int PositionToVoxel( Vector3 localPos )
@@ -43,7 +44,6 @@ public class VoxelSdfData
 	{
 		get
 		{
-			
 			int x = voxel.x.Clamp( 0, VoxelGridDims - 1 );
 			int y = voxel.y.Clamp( 0, VoxelGridDims - 1 );
 			int z = voxel.z.Clamp( 0, VoxelGridDims - 1 );

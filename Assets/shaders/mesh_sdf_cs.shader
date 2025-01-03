@@ -8,6 +8,7 @@ CS
 	#include "system.fxc"
 	#include "common.fxc"
 
+	#include "shared/index.hlsl"
 	#include "shared/voxel_sdf.hlsl"
 
 //==================================================================
@@ -30,20 +31,42 @@ CS
 	};
 
 //==================================================================
-// ATTRIBUTES
+// GLOBALS
 //==================================================================
+
+//------------------------------------------------------------------
+// Attributes
+//------------------------------------------------------------------
 
 	StructuredBuffer<float4> Vertices < Attribute("Vertices"); >;
 	StructuredBuffer<uint> Indices < Attribute("Indices"); >;
 	RWStructuredBuffer<SeedData> Seeds < Attribute( "Seeds" ); >;
+	int NumEmptySeeds < Attribute( "NumEmptySeeds" ); >;
 	RWStructuredBuffer<int> VoxelSeeds < Attribute( "VoxelSeeds" ); >;
 	int JumpStep < Attribute( "JumpStep" ); >;
 
-//==================================================================
-// GLOBALS
-//==================================================================
+//------------------------------------------------------------------
+// Functions
+//------------------------------------------------------------------
 
+	int GetMeshIndexCount()
+	{
+		uint numIndices, indexStride;
+		Indices.GetDimensions( numIndices, indexStride );
+		return numIndices;
+	}
 
+	int GetMeshTriangleCount()
+	{
+		return GetMeshIndexCount() / 3;
+	}
+
+	int GetSeedCount()
+	{
+		uint numSeeds, seedStride;
+		Seeds.GetDimensions( numSeeds, seedStride );
+		return numSeeds;
+	}
 
 //==================================================================
 // CLASSES
@@ -55,6 +78,7 @@ CS
 		float3 V1;
 		float3 V2;
 		float3 Normal;
+		float3 Center;
 
 		static float3 CalculateNormal( float3 v0, float3 v1, float3 v2 )
 		{
@@ -75,6 +99,7 @@ CS
 			tri.V1 = v1;
 			tri.V2 = v2;
 			tri.Normal = Triangle::CalculateNormal( v0, v1, v2 );
+			tri.Center = Triangle::CalculateCenter( v0, v1, v2 );
 			return tri;
 		}
 
@@ -93,6 +118,27 @@ CS
 			float3 v0 = Seeds[i + 1].PositionOs.xyz;
 			float3 v1 = Seeds[i + 2].PositionOs.xyz;
 			float3 v2 = Seeds[i + 3].PositionOs.xyz;
+			return Triangle::From( v0, v1, v2 );
+		}
+
+		static Triangle FromIndex( int indexId )
+		{
+			// Fetch the indices that comprise the triangle.
+			uint i0 = Indices[indexId];
+			uint i1 = Indices[indexId + 1]; 
+			uint i2 = Indices[indexId + 2];
+			// Fetch the vertices referred to by each index.
+			float3 v0 = Vertices[i0].xyz;
+			float3 v1 = Vertices[i1].xyz;
+			float3 v2 = Vertices[i2].xyz;
+
+			float3 triCenter = Triangle::CalculateCenter( v0, v1, v2 );
+			// Nudge the seed point of each vertex slightly inward.
+			// This avoids any ambiguity about which triangle is closest.
+			v0 += ( triCenter - v0 ) * 0.01;
+			v1 += ( triCenter - v1 ) * 0.01;
+			v2 += ( triCenter - v2 ) * 0.01;
+
 			return Triangle::From( v0, v1, v2 );
 		}
 
@@ -125,6 +171,34 @@ CS
 				else if( w<0.0 ) { v = clamp( dot(p1,v21)/dot(v21, v21), 0.0, 1.0 ); w = 0.0; u = 1.0-v; }
 				
 				return u*V1 + v*V2 + w*V0;
+		}
+
+		float GetDistanceToPoint( float3 localPos )
+		{
+			float3 closestPoint = GetClosestPoint( localPos );
+			return distance( localPos, closestPoint );
+		}
+
+		// This should be called sparingly, for obvious reasons.
+		// TODO: Store triangles in a k-d tree on the CPU and perform the lookup there before dispatching the shader.
+		static Triangle GetNearestTriangle( uint3 voxel )
+		{
+			uint numIndices = GetMeshIndexCount();
+			float3 voxelPos = Voxel::GetCenterPositionOs( voxel );
+
+			Triangle closestTri = Triangle::FromIndex( 0 );
+			float minDistance = closestTri.GetDistanceToPoint( voxelPos );
+			for( int i = 3; i < numIndices; i += 3 )
+			{
+				Triangle tri = Triangle::FromIndex( i );
+				float tDist = tri.GetDistanceToPoint( voxelPos );
+				if ( tDist < minDistance )
+				{
+					closestTri = tri;
+					minDistance = tDist;
+				}
+			}
+			return closestTri;
 		}
 
 		bool IsInBounds()
@@ -213,42 +287,82 @@ CS
 	}
 
 //------------------------------------------------------------------
-// Stage 1, 1D (Triangles)
+// Stage 1, 1D (Triangles + Empty Seeds)
 //------------------------------------------------------------------
-	void FindSeedPoints( int triId )
+
+	// Assume emptySeedCount is a power of 2.
+	void AddEmptySeed( int emptySeedId, int emptySeedOffset )
+	{
+		// Balance the seeds between octants.
+		int seedsPerDim = NumEmptySeeds / 4;
+		// Layout of seeds in each dimension, seed positions marked with parentheses.
+		// iStep will be dims / seedsPerDim
+		// 2 in 8 is 4  : 0 (2) (6) 8
+		// 4 in 8 is 2  : 0 (1) (3) (5) (7) 8
+		// 2 in 16 is 8 : 0 (4) (12) 16
+		// 4 in 16 is 4	: 0 (2) (6) (10) (14) 16
+		// 8 in 16 is 2 : 0 (1) (3) (5) (7) (9) (11) (13) (15) 16
+		// 4 in 32 is 8 : 0 (4) (12) (20) (28) 32
+		// 8 in 32 is 4 : 0 (4) (8) (12) (16) (20) (24) (28) 32
+		int3 iStep = VoxelVolumeDims / seedsPerDim;
+		
+		// As shown by the above table, the starting index is always iStep / 2
+		int3 startIdx = iStep / 2;
+		// Find the index of each of the three dimensions that is represented by the seed index.
+		uint3 seed3dIdx = Convert1DIndexTo3D( emptySeedOffset, (uint3)seedsPerDim );
+		// Calculate how far away we've stepped from 0,0,0
+		int3 offsetIdx = seed3dIdx * iStep;
+
+		// Get a voxel that corresponds to the empty seed index.
+		uint3 voxel = startIdx + offsetIdx;
+		// TODO: Store the triangles in a k-d tree on the CPU and manually set the seed values from there.
+		Triangle tri = Triangle::GetNearestTriangle( voxel );
+		SeedData data;
+		data.PositionOs = float4( tri.Center, emptySeedId );
+		data.Normal = float4( tri.Normal, emptySeedOffset );
+		Seeds[emptySeedId] = data;
+		// Seeds[emptySeedId] = SeedData::From( tri.Center, tri.Normal );
+	}
+
+	void StoreTriangleSeedsFromIndices( int triId )
 	{
 		// Each triangle is represented by three indices.
 		uint indexId = triId * 3;
 
-		uint numIndices, indexStride;
-		Indices.GetDimensions( numIndices, indexStride );
+		uint numIndices = GetMeshIndexCount();
 		if ( indexId >= numIndices )
 			return;
 		
-		// Fetch the indices that comprise the triangle.
-		uint i0 = Indices[indexId];
-		uint i1 = Indices[indexId + 1]; 
-		uint i2 = Indices[indexId + 2];
-		// Fetch the vertices referred to by each index.
-		float3 v0 = Vertices[i0].xyz;
-		float3 v1 = Vertices[i1].xyz;
-		float3 v2 = Vertices[i2].xyz;
-
-		float3 triCenter = Triangle::CalculateCenter( v0, v1, v2 );
-		// Nudge the seed point of each vertex slightly inward.
-		// This avoids any ambiguity about which triangle is closest.
-		v0 += ( triCenter - v0 ) * 0.01;
-		v1 += ( triCenter - v1 ) * 0.01;
-		v2 += ( triCenter - v2 ) * 0.01;
-
-		Triangle tri = Triangle::From( v0, v1, v2 );
-
-		// Calculate triangle centroid and normal.
-		float3 triNormal = tri.Normal;
+		Triangle tri = Triangle::FromIndex( indexId );
 
 		// Each triangle has four seeds - the center, and slightly inside of each vertex.
 		int sIndex = triId * 4;
 		tri.Store( sIndex );
+	}
+
+	void FindSeedPoints( int DTid )
+	{
+		int numTris = GetMeshTriangleCount();
+		if ( DTid < numTris )
+		{
+			// This thread corresponds to a triangle, so find that triangle.
+			StoreTriangleSeedsFromIndices( DTid );
+			return;
+		}
+		
+		int maxDTid = ( numTris - 1 ) + ( NumEmptySeeds );
+		if ( DTid <= maxDTid )
+		{
+			// This thread corresponds to an empty seed.
+			int emptySeedOffset = maxDTid - DTid;
+			// Account for the fact that all preceeding DTids would output 4 seeds each.
+			int baseOutputSeedId = numTris * 4;
+			int emptySeedId = baseOutputSeedId + emptySeedOffset;
+			AddEmptySeed( emptySeedId, emptySeedOffset );
+			return;
+		}
+
+		// The thread was out of range, so do nothing.
 	}
 
 //------------------------------------------------------------------
@@ -256,17 +370,13 @@ CS
 //------------------------------------------------------------------
 	void InitializeSeedPoints( int seedId )
 	{
-		uint numSeeds, seedStride;
-		Seeds.GetDimensions( numSeeds, seedStride );
-		if ( seedId >= (int)numSeeds )
-			return;
-
-		Triangle tri = Triangle::FromSeed( seedId );
-		if ( !tri.IsInBounds() )
+		int numSeeds = GetSeedCount();
+		if ( seedId >= numSeeds )
 			return;
 
 		// Get data such as the object space position and normal for this seed id.
 		SeedData seedData = Seeds[seedId];
+		// The seed might be out of the range of the voxel volume, so clamp the voxel.
 		uint3 voxel = Voxel::FromPosition( seedData.PositionOs.xyz );
 		Cell cell = Cell::Load( voxel );
 		if ( !cell.IsValid() )
@@ -320,7 +430,7 @@ CS
 
 		float3 qToLocalDir = normalize( localPos - qClosest );
 		bool qFacesAway = dot( qToLocalDir, qTri.Normal ) < 0;
-		if ( qFacesAway )
+		if ( qFacesAway && qDist > 2 )
 		{
 			sign = -1;
 		}
@@ -397,11 +507,11 @@ CS
 		if ( JumpStep > 1 )
 			return;
 
-		for ( int j = 0; j < 26; j++ )
-		{
-			pCell = FixLeak( voxel, pCell, nCells[j] );
-		}
-		pCell.StoreData();
+		// for ( int j = 0; j < 26; j++ )
+		// {
+		// 	pCell = FixLeak( voxel, pCell, nCells[j] );
+		// }
+		// pCell.StoreData();
 	}
 
 //------------------------------------------------------------------

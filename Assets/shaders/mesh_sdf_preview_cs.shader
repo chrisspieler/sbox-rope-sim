@@ -26,21 +26,17 @@ CS
 		{
 			float sdf = sdfs[i];
 			texCol = float4( sdf, sdf, sdf, 1 );
-			// if ( sdf < 0 )
-			// {
-			// 	texCol = float4( 1, 0, 1, 1 );
-			// }
 			if ( sdf > 0 )
 			{
-				sdf /= Voxel::GetVolumeSize().x / 4;
+				sdf /= Voxel::GetVolumeSize().x;
 				sdf += 0.5;
 				sdf = saturate( 1 - sdf );
 				texCol = float4( sdf, sdf, sdf, 1 );
 			}
 			else 
 			{
-				sdf /= Voxel::GetVolumeSize().x * 0.5;
-				sdf += 0.6;
+				sdf /= Voxel::GetVolumeSize().x;
+				sdf += 0.5;
 				sdf = saturate( sdf );
 				texCol = float4( max( 0.1, sdf * 0.2), max( 0.15, sdf * 0.7 ), max( 0.3, sdf ), 1 );
 			}

@@ -131,17 +131,18 @@ internal class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSyste
 		{
 			foreach( var voxel in input.LeafPoints )
 			{
-				input.Mdf.RebuildOctreeVoxel( voxel );;
+				input.Mdf.RebuildOctreeVoxel( voxel, false );
 			}
 		}
 	}
 
-	internal JumpFloodSdfJob AddJumpFloodSdfJob( MeshDistanceField mdf, Vector3Int position )
+	internal JumpFloodSdfJob AddJumpFloodSdfJob( MeshDistanceField mdf, Vector3Int position, bool dumpDebugData )
 	{
 		var inputData = new JumpFloodSdfJob.InputData()
 		{
 			Mdf = mdf,
 			OctreeVoxel = position,
+			DumpDebugData = dumpDebugData,
 		};
 		var jobId = HashCode.Combine( mdf.Id, position );
 		var job = new JumpFloodSdfJob( jobId, inputData );

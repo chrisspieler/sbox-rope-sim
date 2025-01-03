@@ -1,14 +1,19 @@
-﻿using static Duccsoft.JumpFloodSdfJob;
+﻿using System.Text;
+using static Duccsoft.JumpFloodSdfJob;
 using static Duccsoft.MeshDistanceSystem;
 
 namespace Duccsoft;
 
 internal class JumpFloodSdfJob : Job<InputData, OutputData>
 {
+	[ConVar("rope_mdf_jfa_emptyseeds")]
+	public static int NumEmptySeeds { get; set; } = 8;
+
 	public struct InputData
 	{
 		public MeshDistanceField Mdf;
 		public Vector3Int OctreeVoxel;
+		public bool DumpDebugData;
 	}
 
 	public struct OutputData
@@ -37,6 +42,11 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 	protected override bool RunInternal( out OutputData result )
 	{
 		var gpuMesh = Input.Mdf.MeshData;
+		if ( Input.DumpDebugData )
+		{
+			DumpCpuMesh( Input.Mdf.MeshData.CpuMesh );
+		}
+
 		var bounds = Input.Mdf.VoxelToLocalBounds( Input.OctreeVoxel );
 
 		int size = Input.Mdf.OctreeLeafDims;
@@ -64,7 +74,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 			_meshSdfCs.Dispatch( size, size, size );
 		}
 
-		var seedCount = triCount * 4;
+		var seedCount = triCount * 4 + NumEmptySeeds;
 		GpuBuffer<MeshSeedData> seedDataGpu;
 		using ( PerfLog.Scope( Id, $"Create {nameof( seedDataGpu )}" ) )
 		{
@@ -76,17 +86,16 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.FindSeeds );
 			_meshSdfCs.Attributes.Set( "Vertices", gpuMesh.Vertices );
 			_meshSdfCs.Attributes.Set( "Indices", gpuMesh.Indices );
+			_meshSdfCs.Attributes.Set( "NumEmptySeeds", NumEmptySeeds );
 			_meshSdfCs.Attributes.Set( "Seeds", seedDataGpu );
-			_meshSdfCs.Dispatch( threadsX: triCount );
+			_meshSdfCs.Dispatch( threadsX: triCount + NumEmptySeeds );
 		}
 
-		//MeshSeedData[] seedData;
-		//using ( PerfLog.Scope( id, $"Read {nameof(seedDataGpu)}" ) )
-		//{
-		//	seedData = new MeshSeedData[seedCount];
-		//	seedDataGpu.GetData( seedData );
-		//}
-		//DumpSeedData( seedData, data );
+		if ( Input.DumpDebugData )
+		{
+			DumpSeedData( seedDataGpu );
+		}
+
 
 		using ( PerfLog.Scope( Id, $"Dispatch {nameof( MdfBuildStage.InitializeSeeds )}" ) )
 		{
@@ -135,6 +144,11 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		}
 		//DumpVoxelSdf( voxelSdf );
 
+		if ( Input.DumpDebugData )
+		{
+			Log.Info( $"Logs are available at: {FileSystem.OrganizationData.GetFullPath( DIR_DUMP )}" );
+		}
+
 		_meshSdfCs.Attributes.Clear();
 		result = new OutputData()
 		{
@@ -145,37 +159,71 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		return true;
 	}
 
-	private void DumpMesh( Vector4[] vertices, uint[] indices, PhysicsShape shape )
-	{
-		for ( int i = 0; i < indices.Length; i += 3 )
-		{
-			var i0 = indices[i];
-			var i1 = indices[i + 1];
-			var i2 = indices[i + 2];
-			var v0 = vertices[i0];
-			var v1 = vertices[i1];
-			var v2 = vertices[i2];
+	const string DIR_DUMP = "mdfData";
+	const string PATH_DUMP_SEED_DATA = $"{DIR_DUMP}/dump_seedData.txt";
+	const string PATH_DUMP_CPU_MESH = $"{DIR_DUMP}/dump_cpuMesh.txt";
 
-			DebugOverlaySystem.Current.Sphere( new Sphere( v0, 1f ), color: Color.Red, duration: 5f, transform: shape.Body.Transform, overlay: true );
-			DebugOverlaySystem.Current.Sphere( new Sphere( v1, 1f ), color: Color.Red, duration: 5f, transform: shape.Body.Transform, overlay: true );
-			DebugOverlaySystem.Current.Sphere( new Sphere( v2, 1f ), color: Color.Red, duration: 5f, transform: shape.Body.Transform, overlay: true );
-			DebugOverlaySystem.Current.Sphere( new Sphere( (v0 + v1 + v2) / 3.0f, 1f ), color: Color.Orange, duration: 5f, transform: shape.Body.Transform, overlay: true );
-			DebugOverlaySystem.Current.Line( v0, v1, color: Color.Green, duration: 5f, transform: shape.Body.Transform, overlay: true );
-			DebugOverlaySystem.Current.Line( v1, v2, color: Color.Green, duration: 5f, transform: shape.Body.Transform, overlay: true );
-			DebugOverlaySystem.Current.Line( v2, v0, color: Color.Green, duration: 5f, transform: shape.Body.Transform, overlay: true );
-			Log.Info( $"i (0:{i0} 1:{i1} 2:{i2}), v: (0:{v0} 1:{v1} 2:{v2})" );
+	private void DumpCpuMesh( CpuMeshData meshData )
+	{
+		var dumpTimer = new MultiTimer();
+		using ( dumpTimer.RecordTime() )
+		{
+			var indices = meshData.Indices;
+			var vertices = meshData.Vertices;
+			var sb = new StringBuilder();
+			sb.AppendLine( $"Dumping {indices.Length} indices, {vertices.Length} vertices, {indices.Length / 3.0f} triangles" );
+			sb.AppendLine( $"Mesh bounds: {meshData.Bounds}" );
+			for ( int i = 0; i < indices.Length; i += 3 )
+			{
+				var i0 = indices[i];
+				var i1 = indices[i + 1];
+				var i2 = indices[i + 2];
+				var v0 = vertices[i0];
+				var v1 = vertices[i1];
+				var v2 = vertices[i2];
+				sb.AppendLine( $"tri # {i / 3} (idx {i0},{i1},{i2}) vtx: ({v0}),({v1}),({v2})" );
+			}
+			var fs = FileSystem.OrganizationData;
+			fs.CreateDirectory( DIR_DUMP );
+			fs.WriteAllText( PATH_DUMP_CPU_MESH, sb.ToString() );
 		}
+		Log.Info( $"DumpMesh in {dumpTimer.LastMilliseconds:F3}ms" );
+			
 	}
 
-	private void DumpSeedData( Span<MeshSeedData> seedData, GpuMeshData data )
+
+	private void DumpSeedData( GpuBuffer<MeshSeedData> gpuData )
 	{
-		for ( int i = 0; i < seedData.Length; i++ )
+		var seedDataDumpTimer = new MultiTimer();
+		using ( seedDataDumpTimer.RecordTime() )
 		{
-			var seedDatum = seedData[i];
-			Vector4 positionOs = seedDatum.Position;
-			Vector4 normal = seedDatum.Normal;
-			Log.Info( $"# {i} pOs: {positionOs}, nor: {normal}" );
+			MeshSeedData[] seedData;
+			seedData = new MeshSeedData[gpuData.ElementCount];
+			gpuData.GetData( seedData );
+			var sb = new StringBuilder();
+			var triCount = Input.Mdf.MeshData.Indices.ElementCount / 3;
+			var emptySeedStartIdx = triCount * 4;
+			sb.AppendLine( $"SeedData dump for {Input.OctreeVoxel}[{Input.OctreeVoxel/16}] of MDF # {Input.Mdf.Id}" );
+			sb.AppendLine( $"{triCount} tris, {NumEmptySeeds} empty seeds, data: {seedData.Length}, expected data: {triCount * 4 + NumEmptySeeds}" );
+			for ( int i = 0; i < seedData.Length; i++ )
+			{
+				if ( i == emptySeedStartIdx )
+				{
+					sb.AppendLine( "===" );
+					sb.AppendLine( $"EMPTY SEED DATA BEGINS NOW!" );
+					sb.AppendLine( "===" );
+				}
+				var seedDatum = seedData[i];
+				Vector4 positionOs = seedDatum.Position;
+				Vector4 normal = seedDatum.Normal;
+				var line = $"seed # {i} pOs: {positionOs}, nor: {normal}";
+				sb.AppendLine( line );
+			}
+			var fs = FileSystem.OrganizationData;
+			fs.CreateDirectory( DIR_DUMP );
+			fs.WriteAllText( PATH_DUMP_SEED_DATA, sb.ToString() );
 		}
+		Log.Info( $"Seed data dump in {seedDataDumpTimer.LastMilliseconds:F3}ms" );
 	}
 
 	private void DumpVoxelSeeds( Span<int> voxelData )
