@@ -5,6 +5,7 @@ internal class CreateMeshOctreeJob : Job<CreateMeshOctreeJob.InputData, CreateMe
 	public struct InputData
 	{
 		public MeshDistanceField Mdf;
+		public int LeafSize;
 	}
 
 	public struct OutputData
@@ -16,9 +17,6 @@ internal class CreateMeshOctreeJob : Job<CreateMeshOctreeJob.InputData, CreateMe
 	}
 
 	public CreateMeshOctreeJob( int id, InputData input ) : base( id, input ) { }
-
-	private const int LEAF_SIZE_LOG2 = 4;
-	private const int LEAF_SIZE = 2 << LEAF_SIZE_LOG2 - 1;
 
 	public double FrameTimeBudget { get; set; } = 4.0;
 	private int _triProgress = 0;
@@ -47,8 +45,9 @@ internal class CreateMeshOctreeJob : Job<CreateMeshOctreeJob.InputData, CreateMe
 		// ...but be rounded up to the nearest power of two.
 		svoSize = NearestPowerOf2( svoSize );
 
+		int leafSize = NearestPowerOf2( Input.LeafSize );
 		// Determine the difference in powers of two between the size of the octree and that of its leaves.
-		int logDiff = (int)Math.Log2( svoSize ) - LEAF_SIZE_LOG2;
+		int logDiff = (int)Math.Log2( svoSize ) - (int)Math.Log2( leafSize );
 		// Ensure that the octree depth is set such that we guarantee a leaf size of 2^LEAF_SIZE_LOG2
 		int octreeDepth = Math.Max( 1, logDiff );
 

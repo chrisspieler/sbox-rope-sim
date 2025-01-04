@@ -113,7 +113,8 @@ internal class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSyste
 	{
 		var nextInput = new CreateMeshOctreeJob.InputData
 		{
-			Mdf = mdf
+			Mdf = mdf,
+			LeafSize = 16,
 		};
 		var job = new CreateMeshOctreeJob( mdf.Id, nextInput );
 		// TODO: Cancel the previous job.

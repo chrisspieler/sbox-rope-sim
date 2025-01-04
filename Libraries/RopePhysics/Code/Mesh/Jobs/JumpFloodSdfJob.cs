@@ -204,7 +204,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 			var sb = new StringBuilder();
 			var triCount = Input.Mdf.MeshData.Indices.ElementCount / 3;
 			var emptySeedStartIdx = triCount * 4;
-			sb.AppendLine( $"SeedData dump for {Input.OctreeVoxel}[{Input.OctreeVoxel/16}] of MDF # {Input.Mdf.Id}" );
+			sb.AppendLine( $"SeedData dump for {Input.OctreeVoxel}[{Input.OctreeVoxel/Input.Mdf.OctreeLeafDims}] of MDF # {Input.Mdf.Id}" );
 			sb.AppendLine( $"{triCount} tris, {Input.EmptySeedCount} empty seeds, data: {seedData.Length}, expected data: {triCount * 4 + Input.EmptySeedCount}" );
 			for ( int i = 0; i < seedData.Length; i++ )
 			{

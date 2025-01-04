@@ -61,7 +61,7 @@ public class MdfModelViewer : Component
 			var changed = _selectedVoxel != value;
 			if ( value.x > -1 )
 			{
-				_octreeSlice = value.z / 16;
+				_octreeSlice = value.z / Mdf?.OctreeLeafDims ?? 16;
 				LastValidVoxel = value;
 			}
 			_selectedVoxel = value;
@@ -109,7 +109,7 @@ public class MdfModelViewer : Component
 		var mouseRay = Scene.Camera.ScreenPixelToRay( Mouse.Position );
 		var tracePos = MdfGameObject.WorldTransform.PointToLocal( mouseRay.Position );
 		var traceDir = MdfGameObject.WorldTransform.NormalToLocal( mouseRay.Forward );
-		var filter = new Vector3Int( -1, -1, ShowTextureViewer ? _octreeSlice * 16 : -1 );
+		var filter = new Vector3Int( -1, -1, ShowTextureViewer ? _octreeSlice * Mdf.OctreeLeafDims : -1 );
 		var tr = Mdf.Trace( tracePos, traceDir, out float hitDistance, filter );
 		if ( tr is not null )
 		{
@@ -181,7 +181,7 @@ public class MdfModelViewer : Component
 		ShouldDrawOctree = drawOctree;
 		if ( ShouldDrawOctree )
 		{
-			ImGui.Text( $"mouseover voxel: {HighlightedVoxel / 16}" );
+			ImGui.Text( $"mouseover voxel: {HighlightedVoxel / Mdf.OctreeLeafDims}" );
 			ImGui.Text( $"mouse to voxel distance: {MouseToVoxelDistance}" );
 			ImGui.Text( $"mouseover signed distance: {MouseSignedDistance}" );
 		}
@@ -197,7 +197,7 @@ public class MdfModelViewer : Component
 		if ( ShouldDrawOctree )
 		{
 			// Draw the octree
-			var slice = ShowTextureViewer ? _octreeSlice * 16 : -1;
+			var slice = ShowTextureViewer ? _octreeSlice * Mdf.OctreeLeafDims : -1;
 			Mdf.DebugDraw( tx, HighlightedVoxel, SelectedVoxel, slice );
 		}
 	}
@@ -247,15 +247,15 @@ public class MdfModelViewer : Component
 		var size = Mdf.OctreeLeafDims;
 		ImGui.Text( $"Octree Slice:" ); ImGui.SameLine();
 		var octreeSlice = _octreeSlice;
-		if ( ImGui.SliderInt( "octreeSlice", ref octreeSlice, 0, Mdf.OctreeSize / 16 - 1 ) )
+		if ( ImGui.SliderInt( "octreeSlice", ref octreeSlice, 0, Mdf.OctreeSize / Mdf.OctreeLeafDims - 1 ) )
 		{
 			var diff = octreeSlice - _octreeSlice;
 			Scene.Camera.WorldPosition += new Vector3( 0f, 0f, Mdf.OctreeLeafSize * diff );
 			_octreeSlice = octreeSlice;
-			SelectedVoxel = LastValidVoxel.WithZ( octreeSlice * 16 );
+			SelectedVoxel = LastValidVoxel.WithZ( octreeSlice * Mdf.OctreeLeafDims );
 		}
 		
-		ImGui.Text( $"Selected Octree Voxel: {SelectedVoxel / 16}" );
+		ImGui.Text( $"Selected Octree Voxel: {SelectedVoxel / Mdf.OctreeLeafDims}" );
 		ImGui.NewLine();
 		ImGui.Text( $"Texture: {size}x{size}x{size}, {Mdf.DataSize.FormatBytes()}" );
 	}
