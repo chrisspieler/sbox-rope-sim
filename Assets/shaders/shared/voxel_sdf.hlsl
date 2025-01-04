@@ -101,6 +101,8 @@ struct Voxel
 	{
 		uint3 dims = (uint3)VoxelVolumeDims;
 		int i = ( voxel.z * dims.y * dims.x ) + ( voxel.y * dims.x ) + voxel.x;
+		// When we pack four bytes in to an integer, four consecutive x-axis distances are packed.
+		// This means that a packed index is 1/4th the value of a separated index.
 		return i / 4;
 	}
 
@@ -143,10 +145,10 @@ struct Voxel
 
 	static void Compress( uint3 voxel )
 	{
-		// By this point, the voxel distance field should have been stored 
-		// as a buffer of floats. We need to fetch those.
+		// By this point, the signed distance field should have been stored 
+		// as a 3D array of floats.
+
 		float4 floats = float4( 0, 0, 0, 0 );
-		voxel.x *= 4;
 		int index = Index3DTo1D( voxel );
 		for( int i = 0; i < 4; i++ )
 		{

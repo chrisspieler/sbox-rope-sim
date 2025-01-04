@@ -325,7 +325,6 @@ CS
 		data.PositionOs = float4( tri.Center, emptySeedId );
 		data.Normal = float4( tri.Normal, emptySeedOffset );
 		Seeds[emptySeedId] = data;
-		// Seeds[emptySeedId] = SeedData::From( tri.Center, tri.Normal );
 	}
 
 	void StoreTriangleSeedsFromIndices( int triId )
@@ -381,7 +380,7 @@ CS
 		// Get data such as the object space position and normal for this seed id.
 		SeedData seedData = Seeds[seedId];
 		// The seed might be out of the range of the voxel volume, so clamp the voxel.
-		uint3 voxel = Voxel::FromPosition( seedData.PositionOs.xyz );
+		uint3 voxel = Voxel::FromPositionClamped( seedData.PositionOs.xyz );
 		Cell cell = Cell::Load( voxel );
 		if ( !cell.IsValid() )
 			return;
