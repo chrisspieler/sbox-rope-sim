@@ -475,7 +475,7 @@ CS
 					// Shift each component +1 to remap from -1 to 1 -> 0 to 2.
 					nOffset += 1;
 
-					// The new max value per component is now 3. So, when adding each
+					// The possible number of values per component is 3. So, when adding each
 					// component to the index, the following offsets are also added.
 					//  x - 0
 					// 	y - 3^1 
@@ -486,6 +486,7 @@ CS
 					// shifted to (1,1,1), with an index of: ( 1 * 9 ) + ( 1 * 3 ) + 1
 					int centerIndex = 13;
 
+					int neighborIndex = i;
 					// Skip adding the local cell.
 					if ( i == centerIndex )
 					{
@@ -495,10 +496,10 @@ CS
 					// for the gap by shifting all subsequent indices down by one.
 					else if ( i > centerIndex )
 					{
-						i--;
+						neighborIndex = i - 1;
 					}
 
-					nCells[i] = Cell::Load( qVoxel );
+					nCells[neighborIndex] = Cell::Load( qVoxel );
 		}}}
 
 		for( int i = 0; i < 26; i++ )
