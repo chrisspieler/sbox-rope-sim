@@ -155,7 +155,7 @@ public class MdfModelViewer : Component
 		PaintInstanceStats();
 		if ( ImGui.Button( "Regenerate MDF" ) )
 		{
-			MeshDistanceSystem.Current.RemoveMdf( Mdf.Id );
+			Mdf.RebuildFromMesh();
 		}
 	}
 

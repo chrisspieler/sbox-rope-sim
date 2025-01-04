@@ -24,7 +24,7 @@ internal class CreateMeshOctreeJob : Job<CreateMeshOctreeJob.InputData, CreateMe
 	private int _triProgress = 0;
 	private SparseVoxelOctree<SignedDistanceField> Octree { get; set; }
 	private Triangle[] Tris { get; set; }
-	private HashSet<Vector3Int> LeafPoints { get; set; } = new();
+	private HashSet<Vector3Int> LeafPoints { get; set; } = [];
 
 	private SparseVoxelOctree<SignedDistanceField> CreateOctree()
 	{
@@ -83,26 +83,18 @@ internal class CreateMeshOctreeJob : Job<CreateMeshOctreeJob.InputData, CreateMe
 	private void InitializeOverlappingLeaves( Triangle tri )
 	{
 		var triBounds = tri.GetBounds().Grow( 1f );
-		var voxelMins = Octree.PositionToVoxel( triBounds.Mins );
-		voxelMins -= LEAF_SIZE;
-		var voxelMaxs = Octree.PositionToVoxel( triBounds.Maxs );
-		voxelMaxs += LEAF_SIZE;
-		for ( int z = voxelMins.z; z < voxelMaxs.z; z += LEAF_SIZE )
+
+		int step = Octree.LeafSize;
+		Vector3Int mins = Octree.PositionToVoxel( triBounds.Mins );
+		Vector3Int maxs = Octree.PositionToVoxel( triBounds.Maxs + step );
+		for ( int z = mins.z; z < maxs.z; z += step )
 		{
-			for ( int y = voxelMins.y; y < voxelMaxs.y; y += LEAF_SIZE )
+			for ( int y = mins.y; y < maxs.y; y += step )
 			{
-				for ( int x = voxelMins.x; x < voxelMaxs.x; x += LEAF_SIZE )
+				for ( int x = mins.x; x < maxs.x; x += step )
 				{
 					var voxel = new Vector3Int( x, y, z );
-					var voxelPos = Octree.VoxelToPosition( voxel );
-					
-					// Use voxel center as BBox center.
-					voxelPos += LEAF_SIZE / 2f;
-					var voxelBounds = BBox.FromPositionAndSize( voxelPos, LEAF_SIZE );
-					if ( tri.IntersectsAABB( voxelBounds ) )
-					{
-						LeafPoints.Add( voxel );
-					}
+					LeafPoints.Add( voxel );
 				}
 			}
 		}

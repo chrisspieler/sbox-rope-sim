@@ -139,7 +139,7 @@ public partial class MeshDistanceField
 	private BBox OctreeBoundsToLocal( BBox bounds ) => bounds.Translate( MeshData.Bounds.Center );
 	private BBox LocalBoundsToOctree( BBox bounds ) => bounds.Translate( -MeshData.Bounds.Center );
 	private Vector3 OctreePosToLocal( Vector3 octreePos ) => octreePos + MeshData.Bounds.Center;
-	private Vector3 LocalPosToOctree( Vector3 pos ) =>  pos - MeshData.Bounds.Center;
+	private Vector3 LocalPosToOctree( Vector3 pos ) => pos - MeshData.Bounds.Center;
 
 	public Vector3Int PositionToVoxel( Vector3 localPos )
 	{
@@ -156,7 +156,7 @@ public partial class MeshDistanceField
 
 	public BBox VoxelToLocalBounds( Vector3Int voxel )
 	{
-		var bounds = Octree.GetVoxelBounds( voxel );
+		var bounds = Octree.GetLeafBounds( voxel );
 		return OctreeBoundsToLocal( bounds );
 	}
 

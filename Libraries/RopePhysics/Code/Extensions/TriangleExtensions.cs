@@ -4,13 +4,10 @@ public static class TriangleExtensions
 {
 	public static BBox GetBounds( this Triangle tri )
 	{
-		Vector3 mins = tri.A.ComponentMin( tri.B );
-		mins = mins.ComponentMin( tri.C );
-
-		Vector3 maxs = tri.A.ComponentMax( tri.B );
-		maxs = maxs.ComponentMax( tri.C );
-
-		return new BBox( mins, maxs );
+		var bbox = BBox.FromPositionAndSize( tri.A, 0f );
+		bbox = bbox.AddPoint( tri.B );
+		bbox = bbox.AddPoint( tri.C );
+		return bbox;
 	}
 
 	public static bool IntersectsAABB( this Triangle tri, BBox bbox )

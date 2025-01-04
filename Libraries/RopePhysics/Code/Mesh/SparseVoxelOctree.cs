@@ -51,12 +51,17 @@ public class SparseVoxelOctree<T>
 	{
 		// Remap -halfSize to halfSize -> 0 to size
 		var voxel = (Vector3Int)(localPos + Size / 2f);
-		return voxel.SnapToGrid( LeafSize );
+		voxel = voxel.SnapToGrid( LeafSize );
+		voxel.x = voxel.x.Clamp( 0, Size - 1 );
+		voxel.y = voxel.y.Clamp( 0, Size - 1 );
+		voxel.z = voxel.z.Clamp( 0, Size - 1 );
+		return voxel;
 	}
 
 	public Vector3 VoxelToPosition( Vector3Int voxel )
 	{
-		return (Vector3)voxel - Size / 2f;
+		voxel = voxel.SnapToGrid( LeafSize );
+		return (Vector3)voxel - Size / 2f; ;
 	}
 
 	public BBox GetNodeBounds( OctreeNode node )
@@ -66,7 +71,7 @@ public class SparseVoxelOctree<T>
 		return new BBox( mins, maxs );
 	}
 
-	public BBox GetVoxelBounds( Vector3Int voxel )
+	public BBox GetLeafBounds( Vector3Int voxel )
 	{
 		var mins = VoxelToPosition( voxel );
 		var maxs = mins + LeafSize;
