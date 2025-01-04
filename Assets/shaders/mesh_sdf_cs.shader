@@ -68,6 +68,13 @@ CS
 		return numSeeds;
 	}
 
+	void StoreVoxelSeedId( uint3 voxel, int seedId )
+	{
+		int i = Voxel::Index3DTo1D( voxel );
+		int iOut;
+		InterlockedExchange( VoxelSeeds[i], seedId, iOut );
+	}
+
 //==================================================================
 // CLASSES
 //==================================================================
@@ -227,8 +234,7 @@ CS
 
 		static void Initialize( uint3 voxel )
 		{
-			int i = Voxel::Index3DTo1D( voxel );
-			VoxelSeeds[i] = -1;
+			StoreVoxelSeedId( voxel, -1 );
 			Voxel::Store( voxel, 1e5 );
 		}
 
@@ -264,9 +270,7 @@ CS
 
 		void StoreData()
 		{
-			int i = Voxel::Index3DTo1D( Voxel );
-			int iOut;
-			InterlockedExchange( VoxelSeeds[i], SeedId, iOut );
+			StoreVoxelSeedId( Voxel, SeedId );
 			Voxel::Store( Voxel, SignedDistance );
 		}
 	};
@@ -391,8 +395,8 @@ CS
 			if ( currentDist > previousDist )
 				return;
 		}
-		cell.SeedId = seedId;
-		cell.StoreData();
+
+		StoreVoxelSeedId( voxel, seedId );
 	}
 
 //------------------------------------------------------------------

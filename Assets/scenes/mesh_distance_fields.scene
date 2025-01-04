@@ -50,6 +50,26 @@
       ]
     },
     {
+      "__guid": "7dfbf715-c4f2-4779-9e8d-5d75eab5b15e",
+      "Flags": 0,
+      "Name": "Sun (1)",
+      "Position": "-158,-38.10513,72.00001",
+      "Rotation": "-0.2329629,0.3036032,0.5624222,0.7329629",
+      "Tags": "light_directional,light",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.DirectionalLight",
+          "__guid": "a0b29cd8-3568-40b8-9924-5aac543bb1ca",
+          "FogMode": "Enabled",
+          "FogStrength": 1,
+          "LightColor": "0.30259,0.32395,0.33023,1",
+          "Shadows": true,
+          "SkyColor": "0,0,0,0"
+        }
+      ]
+    },
+    {
       "__guid": "2221799a-d92e-4680-b4dd-df820040da7e",
       "Flags": 0,
       "Name": "Envmap Probe",
@@ -15943,6 +15963,44 @@
           ]
         },
         {
+          "__guid": "1c8af56c-430d-4e9c-92ba-964859a22510",
+          "Flags": 0,
+          "Name": "reetuh_bernese",
+          "Position": "0,-0.00003738377,0.01763698",
+          "Rotation": "0,0,1,0.0000001947072",
+          "Tags": "mdf_model",
+          "Components": [
+            {
+              "__type": "Sandbox.SkinnedModelRenderer",
+              "__guid": "027c8b75-2c4d-4121-8622-2afabc91105a",
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "CreateBoneObjects": false,
+              "Model": "models/reetuh_bernese.vmdl",
+              "Morphs": {},
+              "Parameters": {
+                "bools": {},
+                "ints": {},
+                "floats": {},
+                "vectors": {},
+                "rotations": {}
+              },
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Sequence": {
+                "Name": null
+              },
+              "Tint": "1,1,1,1",
+              "UseAnimGraph": true
+            }
+          ]
+        },
+        {
           "__guid": "4f092c2e-6366-451c-ba83-c747eceaa674",
           "Flags": 0,
           "Name": "dingus",
@@ -16211,7 +16269,8 @@
   "__references": [
     "acgparadise.tifaswimsuit#5447",
     "duccsoft.duck_decoration#16326",
-    "nerd.dingus#11094"
+    "nerd.dingus#11094",
+    "reetuh.reetuh_bernese#8224"
   ],
   "__version": 2
 }
