@@ -256,7 +256,9 @@ public class MdfModelViewer : Component
 		}
 		
 		ImGui.Text( $"Selected Octree Voxel: {SelectedVoxel / Mdf.OctreeLeafDims}" );
-		ImGui.NewLine();
+		var bounds = Mdf.VoxelToLocalBounds( SelectedVoxel );
+		ImGui.Text( $"mins: ({bounds.Mins.x:F3},{bounds.Mins.y:F3},{bounds.Mins.z:F3})" );
+		ImGui.Text( $"maxs: ({bounds.Maxs.x:F3},{bounds.Maxs.y:F3},{bounds.Maxs.z:F3})" );
 		ImGui.Text( $"Texture: {size}x{size}x{size}, {Mdf.DataSize.FormatBytes()}" );
 	}
 
@@ -285,9 +287,16 @@ public class MdfModelViewer : Component
 		if ( SelectedVoxel.x < 0 || !Mdf.IsInBounds( SelectedVoxel ) )
 			return;
 
+		var sdfTex = Mdf.GetSdfTexture( SelectedVoxel );
+		if ( sdfTex is null )
+		{
+			ImGui.NewLine();
+			ImGui.Text( $"Selected voxel contains no SDF texture!" );
+			return;
+		}
+
 		ImGui.Text( "Texture Slice:" ); ImGui.SameLine();
 		_maxSlice = Mdf.OctreeLeafDims - 1;
-		var sdfTex = Mdf.GetSdfTexture( SelectedVoxel );
 		var textureSlice = TextureSlice;
 		if ( ImGui.SliderInt( nameof( TextureSlice ), ref textureSlice, 0, _maxSlice ) )
 		{

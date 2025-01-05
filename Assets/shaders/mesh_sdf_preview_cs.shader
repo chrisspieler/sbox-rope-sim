@@ -11,7 +11,7 @@ CS
 	int ZLayer < Attribute( "ZLayer" ); >;
 	RWTexture2D<float4> OutputTexture < Attribute( "OutputTexture" ); >;
 
-	[numthreads( 10, 10, 10 )]
+	[numthreads( 2, 8, 8 )]
 	void MainCs( uint3 id : SV_DispatchThreadID )
 	{
 		uint3 quadVoxel = uint3( id.x, id.y, ZLayer );

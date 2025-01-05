@@ -42,6 +42,7 @@ CS
 	StructuredBuffer<uint> Indices < Attribute("Indices"); >;
 	RWStructuredBuffer<SeedData> Seeds < Attribute( "Seeds" ); >;
 	int NumEmptySeeds < Attribute( "NumEmptySeeds" ); >;
+	RWStructuredBuffer<int> SeedVoxels < Attribute( "SeedVoxels" ); >;
 	RWStructuredBuffer<int> VoxelSeeds < Attribute( "VoxelSeeds" ); >;
 	int JumpStep < Attribute( "JumpStep" ); >;
 
@@ -73,6 +74,41 @@ CS
 		int i = Voxel::Index3DTo1D( voxel );
 		int iOut;
 		InterlockedExchange( VoxelSeeds[i], seedId, iOut );
+	}
+
+	void StoreSeedVoxelId( int seedId, uint3 voxel )
+	{
+		int voxelId = Voxel::Index3DTo1D( voxel );
+		int iOut;
+		InterlockedExchange( SeedVoxels[seedId], voxelId, iOut );
+	}
+
+	void StoreSeedInvalidVoxel( int seedId )
+	{
+		int iOut;
+		InterlockedExchange( SeedVoxels[seedId], -1, iOut );
+	}
+
+	void StoreSeedVoxelId( int seedId, float3 positionOs )
+	{
+		if ( !Voxel::IsInVolume( positionOs ) )
+		{
+			StoreSeedInvalidVoxel( seedId );
+			return;
+		}
+
+		uint3 voxel = Voxel::FromPosition( positionOs );
+		StoreSeedVoxelId( seedId, voxel );
+	}
+
+	bool TryLoadSeedVoxel( int seedId, out uint3 voxel )
+	{
+		int i = SeedVoxels[seedId];
+		if ( i < 0 )
+			return false;
+
+		voxel = Voxel::Index1DTo3D( i );
+		return true;
 	}
 
 //==================================================================
@@ -151,12 +187,23 @@ CS
 
 		void Store( int seedId )
 		{
-			int i = Triangle::IndexSeedToTriangleCenter( seedId );
 			float3 center = CalculateCenter( V0, V1, V2 );
+
+			int i = Triangle::IndexSeedToTriangleCenter( seedId );
 			Seeds[i] = SeedData::From( center, Normal );
-			Seeds[i + 1] = SeedData::From( V0, Normal );
-			Seeds[i + 2] = SeedData::From( V1, Normal );
-			Seeds[i + 3] = SeedData::From( V2, Normal );
+			StoreSeedVoxelId( i, center );
+
+			i++;
+			Seeds[i] = SeedData::From( V0, Normal );
+			StoreSeedVoxelId( i, V0 );
+
+			i++;
+			Seeds[i] = SeedData::From( V1, Normal );
+			StoreSeedVoxelId( i, V1 );
+
+			i++;
+			Seeds[i] = SeedData::From( V2, Normal );
+			StoreSeedVoxelId( i, V2 );
 		}
 
 		// Copied from: https://www.shadertoy.com/view/ttfGWl
@@ -282,6 +329,7 @@ CS
 //------------------------------------------------------------------
 // Stage 0, 3D (Voxels)
 //------------------------------------------------------------------
+
 	void InitializeVolume( uint3 voxel )
 	{
 		if ( !Voxel::IsInVolume( voxel ) )
@@ -318,13 +366,16 @@ CS
 		int3 offsetIdx = seed3dIdx * iStep;
 
 		// Get a voxel that corresponds to the empty seed index.
+		// Note that what we've done is equivalent to a nested for-loop, just spread between threads.
 		uint3 voxel = startIdx + offsetIdx;
+
 		// TODO: Store the triangles in a k-d tree on the CPU and manually set the seed values from there.
 		Triangle tri = Triangle::GetNearestTriangle( voxel );
 		SeedData data;
 		data.PositionOs = float4( tri.Center, emptySeedId );
 		data.Normal = float4( tri.Normal, emptySeedOffset );
 		Seeds[emptySeedId] = data;
+		StoreSeedVoxelId( emptySeedId, voxel );
 	}
 
 	void StoreTriangleSeedsFromIndices( int triId )
@@ -369,33 +420,53 @@ CS
 	}
 
 //------------------------------------------------------------------
-// Stage 2, 1D (Seeds)
+// Stage 2, 3D (Voxels)
 //------------------------------------------------------------------
-	void InitializeSeedPoints( int seedId )
+
+	void InitializeSeedPoints( uint3 voxel )
 	{
-		int numSeeds = GetSeedCount();
-		if ( seedId >= numSeeds )
+		if ( !Voxel::IsInVolume( voxel ) )
 			return;
 
-		// Get data such as the object space position and normal for this seed id.
-		SeedData seedData = Seeds[seedId];
-		// The seed might be out of the range of the voxel volume, so clamp the voxel.
-		uint3 voxel = Voxel::FromPositionClamped( seedData.PositionOs.xyz );
-		Cell cell = Cell::Load( voxel );
-		if ( !cell.IsValid() )
-			return;
-		
-		if ( cell.IsSeed() )
+		float3 voxelPos = Voxel::GetCenterPositionOs( voxel );
+
+		SeedData closestSeed;
+		int closestSeedId = -1;
+		float closestDistance = 1e5;
+
+		int numSeeds = GetSeedCount();
+		for ( int i = 0; i < numSeeds; i++ )
 		{
-			float3 positionOs = Voxel::GetCenterPositionOs( voxel );
-			SeedData previousSeedData = Seeds[cell.SeedId];
-			float previousDist = distance( positionOs, cell.SeedPositionOs );
-			float currentDist = distance( positionOs, seedData.PositionOs.xyz );
-			if ( currentDist > previousDist )
-				return;
+			uint3 seedVoxel = 0;
+			if ( !TryLoadSeedVoxel( i, seedVoxel ))
+				continue;
+
+			if ( any( seedVoxel != voxel ) )
+				continue;
+
+			// Triangle tri = Triangle::FromSeed( i );
+			SeedData seedData = Seeds[i];
+			float seedDistance = distance( voxelPos, seedData.PositionOs.xyz );
+			if ( seedDistance < closestDistance )
+			{
+				closestSeed = seedData;
+				closestSeedId = i;
+				closestDistance = seedDistance;
+			}
 		}
 
-		StoreVoxelSeedId( voxel, seedId );
+		if ( closestSeedId > -1 )
+		{
+			float3 dirToSeed = normalize( closestSeed.PositionOs.xyz - voxelPos );
+			// Detect whether we are likely inside the mesh, assuming for now that this triangle is the closest.
+			if ( dot( dirToSeed, closestSeed.Normal.xyz ) > 0 )
+			{
+				closestDistance *= -1;
+			}
+		}
+
+		StoreVoxelSeedId( voxel, closestSeedId );
+		Voxel::Store( voxel, closestDistance );
 	}
 
 //------------------------------------------------------------------
@@ -508,9 +579,9 @@ CS
 		}
 		pCell.StoreData();
 		
-		if ( JumpStep > 1 )
-			return;
-
+		// if ( JumpStep > 1 )
+		// 	return;
+		//
 		// for ( int j = 0; j < 26; j++ )
 		// {
 		// 	pCell = FixLeak( voxel, pCell, nCells[j] );
@@ -523,6 +594,7 @@ CS
 //------------------------------------------------------------------
 	void Compress( uint3 voxel )
 	{
+		voxel.x *= 4;
 		Voxel::Compress( voxel );
 	}
 
@@ -532,12 +604,12 @@ CS
 
 	DynamicCombo( D_STAGE, 0..4, Sys( All ) );
 
-	#if D_STAGE == 1 || D_STAGE == 2
-	[numthreads( 16, 1, 1 )]
+	#if D_STAGE == 1
+	[numthreads( 64, 1, 1 )]
 	#elif D_STAGE == 4
-	[numthreads( 4, 8, 8 )]
-	#else
-	[numthreads( 8, 8, 8 )]
+	[numthreads( 2, 8, 8 )]
+	#else 
+	[numthreads( 4, 4, 4 )]
 	#endif
 	void MainCs( uint3 id : SV_DispatchThreadID )
 	{
@@ -546,7 +618,7 @@ CS
 		#elif D_STAGE == 1
 			FindSeedPoints( id.x );
 		#elif D_STAGE == 2
-			InitializeSeedPoints( id.x );
+			InitializeSeedPoints( id );
 		#elif D_STAGE == 3
 			JumpFlood( id );
 		#elif D_STAGE == 4

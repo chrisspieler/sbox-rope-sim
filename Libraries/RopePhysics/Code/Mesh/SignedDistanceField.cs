@@ -43,9 +43,17 @@ public class SignedDistanceField
 		return new BBox( mins, maxs );
 	}
 
-	private int Index3DTo1D( int x, int y, int z )
+	public static int Index3DTo1D( int x, int y, int z, int size )
 	{
-		return (z * TextureSize * TextureSize) + (y * TextureSize) + x;
+		return (z * size * size) + (y * size) + x;
+	}
+
+	public static Vector3Int Index1DTo3D( int i, int size )
+	{
+		int x = i / (size * size);
+		int y = (i / size) % size;
+		int z = i % size;
+		return new Vector3Int( x, y, z );
 	}
 
 	public float this[Vector3Int texel]
@@ -55,7 +63,7 @@ public class SignedDistanceField
 			int x = texel.x.Clamp( 0, TextureSize - 1 );
 			int y = texel.y.Clamp( 0, TextureSize - 1 );
 			int z = texel.z.Clamp( 0, TextureSize - 1 );
-			int i = Index3DTo1D( x, y, z );
+			int i = Index3DTo1D( x, y, z, TextureSize );
 			int packed = Data[i / 4];
 			int shift = (i % 4) * 8;
 			byte udByte = (byte)((packed >> shift) & 0xFF);
