@@ -11,6 +11,7 @@ public class CpuMeshData
 
 	public Vector3[] Vertices { get; }
 	public uint[] Indices { get; }
+	public int TriangleCount => Indices.Length / 3;
 	public BBox Bounds { get; set; }
 
 	private static BBox CalculateBounds( Vector3[] vertices )

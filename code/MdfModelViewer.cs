@@ -273,9 +273,14 @@ public class MdfModelViewer : Component
 		{
 			if ( !existingData.IsRebuilding && ImGui.Button( "Rebuild Texture" ) )
 			{
-				Mdf.RebuildOctreeVoxel( _selectedVoxel, _dumpDebugInfo, onCompleted: () => _shouldRefreshTexture = true );
+				RebuildSelectedVoxel();
 			}
 		}
+	}
+
+	private void RebuildSelectedVoxel()
+	{
+		Mdf.RebuildOctreeVoxel( _selectedVoxel, _dumpDebugInfo, onCompleted: () => _shouldRefreshTexture = true );
 	}
 
 	private bool _shouldRefreshTexture;
@@ -307,9 +312,9 @@ public class MdfModelViewer : Component
 		{
 			TextureSlice = textureSlice;
 			_copiedTex = CopyMdfTexture( sdfTex, TextureSlice );
-			if ( _selectedTexel is Vector3Int texel )
+			if ( _selectedTexel is not null )
 			{
-				_selectedTexel = texel.WithZ( textureSlice );
+				_selectedTexel = _selectedTexel.Value.WithZ( textureSlice );
 			}
 			_shouldRefreshTexture = false;
 		}
@@ -339,6 +344,25 @@ public class MdfModelViewer : Component
 		{
 			_hoveredTexel = null;
 		}
+
+		if ( _selectedTexel is not Vector3Int texel  )
+			return;
+
+		ImGui.Text( $"Selected Texel: {texel}" );
+		ImGui.Text( $"Signed Distance: {sdfTex[texel]:F3}" );
+		var normal = sdfTex.EstimateSurfaceNormal( texel );
+		ImGui.Text( $"Normal: {normal.x:F3},{normal.y:F3},{normal.z:F3}" );
+		if ( sdfTex.Debug is null )
+		{
+			if ( ImGui.Button( "Generate Debug Info" ) )
+			{
+				_dumpDebugInfo = true;
+				RebuildSelectedVoxel();
+			}
+			return;
+		}
+
+		ImGui.Text( $"SeedId: {sdfTex.Debug.GetSeedId( texel )}" );
 	}
 
 	private void DrawTextureViewerOverlay()
@@ -357,6 +381,32 @@ public class MdfModelViewer : Component
 		if ( _selectedTexel != _hoveredTexel )
 		{
 			DrawTexel( _hoveredTexel, Color.White );
+		}
+
+		if ( _selectedTexel is Vector3Int texel && sdfTex.Debug is not null)
+		{
+			var seedId = sdfTex.Debug.GetSeedId( texel );
+			var maybeTriangle = sdfTex.Debug.GetSeedTriangle( seedId );
+			if ( maybeTriangle is not Triangle tri )
+			{
+				return;
+			}
+			var tx = MdfGameObject.WorldTransform;
+			var visibleColor = Color.Green;
+			var hiddenColor = (Color.Green * 0.3f).WithAlpha( 0.15f );
+			var texelPos = Mdf.GetTexelBounds( SelectedVoxel, texel ).Center;
+			var lineToCenter = new Line( texelPos, (tri.A + tri.B + tri.C) / 3f );
+			DebugOverlay.Line( lineToCenter, hiddenColor, transform: tx, overlay: true );
+			DebugOverlay.Line( lineToCenter, visibleColor, transform: tx );
+			var v01 = new Line( tri.A, tri.B );
+			var v12 = new Line( tri.B, tri.C );
+			var v20 = new Line( tri.C, tri.A );
+			DebugOverlay.Line( v01, hiddenColor, transform: tx, overlay: true );
+			DebugOverlay.Line( v01, visibleColor, transform: tx );
+			DebugOverlay.Line( v12, hiddenColor, transform: tx, overlay: true );
+			DebugOverlay.Line( v12, visibleColor, transform: tx );
+			DebugOverlay.Line( v20, hiddenColor, transform: tx, overlay: true );
+			DebugOverlay.Line( v20, visibleColor, transform: tx );
 		}
 
 		void DrawTexel( Vector3Int? maybeTexel, Color color )

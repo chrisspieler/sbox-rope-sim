@@ -102,6 +102,7 @@ public partial class MeshDistanceField
 			Assert.AreEqual( data.TextureSize, node.Data.TextureSize );
 			node.Data.Data = data.Data;
 			node.Data.IsRebuilding = false;
+			node.Data.Debug = data.Debug;
 		}
 		else
 		{
@@ -200,13 +201,13 @@ public partial class MeshDistanceField
 				}
 				else if ( node.Position == selectedPosition )
 				{
-					color = Color.Magenta.WithAlpha( 1f );
+					color = Color.Green.WithAlpha( 1f );
 					ignoreDepth = true;
 					depthOffset = 0.5f;
 				}
 				else if ( node.Position == highlightedPosition )
 				{
-					color = Color.Green.WithAlpha( 1f );
+					color = Color.Magenta.WithAlpha( 1f );
 					ignoreDepth = true;
 					depthOffset = 0.5f;
 				}
