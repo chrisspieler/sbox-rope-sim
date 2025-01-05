@@ -393,9 +393,10 @@ public class MdfModelViewer : Component
 			}
 			var tx = MdfGameObject.WorldTransform;
 			var visibleColor = Color.Green;
-			var hiddenColor = (Color.Green * 0.3f).WithAlpha( 0.15f );
+			var hiddenColor = (Color.Green * 0.5f).WithAlpha( 0.5f );
 			var texelPos = Mdf.GetTexelBounds( SelectedVoxel, texel ).Center;
-			var lineToCenter = new Line( texelPos, (tri.A + tri.B + tri.C) / 3f );
+			var triCenter = (tri.A + tri.B + tri.C) / 3f;
+			var lineToCenter = new Line( texelPos, triCenter );
 			DebugOverlay.Line( lineToCenter, hiddenColor, transform: tx, overlay: true );
 			DebugOverlay.Line( lineToCenter, visibleColor, transform: tx );
 			var v01 = new Line( tri.A, tri.B );
@@ -407,6 +408,13 @@ public class MdfModelViewer : Component
 			DebugOverlay.Line( v12, visibleColor, transform: tx );
 			DebugOverlay.Line( v20, hiddenColor, transform: tx, overlay: true );
 			DebugOverlay.Line( v20, visibleColor, transform: tx );
+
+			var triNormal = tri.Normal;
+			var normalColor = new Color( triNormal.x, triNormal.y, triNormal.z, 1f );
+			visibleColor = normalColor;
+			hiddenColor = normalColor.WithAlpha( 0.5f );
+			DebugOverlay.Line( triCenter, triCenter + triNormal * 1f, hiddenColor, transform: tx, overlay: true );
+			DebugOverlay.Line( triCenter, triCenter + triNormal * 1f, visibleColor, transform: tx );
 		}
 
 		void DrawTexel( Vector3Int? maybeTexel, Color color )

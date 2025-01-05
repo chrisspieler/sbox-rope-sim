@@ -15926,43 +15926,6 @@
           ]
         },
         {
-          "__guid": "5d77de25-8dbc-4bfe-bd78-70dee0fd5e69",
-          "Flags": 0,
-          "Name": "tifaswimsuit",
-          "Rotation": "0,0,1,0.0000001947072",
-          "Tags": "mdf_model",
-          "Components": [
-            {
-              "__type": "Sandbox.SkinnedModelRenderer",
-              "__guid": "e3b47ece-3b99-4382-8d34-e44510f56efa",
-              "BodyGroups": 18446744073709551615,
-              "CreateAttachments": false,
-              "CreateBoneObjects": false,
-              "Model": "tifa/models/tifaswimsuit.vmdl",
-              "Morphs": {},
-              "Parameters": {
-                "bools": {},
-                "ints": {},
-                "floats": {},
-                "vectors": {},
-                "rotations": {}
-              },
-              "RenderOptions": {
-                "GameLayer": true,
-                "OverlayLayer": false,
-                "BloomLayer": false,
-                "AfterUILayer": false
-              },
-              "RenderType": "On",
-              "Sequence": {
-                "Name": null
-              },
-              "Tint": "1,1,1,1",
-              "UseAnimGraph": true
-            }
-          ]
-        },
-        {
           "__guid": "1c8af56c-430d-4e9c-92ba-964859a22510",
           "Flags": 0,
           "Name": "reetuh_bernese",
@@ -16052,6 +16015,43 @@
       "Name": "Unused Meshes",
       "Enabled": true,
       "Children": [
+        {
+          "__guid": "5d77de25-8dbc-4bfe-bd78-70dee0fd5e69",
+          "Flags": 0,
+          "Name": "tifaswimsuit",
+          "Rotation": "0,0,1,0.0000001947072",
+          "Tags": "mdf_model",
+          "Components": [
+            {
+              "__type": "Sandbox.SkinnedModelRenderer",
+              "__guid": "e3b47ece-3b99-4382-8d34-e44510f56efa",
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "CreateBoneObjects": false,
+              "Model": "tifa/models/tifaswimsuit.vmdl",
+              "Morphs": {},
+              "Parameters": {
+                "bools": {},
+                "ints": {},
+                "floats": {},
+                "vectors": {},
+                "rotations": {}
+              },
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Sequence": {
+                "Name": null
+              },
+              "Tint": "1,1,1,1",
+              "UseAnimGraph": true
+            }
+          ]
+        },
         {
           "__guid": "76846831-4292-49e6-a3a6-2f54a7850d1c",
           "Flags": 0,

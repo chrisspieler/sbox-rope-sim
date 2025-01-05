@@ -91,13 +91,7 @@ CS
 
 	void StoreSeedVoxelId( int seedId, float3 positionOs )
 	{
-		if ( !Voxel::IsInVolume( positionOs ) )
-		{
-			StoreSeedInvalidVoxel( seedId );
-			return;
-		}
-
-		uint3 voxel = Voxel::FromPosition( positionOs );
+		uint3 voxel = Voxel::FromPositionClamped( positionOs );
 		StoreSeedVoxelId( seedId, voxel );
 	}
 
@@ -504,7 +498,7 @@ CS
 
 		float3 qToLocalDir = normalize( localPos - qClosest );
 		bool qFacesAway = dot( qToLocalDir, qTri.Normal ) < 0;
-		if ( qFacesAway && qDist > 2 )
+		if ( qFacesAway )
 		{
 			sign = -1;
 		}
@@ -565,6 +559,11 @@ CS
 		for( int i = 0; i < 26; i++ )
 		{
 			pCell = Flood( voxel, pCell, nCells[i] );
+		}
+
+		if ( !pCell.IsSeed() )
+		{
+			pCell.SignedDistance = 1e5;
 		}
 		pCell.StoreData();
 	}
