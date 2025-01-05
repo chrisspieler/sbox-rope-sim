@@ -118,11 +118,6 @@ struct Voxel
 		int y = ( i / size ) % size;
 		int z = i % size;
 		return uint3( x, y, z );
-		// int z = i / ( VoxelVolumeDims.x * VoxelVolumeDims.y );
-		// i -= ( z * VoxelVolumeDims.x * VoxelVolumeDims.y );
-		// int y = i / VoxelVolumeDims.x;
-		// int x = i % VoxelVolumeDims.x;
-		// return uint3( x, y, z );
 	}
 
 	static float4 Load4( uint3 voxel )

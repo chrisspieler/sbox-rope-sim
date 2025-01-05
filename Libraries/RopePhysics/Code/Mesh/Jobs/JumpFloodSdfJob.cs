@@ -115,8 +115,6 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		// Run a jump flooding algorithm to find the nearest seed index for each texel/voxel
 		// and calculate the signed distance to that seed's object space position.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.JumpFlood );
-		//_meshSdfCs.Attributes.Set( "JumpStep", size / 2 );
-		//_meshSdfCs.Dispatch( size, size, size );
 		for ( int step = size / 2; step > 0; step /= 2 )
 		{
 			using ( PerfLog.Scope( Id, $"Dispatch {MdfBuildStage.JumpFlood}, Step Size: {step}" ) )

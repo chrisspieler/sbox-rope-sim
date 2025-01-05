@@ -513,17 +513,6 @@ CS
 		return pCell;
 	}
 
-	Cell FixLeak( uint3 voxel, Cell pCell, Cell qCell)
-	{
-		// Heuristic to plug leaks that might escape from janky geometry with weird normals.
-		// We assume that once the number of jump steps is 1, every neighbor will have difference
-		// in signed distance of less than two, otherwise some sort of error has occurred.
-		if ( abs( pCell.SignedDistance - qCell.SignedDistance ) > 2 )
-			pCell.SignedDistance = abs(pCell.SignedDistance );
-			
-		return pCell;
-	}
-
 	void JumpFlood( uint3 voxel )
 	{
 		Cell pCell = Cell::Load( voxel );
@@ -578,15 +567,6 @@ CS
 			pCell = Flood( voxel, pCell, nCells[i] );
 		}
 		pCell.StoreData();
-		
-		// if ( JumpStep > 1 )
-		// 	return;
-		//
-		// for ( int j = 0; j < 26; j++ )
-		// {
-		// 	pCell = FixLeak( voxel, pCell, nCells[j] );
-		// }
-		// pCell.StoreData();
 	}
 
 //------------------------------------------------------------------
