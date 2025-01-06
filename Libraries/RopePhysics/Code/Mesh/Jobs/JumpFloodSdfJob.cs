@@ -13,7 +13,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		public MeshDistanceField Mdf;
 		public Vector3Int OctreeVoxel;
 		public int EmptySeedCount;
-		public bool DumpDebugData;
+		public bool CollectDebugData;
 	}
 
 	public struct OutputData
@@ -47,9 +47,9 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		var outputSdf = new SignedDistanceField( null, size, bounds );
 
 		var gpuMesh = Input.Mdf.MeshData;
-		if ( Input.DumpDebugData )
+		if ( Input.CollectDebugData )
 		{
-			DumpCpuMesh( Input.Mdf.MeshData.CpuMesh, outputSdf );
+			outputSdf.Debug ??= new( Input.Mdf, Input.OctreeVoxel, outputSdf );
 		}
 
 		int triCount = gpuMesh.Indices.ElementCount / 3;
@@ -95,14 +95,18 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 			_meshSdfCs.Dispatch( threadsX: triCount + Input.EmptySeedCount );
 		}
 
-		if ( Input.DumpDebugData )
+		if ( Input.CollectDebugData )
 		{
-			DumpSeedData( seedDataGpu, outputSdf );
+			var seedData = new MeshSeedData[seedDataGpu.ElementCount];
+			seedDataGpu.GetData( seedData );
+			outputSdf.Debug.SeedData = seedData;
 		}
 
-		if ( Input.DumpDebugData )
+		if ( Input.CollectDebugData )
 		{
-			DumpSeedVoxels( seedVoxelsGpu, outputSdf );
+			var seedVoxels = new int[seedVoxelsGpu.ElementCount];
+			seedVoxelsGpu.GetData( seedVoxels );
+			outputSdf.Debug.SeedVoxels = seedVoxels;
 		}
 
 
@@ -125,9 +129,11 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 			}
 		}
 
-		if ( Input.DumpDebugData )
+		if ( Input.CollectDebugData )
 		{
-			DumpVoxelSeedIds( voxelSeedsGpu, outputSdf );
+			var seedIds = new int[voxelSeedsGpu.ElementCount];
+			voxelSeedsGpu.GetData( seedIds );
+			outputSdf.Debug.VoxelSeedIds = seedIds;
 		}
 
 		GpuBuffer<int> voxelSdfGpu;
@@ -148,12 +154,11 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 			voxelSdf = new int[voxelCount / 4];
 			voxelSdfGpu.GetData( voxelSdf );
 		}
-		//DumpVoxelSdf( voxelSdf );
 		outputSdf.Data = voxelSdf;
 
-		if ( Input.DumpDebugData )
+		if ( Input.CollectDebugData )
 		{
-			Log.Info( $"Logs are available at: {FileSystem.OrganizationData.GetFullPath( DIR_DUMP )}" );
+			outputSdf.Debug.PrecalculateGradients();
 		}
 
 		_meshSdfCs.Attributes.Clear();
@@ -164,136 +169,5 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 			Sdf = outputSdf,
 		};
 		return true;
-	}
-
-	const string DIR_DUMP = "mdfData";
-	const string PATH_DUMP_CPU_MESH = $"{DIR_DUMP}/dump_cpuMesh.txt";
-	const string PATH_DUMP_SEED_DATA = $"{DIR_DUMP}/dump_seedData.txt";
-	const string PATH_DUMP_SEED_VOXELS = $"{DIR_DUMP}/dump_seedVoxels.txt";
-	const string PATH_DUMP_VOXEL_SEED_IDS = $"{DIR_DUMP}/dump_voxelSeedIds.txt";
-
-	private void DumpCpuMesh( CpuMeshData meshData, SignedDistanceField sdf )
-	{
-		var dumpTimer = new MultiTimer();
-		using ( dumpTimer.RecordTime() )
-		{
-			var indices = meshData.Indices;
-			var vertices = meshData.Vertices;
-			var sb = new StringBuilder();
-			sb.AppendLine( $"Dumping {indices.Length} indices, {vertices.Length} vertices, {indices.Length / 3.0f} triangles" );
-			sb.AppendLine( $"Mesh bounds: {meshData.Bounds}" );
-			for ( int i = 0; i < indices.Length; i += 3 )
-			{
-				var i0 = indices[i];
-				var i1 = indices[i + 1];
-				var i2 = indices[i + 2];
-				var v0 = vertices[i0];
-				var v1 = vertices[i1];
-				var v2 = vertices[i2];
-				sb.AppendLine( $"tri # {i / 3} (idx {i0},{i1},{i2}) vtx: ({v0}),({v1}),({v2})" );
-			}
-			var fs = FileSystem.OrganizationData;
-			fs.CreateDirectory( DIR_DUMP );
-			fs.WriteAllText( PATH_DUMP_CPU_MESH, sb.ToString() );
-			sdf.Debug ??= new( sdf );
-			sdf.Debug.MeshData = meshData;
-		}
-		Log.Info( $"DumpMesh in {dumpTimer.LastMilliseconds:F3}ms" );
-	}
-
-	private void DumpSeedData( GpuBuffer<MeshSeedData> gpuData, SignedDistanceField sdf )
-	{
-		var seedDataDumpTimer = new MultiTimer();
-		using ( seedDataDumpTimer.RecordTime() )
-		{
-			MeshSeedData[] seedData;
-			seedData = new MeshSeedData[gpuData.ElementCount];
-			gpuData.GetData( seedData );
-			var sb = new StringBuilder();
-			var triCount = Input.Mdf.MeshData.Indices.ElementCount / 3;
-			var emptySeedStartIdx = triCount * 4;
-			sb.AppendLine( $"SeedData dump for {Input.OctreeVoxel}[{Input.OctreeVoxel/Input.Mdf.OctreeLeafDims}] of MDF # {Input.Mdf.Id}" );
-			sb.AppendLine( $"{triCount} tris, {Input.EmptySeedCount} empty seeds, data: {seedData.Length}, expected data: {triCount * 4 + Input.EmptySeedCount}" );
-			for ( int i = 0; i < seedData.Length; i++ )
-			{
-				if ( i == emptySeedStartIdx )
-				{
-					sb.AppendLine( "===" );
-					sb.AppendLine( $"EMPTY SEED DATA BEGINS NOW!" );
-					sb.AppendLine( "===" );
-				}
-				var seedDatum = seedData[i];
-				Vector4 positionOs = seedDatum.Position;
-				Vector4 normal = seedDatum.Normal;
-				var line = $"seed # {i} pOs: {positionOs}, nor: {normal}";
-				sb.AppendLine( line );
-			}
-			var fs = FileSystem.OrganizationData;
-			fs.CreateDirectory( DIR_DUMP );
-			fs.WriteAllText( PATH_DUMP_SEED_DATA, sb.ToString() );
-			sdf.Debug ??= new( sdf );
-			sdf.Debug.SeedData = seedData;
-			sdf.Debug.EmptySeedCount = Input.EmptySeedCount;
-		}
-		Log.Info( $"Seed data dump in {seedDataDumpTimer.LastMilliseconds:F3}ms" );
-	}
-
-	private void DumpSeedVoxels( GpuBuffer<int> gpuData, SignedDistanceField sdf )
-	{
-		var seedDataDumpTimer = new MultiTimer();
-		using ( seedDataDumpTimer.RecordTime() )
-		{
-			var seedVoxels = new int[gpuData.ElementCount];
-			gpuData.GetData( seedVoxels );
-			var sb = new StringBuilder();
-			sb.AppendLine( $"Seed voxel dump for {Input.OctreeVoxel}[{Input.OctreeVoxel / Input.Mdf.OctreeLeafDims}] of MDF # {Input.Mdf.Id}" );
-			for ( int i = 0; i < seedVoxels.Length; i++ )
-			{
-				var i1D = seedVoxels[i];
-				var i3D = SignedDistanceField.Index1DTo3D( i1D, Input.Mdf.OctreeLeafDims );
-				var line = $"seed # {i} i1D: {i1D}, i3D: ({i3D.x},{i3D.y},{i3D.z})";
-				sb.AppendLine( line );
-			}
-			var fs = FileSystem.OrganizationData;
-			fs.CreateDirectory( DIR_DUMP );
-			fs.WriteAllText( PATH_DUMP_SEED_VOXELS, sb.ToString() );
-			sdf.Debug ??= new( sdf );
-			sdf.Debug.SeedVoxels = seedVoxels;
-		}
-		Log.Info( $"Seed voxel dump in {seedDataDumpTimer.LastMilliseconds:F3}ms" );
-	}
-
-	private void DumpVoxelSeedIds( GpuBuffer<int> gpuData, SignedDistanceField sdf )
-	{
-		var seedDataDumpTimer = new MultiTimer();
-		using ( seedDataDumpTimer.RecordTime() )
-		{
-			var voxelSeeds = new int[gpuData.ElementCount];
-			gpuData.GetData( voxelSeeds );
-			var sb = new StringBuilder();
-			sb.AppendLine( $"Voxel seed ID dump for {Input.OctreeVoxel}[{Input.OctreeVoxel / Input.Mdf.OctreeLeafDims}] of MDF # {Input.Mdf.Id}" );
-			for ( int i = 0; i < voxelSeeds.Length; i++ )
-			{
-				var seedId = voxelSeeds[i];
-				var i3D = SignedDistanceField.Index1DTo3D( i, Input.Mdf.OctreeLeafDims );
-				var line = $"({i3D.x},{i3D.y},{i3D.z}): {seedId}";
-				sb.AppendLine( line );
-			}
-			var fs = FileSystem.OrganizationData;
-			fs.CreateDirectory( DIR_DUMP );
-			fs.WriteAllText( PATH_DUMP_VOXEL_SEED_IDS, sb.ToString() );
-			sdf.Debug ??= new( sdf );
-			sdf.Debug.VoxelSeedIds = voxelSeeds;
-		}
-		Log.Info( $"Voxel seed ID dump in {seedDataDumpTimer.LastMilliseconds:F3}ms" );
-	}
-
-	private void DumpVoxelSdf( Span<int> voxelSdf )
-	{
-		for ( int i = 0; i < voxelSdf.Length; i++ )
-		{
-			var signedDistance = voxelSdf[i];
-			Log.Info( $"voxel {i} packed int: {signedDistance}" );
-		}
 	}
 }

@@ -143,14 +143,14 @@ internal class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSyste
 		}
 	}
 
-	internal JumpFloodSdfJob AddJumpFloodSdfJob( MeshDistanceField mdf, Vector3Int position, bool dumpDebugData )
+	internal JumpFloodSdfJob AddJumpFloodSdfJob( MeshDistanceField mdf, Vector3Int position, bool collectDebugData )
 	{
 		var inputData = new JumpFloodSdfJob.InputData()
 		{
 			Mdf = mdf,
 			OctreeVoxel = position,
 			EmptySeedCount = JumpFloodSdfJob.NumEmptySeeds,
-			DumpDebugData = dumpDebugData,
+			CollectDebugData = collectDebugData,
 		};
 		var jobId = HashCode.Combine( mdf.Id, position );
 		var job = new JumpFloodSdfJob( jobId, inputData );

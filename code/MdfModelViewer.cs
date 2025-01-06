@@ -54,7 +54,8 @@ public class MdfModelViewer : Component
 		get => _selectedVoxel;
 		set
 		{
-			if ( Mdf?.GetSdfTexture( value ) is null )
+			SignedDistanceField sdfTex = Mdf?.GetSdfTexture( value );
+			if ( sdfTex is null )
 			{
 				value = -1;
 			}
@@ -68,6 +69,10 @@ public class MdfModelViewer : Component
 			if ( changed )
 			{
 				_shouldRefreshTexture = true;
+				if ( sdfTex is not null && !sdfTex.IsRebuilding && sdfTex.Debug is null )
+				{
+					RebuildSelectedVoxel();
+				}
 			}
 		}
 	}
@@ -99,7 +104,6 @@ public class MdfModelViewer : Component
 			}
 		}
 	}
-
 	private void UpdateHighlightedVoxel()
 	{
 		MouseToVoxelDistance = -1f;
@@ -265,13 +269,8 @@ public class MdfModelViewer : Component
 		ImGui.Text( $"Texture: {size}x{size}x{size}, {Mdf.DataSize.FormatBytes()}" );
 	}
 
-	private bool _dumpDebugInfo;
-
 	private void PaintTextureViewerDebugOptions()
 	{
-		var dumpDebugInfo = _dumpDebugInfo;
-		if ( ImGui.Checkbox( "Dump Debug Info", ref dumpDebugInfo ) )
-		_dumpDebugInfo = dumpDebugInfo;
 		if ( Mdf.GetSdfTexture( SelectedVoxel ) is SignedDistanceField existingData )
 		{
 			if ( !existingData.IsRebuilding && ImGui.Button( "Rebuild Texture" ) )
@@ -283,12 +282,13 @@ public class MdfModelViewer : Component
 
 	private void RebuildSelectedVoxel()
 	{
-		Mdf.RebuildOctreeVoxel( _selectedVoxel, _dumpDebugInfo, onCompleted: () => _shouldRefreshTexture = true );
+		Mdf.RebuildOctreeVoxel( _selectedVoxel, true, onCompleted: () => _shouldRefreshTexture = true );
 	}
 
 	private bool _shouldRefreshTexture;
 	private Vector3Int? _selectedTexel;
 	private Vector3Int? _hoveredTexel;
+	private bool _showGradients;
 
 	private void PaintTextureViewerViewport()
 	{
@@ -304,6 +304,19 @@ public class MdfModelViewer : Component
 		}
 
 		ImGui.Text( "Texture Slice:" ); ImGui.SameLine();
+		if ( sdfTex.Debug is not null )
+		{
+			var showGradients = _showGradients;
+			if ( ImGui.Checkbox( "Show Gradients", ref showGradients ) )
+			{
+				_shouldRefreshTexture = true;
+				if ( showGradients )
+				{
+					sdfTex.Debug.PrecalculateGradients();
+				}
+			}
+			_showGradients = showGradients;
+		}
 		_maxSlice = Mdf.OctreeLeafDims - 1;
 		var textureSlice = TextureSlice;
 		if ( ImGui.SliderInt( nameof( TextureSlice ), ref textureSlice, 0, _maxSlice ) )
@@ -314,7 +327,10 @@ public class MdfModelViewer : Component
 		if ( _copiedTex is null || textureSlice != TextureSlice || _shouldRefreshTexture )
 		{
 			TextureSlice = textureSlice;
-			_copiedTex = CopyMdfTexture( sdfTex, TextureSlice );
+			var debugVisMode = _showGradients
+				? SdfSliceDebugVisualization.Gradient
+				: SdfSliceDebugVisualization.InsideOutside;
+			_copiedTex = CopyMdfTexture( sdfTex, TextureSlice, debugVisMode );
 			if ( _selectedTexel is not null )
 			{
 				_selectedTexel = _selectedTexel.Value.WithZ( textureSlice );
@@ -357,10 +373,9 @@ public class MdfModelViewer : Component
 		ImGui.Text( $"Normal: {normal.x:F3},{normal.y:F3},{normal.z:F3}" );
 		if ( sdfTex.Debug is null )
 		{
-			if ( ImGui.Button( "Generate Debug Info" ) )
+			if ( ImGui.Button( "Dump Debug Info" ) )
 			{
-				_dumpDebugInfo = true;
-				RebuildSelectedVoxel();
+				sdfTex.Debug.DumpAllData();
 			}
 			return;
 		}
@@ -444,7 +459,13 @@ public class MdfModelViewer : Component
 
 	readonly ComputeShader _textureSliceCs = new( "mesh_sdf_preview_cs" );
 
-	private Texture CopyMdfTexture( SignedDistanceField voxelData, int z )
+	private enum SdfSliceDebugVisualization
+	{
+		InsideOutside,
+		Gradient
+	}
+
+	private Texture CopyMdfTexture( SignedDistanceField voxelData, int z, SdfSliceDebugVisualization debugMode )
 	{
 		var size = voxelData.TextureSize;
 
@@ -454,6 +475,17 @@ public class MdfModelViewer : Component
 
 		var voxelSdfGpu = new GpuBuffer<int>( size * size * size / 4, GpuBuffer.UsageFlags.Structured );
 		voxelSdfGpu.SetData( voxelData.Data );
+		if ( voxelData.Debug is null )
+		{
+			debugMode = SdfSliceDebugVisualization.InsideOutside;
+		}
+		_textureSliceCs.Attributes.SetComboEnum( "D_MODE", debugMode );
+		if ( debugMode == SdfSliceDebugVisualization.Gradient)
+		{
+			var gradientBufferGpu = new GpuBuffer<Vector4>( voxelData.Debug.Gradients.Length, GpuBuffer.UsageFlags.Structured );
+			gradientBufferGpu.SetData( voxelData.Debug.Gradients );
+			_textureSliceCs.Attributes.Set( "Gradients", gradientBufferGpu );
+		}
 		_textureSliceCs.Attributes.Set( "VoxelMinsOs", voxelData.Bounds.Mins );
 		_textureSliceCs.Attributes.Set( "VoxelMaxsOs", voxelData.Bounds.Maxs );
 		_textureSliceCs.Attributes.Set( "VoxelVolumeDims", new Vector3( size ) );

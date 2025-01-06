@@ -75,13 +75,13 @@ public partial class MeshDistanceField
 		BuildSystem.AddCreateMeshOctreeJob( this );
 	}
 
-	public void RebuildOctreeVoxel( Vector3Int voxel, bool dumpDebugData, Action onCompleted = null )
+	public void RebuildOctreeVoxel( Vector3Int voxel, bool collectDebugData, Action onCompleted = null )
 	{
 		if ( GetSdfTexture( voxel ) is SignedDistanceField existingData )
 		{
 			existingData.IsRebuilding = true;
 		}
-		var job = BuildSystem.AddJumpFloodSdfJob( this, voxel, dumpDebugData );
+		var job = BuildSystem.AddJumpFloodSdfJob( this, voxel, collectDebugData );
 		job.OnCompleted += onCompleted;
 		JumpFloodJobs[voxel] = job;
 	}

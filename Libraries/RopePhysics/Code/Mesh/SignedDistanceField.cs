@@ -1,47 +1,7 @@
 ﻿namespace Duccsoft;
 
-public class SignedDistanceField
+public partial class SignedDistanceField
 {
-	public class DebugData
-	{
-		public DebugData( SignedDistanceField sdf )
-		{
-			Sdf = sdf;
-		}
-		public SignedDistanceField Sdf { get; }
-
-		internal CpuMeshData MeshData;
-		public MeshSeedData[] SeedData;
-		public int EmptySeedCount;
-		public int[] SeedVoxels;
-		public int[] VoxelSeedIds;
-
-		public int GetSeedId( Vector3Int texel )
-		{
-			var i = Index3DTo1D( texel.x, texel.y, texel.z, Sdf.TextureSize );
-			return VoxelSeedIds[i];
-		}
-
-		public Vector3 GetSeedPosition( Vector3Int texel )
-		{
-			var seedData = SeedData[ GetSeedId( texel ) ];
-			return seedData.Position;
-		}
-
-		public Triangle? GetSeedTriangle( int seedId )
-		{
-			var emptySeedStartId = MeshData.TriangleCount * 4;
-			if ( seedId < 0 || seedId >= emptySeedStartId )
-				return null;
-
-			int centerId = seedId - seedId % 4;
-			var v0 = SeedData[centerId + 1].Position;
-			var v1 = SeedData[centerId + 2].Position;
-			var v2 = SeedData[centerId + 3].Position;
-			return new Triangle( v0, v1, v2 );
-		}
-	}
-
 	public SignedDistanceField( int[] data, int textureDims, BBox bounds )
 	{
 		Bounds = bounds;
