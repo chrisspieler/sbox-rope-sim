@@ -37,6 +37,8 @@ public class MeshDistanceFieldDemo : Component
 	}
 	private int _selectedMeshIndex = 0;
 	[Property] public MdfModelViewer ModelViewer { get; set; }
+	[Property] public bool ShouldRotate { get; set; } = false;
+	[Property] public float RotationSpeed { get; set; } = 0f;
 
 	public GameObject SelectedMeshGameObject => MeshContainer?.Children[SelectedMeshIndex];
 	public MeshDistanceField Mdf { get; private set; }
@@ -50,6 +52,7 @@ public class MeshDistanceFieldDemo : Component
 	protected override void OnUpdate()
 	{
 		UpdateWaitForMesh();
+		UpdateRotation();
 		UpdateCamera();
 		UpdateUI();
 	}
@@ -64,6 +67,14 @@ public class MeshDistanceFieldDemo : Component
 			_waitForMesh = false;
 			LookAtMesh();
 		}
+	}
+
+	private void UpdateRotation()
+	{
+		if ( !SelectedMeshGameObject.IsValid() )
+			return;
+
+		SelectedMeshGameObject.WorldRotation *= Rotation.FromYaw( RotationSpeed * Time.Delta );
 	}
 
 	private void OnSelectedGameObjectChanged()
@@ -172,6 +183,16 @@ public class MeshDistanceFieldDemo : Component
 		if ( ImGui.Button( "Next Mesh" ) )
 		{
 			SelectedMeshIndex++;
+		}
+		ImGui.Text( "Rotate Speed:" ); ImGui.SameLine();
+		var shouldRotate = ShouldRotate;
+		ImGui.Checkbox( "Rotate", ref shouldRotate );
+		ShouldRotate = shouldRotate;
+		if ( shouldRotate )
+		{
+			var rotSpeed = RotationSpeed;
+			ImGui.SliderFloat( nameof( rotSpeed ), ref rotSpeed, -360f, 360f );
+			RotationSpeed = rotSpeed;
 		}
 	}
 }

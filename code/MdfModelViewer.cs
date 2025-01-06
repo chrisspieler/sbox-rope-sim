@@ -76,6 +76,9 @@ public class MdfModelViewer : Component
 	private float MouseToVoxelDistance { get; set; }
 	private void UpdateInput()
 	{
+		if ( !ShouldDrawOctree )
+			return;
+
 		var lastSelectedVoxel = SelectedVoxel;
 		UpdateHighlightedVoxel();
 
