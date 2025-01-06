@@ -1,5 +1,6 @@
 ﻿using Duccsoft;
 using Duccsoft.ImGui;
+using System;
 
 namespace Sandbox;
 
@@ -369,8 +370,9 @@ public class MdfModelViewer : Component
 
 		ImGui.Text( $"Selected Texel: {texel}" );
 		ImGui.Text( $"Signed Distance: {sdfTex[texel]:F3}" );
-		var normal = sdfTex.EstimateSurfaceNormal( texel );
-		ImGui.Text( $"Normal: {normal.x:F3},{normal.y:F3},{normal.z:F3}" );
+		var gradient = sdfTex.CalculateGradient( texel );
+
+		ImGui.Text( $"Gradient: {gradient.x:F3},{gradient.y:F3},{gradient.z:F3}" );
 		if ( sdfTex.Debug is null )
 		{
 			if ( ImGui.Button( "Dump Debug Info" ) )
@@ -441,18 +443,24 @@ public class MdfModelViewer : Component
 				return;
 
 			var texelPos = sdfTex.TexelToPosition( texel );
-			var texelNormal = sdfTex.EstimateSurfaceNormal( texel );
 			var tx = MdfGameObject.WorldTransform;
 			var size = MeshDistanceSystem.TexelSize;
-			var pos = texelPos + size * 0.5f;
-			var bbox = BBox.FromPositionAndSize( pos, size );
+			var texelCenter = texelPos + size * 0.5f;
+			var texelBounds = BBox.FromPositionAndSize( texelCenter, size );
 			var insideColor = (color * 0.2f).WithAlpha( 0.25f );
-			DebugOverlay.Box( bbox, color: color.WithAlpha( 1f ), transform: tx, overlay: false );
-			DebugOverlay.Box( bbox, color: insideColor, transform: tx, overlay: true );
-			DebugOverlay.Line( pos, pos + texelNormal * 3f, color: Color.Blue, transform: tx, overlay: true );
+			// Draw texel bounds
+			DebugOverlay.Box( texelBounds, color: color.WithAlpha( 1f ), transform: tx, overlay: false );
+			DebugOverlay.Box( texelBounds, color: insideColor, transform: tx, overlay: true );
+
+			var texelGradient = sdfTex.CalculateGradient( texel );
+			var distance = sdfTex[texel];
+			// Draw gradient line
+			DebugOverlay.Line( texelBounds.Center, texelBounds.Center + texelGradient * MathF.Abs( distance ), color: Color.Blue, transform: tx, overlay: true );
+
 			var bounds = Mdf.VoxelToLocalBounds( SelectedVoxel );
 			var z = ((float)_textureSlice).Remap( 0f, Mdf.OctreeLeafSize, bounds.Mins.z, bounds.Maxs.z );
 			var slice = BBox.FromPositionAndSize( bounds.Center.WithZ( z + 0.5f ), bounds.Size.WithZ( 0.2f ) );
+			// Draw slice plane
 			DebugOverlay.Box( slice, color: Color.White, transform: tx, overlay: true );
 		}
 	}

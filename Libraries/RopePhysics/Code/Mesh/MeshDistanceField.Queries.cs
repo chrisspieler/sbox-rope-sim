@@ -2,6 +2,12 @@
 
 public partial class MeshDistanceField
 {
+	public struct MeshDistanceSample
+	{
+		public float SignedDistance { get; set; }
+		public Vector3 Gradient { get; set; }
+	}
+
 	public SparseVoxelOctree<SignedDistanceField>.OctreeNode Trace( Vector3 localPos, Vector3 localDir, out float hitDistance )
 		=> Trace( localPos, localDir, out hitDistance, new Vector3Int( -1, -1, -1 ) );
 
@@ -42,10 +48,9 @@ public partial class MeshDistanceField
 		var signedDistance = sdf[texel];
 		// If we were out of bounds, add the amount by which we were out of bounds to the distance.
 		signedDistance += closestPoint.Distance( localSamplePos );
-		var surfaceNormal = sdf.EstimateSurfaceNormal( texel );
 		sample = new MeshDistanceSample()
 		{
-			SurfaceNormal = surfaceNormal,
+			Gradient = sdf.CalculateGradient( texel ),
 			SignedDistance = signedDistance,
 		};
 		return true;

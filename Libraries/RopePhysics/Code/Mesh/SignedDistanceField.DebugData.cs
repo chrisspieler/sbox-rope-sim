@@ -54,7 +54,7 @@ public partial class SignedDistanceField
 			for ( int i = 0; i < voxelCount; i++ )
 			{
 				var i3D = Index1DTo3D( i, Sdf.TextureSize );
-				Gradients[i] = new Vector4( Sdf.EstimateSurfaceNormal( i3D ) );
+				Gradients[i] = new Vector4( Sdf.CalculateGradient( i3D ) );
 			}
 		}
 

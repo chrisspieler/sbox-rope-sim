@@ -117,7 +117,9 @@
             "go": "ab3d85b6-7d7b-4b14-b598-380b906e8998",
             "component_type": "MdfModelViewer"
           },
-          "SelectedMeshIndex": 0
+          "RotationSpeed": 0,
+          "SelectedMeshIndex": 0,
+          "ShouldRotate": false
         },
         {
           "__type": "Sandbox.MdfModelViewer",

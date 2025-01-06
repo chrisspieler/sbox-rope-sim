@@ -75,17 +75,29 @@ public partial class SignedDistanceField
 		}
 	}
 
-	public Vector3 EstimateSurfaceNormal( Vector3Int texel )
+
+	public Vector3 CalculateGradient( Vector3Int texel )
 	{
-		var xOffset = new Vector3Int( 1, 0, 0 );
-		var yOffset = new Vector3Int( 0, 1, 0 );
-		var zOffset = new Vector3Int( 0, 0, 1 );
-		var gradient = new Vector3()
-		{
-			x = this[texel + xOffset] - this[texel - xOffset],
-			y = this[texel + yOffset] - this[texel - yOffset],
-			z = this[texel + zOffset] - this[texel - zOffset],
-		};
-		return gradient.Normal;
+		// This method was adapted from: https://shaderfun.com/2018/07/23/signed-distance-fields-part-8-gradients-bevels-and-noise/
+
+		var d = this[texel];
+		var sign = MathF.Sign( d );
+		var maxValue = TextureSize * sign;
+
+		// X
+		var x0 = texel.x > 0 ? this[texel + new Vector3Int( texel.x - 1, 0, 0 )] : maxValue;
+		var x1 = texel.x < (TextureSize - 1) ? this[texel + new Vector3Int( texel.x + 1, 0, 0 )] : maxValue;
+		// Y
+		var y0 = texel.y > 0 ? this[texel + new Vector3Int( 0, texel.y - 1, 0)] : maxValue;
+		var y1 = texel.y < (TextureSize - 1) ? this[texel + new Vector3Int( 0, texel.y + 1, 0 )] : maxValue;
+		// Z
+		var z0 = texel.z > 0 ? this[texel + new Vector3Int( 0, 0, texel.z - 1 )] : maxValue;
+		var z1 = texel.z < (TextureSize - 1) ? this[texel + new Vector3Int( 0, 0, texel.z + 1 )] : maxValue;
+
+		float ddx = sign * x0 < sign * x1 ? -(x0 - d) : (x1 - d);
+		float ddy = sign * y0 < sign * y1 ? -(y0 - d) : (y1 - d);
+		float ddz = sign * z0 < sign * z1 ? -(z0 - d) : (z1 - d);
+
+		return new Vector3( ddx, ddy, ddz ).Normal;
 	}
 }

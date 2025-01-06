@@ -7,12 +7,6 @@ namespace Duccsoft;
 /// </summary>
 public partial class MeshDistanceField
 {
-	public struct MeshDistanceSample
-	{
-		public float SignedDistance { get; set; }
-		public Vector3 SurfaceNormal { get; set; }
-	}
-
 	private MeshDistanceField() { }
 	internal MeshDistanceField( MeshDistanceBuildSystem buildSystem, int id )
 	{

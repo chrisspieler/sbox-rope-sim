@@ -88,10 +88,10 @@ public class TextureInfoWidget : ImageWidget
 			var distance = VoxelData[voxel];
 			var distanceText = $"{distance:F3}";
 			var distanceTextSize = ImGui.CalcTextSize( distanceText );
-			var normal = VoxelData.EstimateSurfaceNormal( voxel );
-			var normalText = $"({normal.x:F3},{normal.y:F3},{normal.z:F3})";
-			var normalTextSize = ImGui.CalcTextSize( normalText );
-			var textSizeMaxs = distanceTextSize.ComponentMax( normalTextSize );
+			var gradient = VoxelData.CalculateGradient( voxel );
+			var gradientText = $"({gradient.x:F3},{gradient.y:F3},{gradient.z:F3})";
+			var gradientTextSize = ImGui.CalcTextSize( gradientText );
+			var textSizeMaxs = distanceTextSize.ComponentMax( gradientTextSize );
 			textSizeMaxs.y *= 2;
 
 			var popupRect = new Rect( HoveredPixelScreenPos + new Vector2( -textSizeMaxs.x * 0.5f, -textSizeMaxs.y * 2 + 5 ), textSizeMaxs + 10 );
@@ -101,7 +101,7 @@ public class TextureInfoWidget : ImageWidget
 			drawList.AddRectFilled( popupRect.TopLeft, popupRect.BottomRight, bgCol );
 			drawList.AddRect( popupRect.TopLeft, popupRect.BottomRight, borderCol );
 			drawList.AddText( popupRect.Center + Vector2.Down * textSizeMaxs.y * 0.25f, Color.White, distanceText, TextFlag.Center );
-			drawList.AddText( popupRect.Center - Vector2.Down * textSizeMaxs.y * 0.25f, Color.White, normalText, TextFlag.Center );
+			drawList.AddText( popupRect.Center - Vector2.Down * textSizeMaxs.y * 0.25f, Color.White, gradientText, TextFlag.Center );
 		}
 		if ( HoveredPixel is not null )
 		{

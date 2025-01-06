@@ -35,9 +35,9 @@ CS
 	float3 GetGradientColor( uint3 voxel, float sdMesh )
 	{
 		uint i = Convert3DIndexTo1D( voxel, VoxelVolumeDims );
-		float3 gradient = Gradients[i];
+		float3 gradient = Gradients[i].xyz;
 		gradient += 1;
-		if ( all( gradient == 0 ) )
+		if ( abs( gradient.x + gradient.y + gradient.z ) < 0.001 )
 			return 0;
 
 		gradient /= 2.0;
