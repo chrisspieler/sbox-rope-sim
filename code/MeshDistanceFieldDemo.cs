@@ -71,7 +71,7 @@ public class MeshDistanceFieldDemo : Component
 
 	private void UpdateRotation()
 	{
-		if ( !SelectedMeshGameObject.IsValid() )
+		if ( !SelectedMeshGameObject.IsValid() || !ShouldRotate )
 			return;
 
 		SelectedMeshGameObject.WorldRotation *= Rotation.FromYaw( RotationSpeed * Time.Delta );

@@ -455,7 +455,7 @@ public class MdfModelViewer : Component
 			var texelGradient = sdfTex.CalculateGradient( texel );
 			var distance = sdfTex[texel];
 			// Draw gradient line
-			DebugOverlay.Line( texelBounds.Center, texelBounds.Center + texelGradient * MathF.Abs( distance ), color: Color.Blue, transform: tx, overlay: true );
+			DebugOverlay.Line( texelBounds.Center, texelBounds.Center + texelGradient * distance, color: Color.Blue, transform: tx, overlay: true );
 
 			var bounds = Mdf.VoxelToLocalBounds( SelectedVoxel );
 			var z = ((float)_textureSlice).Remap( 0f, Mdf.OctreeLeafSize, bounds.Mins.z, bounds.Maxs.z );

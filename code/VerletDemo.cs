@@ -171,7 +171,7 @@ public class VerletDemo : Component
 			}
 			else
 			{
-				var plane = new Plane( WorldPosition, (Scene.Camera.WorldPosition - WorldPosition).Normal );
+				var plane = new Plane( WorldPosition, WorldTransform.Forward );
 				var hit = plane.Trace( mouseRay, twosided: true );
 				if ( hit.HasValue )
 				{
