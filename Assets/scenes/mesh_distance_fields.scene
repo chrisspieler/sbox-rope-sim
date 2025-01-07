@@ -31,7 +31,7 @@
           "TargetEye": "None",
           "Viewport": "0,0,1,1",
           "ZFar": 10000,
-          "ZNear": 10
+          "ZNear": 1
         }
       ]
     },
@@ -171,68 +171,6 @@
       "Name": "Meshes",
       "Enabled": true,
       "Children": [
-        {
-          "__guid": "5d77de25-8dbc-4bfe-bd78-70dee0fd5e69",
-          "Flags": 0,
-          "Name": "tifaswimsuit",
-          "Rotation": "0,0,1,0.0000001947072",
-          "Tags": "mdf_model",
-          "Components": [
-            {
-              "__type": "Sandbox.SkinnedModelRenderer",
-              "__guid": "e3b47ece-3b99-4382-8d34-e44510f56efa",
-              "AnimationGraph": null,
-              "BodyGroups": 18446744073709551615,
-              "BoneMergeTarget": null,
-              "CreateAttachments": false,
-              "CreateBoneObjects": false,
-              "MaterialGroup": null,
-              "MaterialOverride": null,
-              "Model": "tifa/models/tifaswimsuit.vmdl",
-              "Morphs": {},
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "Parameters": {
-                "bools": {},
-                "ints": {},
-                "floats": {},
-                "vectors": {},
-                "rotations": {}
-              },
-              "RenderOptions": {
-                "GameLayer": true,
-                "OverlayLayer": false,
-                "BloomLayer": false,
-                "AfterUILayer": false
-              },
-              "RenderType": "On",
-              "Sequence": {
-                "Name": null
-              },
-              "Tint": "1,1,1,1",
-              "UseAnimGraph": true
-            },
-            {
-              "__type": "Duccsoft.MeshDistanceConfig",
-              "__guid": "4c0c2075-1246-4e39-af93-b8cea643ff28",
-              "Collider": null,
-              "MeshSource": "Model",
-              "Model": "tifa/models/tifaswimsuit.vmdl",
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "TextureExponent": 5,
-              "TextureResolution": 32
-            }
-          ]
-        },
         {
           "__guid": "1c8af56c-430d-4e9c-92ba-964859a22510",
           "Flags": 0,
@@ -16644,7 +16582,6 @@
   "Title": null,
   "Description": null,
   "__references": [
-    "acgparadise.tifaswimsuit#5447",
     "duccsoft.duck_decoration#16326",
     "nerd.dingus#11094",
     "reetuh.reetuh_bernese#8224"

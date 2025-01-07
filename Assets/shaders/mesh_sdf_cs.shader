@@ -44,6 +44,7 @@ CS
 	int NumEmptySeeds < Attribute( "NumEmptySeeds" ); >;
 	RWStructuredBuffer<int> SeedVoxels < Attribute( "SeedVoxels" ); >;
 	RWStructuredBuffer<int> VoxelSeeds < Attribute( "VoxelSeeds" ); >;
+	float InsideDetectionThreshold < Attribute( "InsideDetectionThreshold" ); Default( 0.75 ); >;
 	int JumpStep < Attribute( "JumpStep" ); >;
 
 //------------------------------------------------------------------
@@ -497,7 +498,7 @@ CS
 		float sign = 1;
 
 		float3 qToLocalDir = normalize( localPos - qClosest );
-		bool qFacesAway = dot( qToLocalDir, qTri.Normal ) < 0;
+		bool qFacesAway = dot( qToLocalDir, qTri.Normal ) < -InsideDetectionThreshold;
 		if ( qFacesAway )
 		{
 			sign = -1;

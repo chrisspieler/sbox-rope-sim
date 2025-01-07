@@ -294,7 +294,7 @@ public class MdfModelViewer : Component
 
 	private void PaintTextureViewerViewport()
 	{
-		if ( SelectedVoxel.x < 0 || !Mdf.IsInBounds( SelectedVoxel ) )
+		if ( SelectedVoxel.x < 0 || Mdf?.IsInBounds( SelectedVoxel ) != true )
 			return;
 
 		var sdfTex = Mdf.GetSdfTexture( SelectedVoxel );
@@ -376,16 +376,15 @@ public class MdfModelViewer : Component
 		var gradient = sdfTex.CalculateGradient( texel );
 
 		ImGui.Text( $"Gradient: {gradient.x:F3},{gradient.y:F3},{gradient.z:F3}" );
-		if ( sdfTex.Debug is null )
+		if ( sdfTex.Debug is not null )
 		{
+			ImGui.Text( $"SeedId: {sdfTex.Debug.GetSeedId( texel )}" );
 			if ( ImGui.Button( "Dump Debug Info" ) )
 			{
 				sdfTex.Debug.DumpAllData();
 			}
-			return;
 		}
 
-		ImGui.Text( $"SeedId: {sdfTex.Debug.GetSeedId( texel )}" );
 	}
 
 	private void DrawTextureViewerOverlay()
