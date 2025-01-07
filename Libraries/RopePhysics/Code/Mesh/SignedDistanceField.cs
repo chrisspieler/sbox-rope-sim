@@ -82,7 +82,7 @@ public partial class SignedDistanceField
 
 		var d = this[texel];
 		var sign = MathF.Sign( d );
-		var maxValue = float.MaxValue * sign;
+		var maxValue = TextureSize * sign;
 
 		// X
 		var xOffset = new Vector3Int( 1, 0, 0 );

@@ -1,4 +1,6 @@
-﻿namespace Duccsoft;
+﻿using Sandbox;
+
+namespace Duccsoft;
 
 public partial class VerletRope
 {
@@ -46,7 +48,7 @@ public partial class VerletRope
 	private struct MeshCollisionInfo
 	{
 		public int Id;
-		public MeshDistanceField Mdf;
+		public SignedDistanceField Sdf;
 		public Transform Transform;
 		public List<int> CollidingPoints;
 
@@ -267,15 +269,31 @@ public partial class VerletRope
 
 	private void CaptureMdfCollision( int pointIndex, Transform tx, MeshDistanceField mdf )
 	{
-		if ( !_meshColliders.TryGetValue( mdf.Id, out var ci ) )
+		if ( !mdf.IsOctreeBuilt )
+			return;
+
+		var pointPos = _points[pointIndex].Position;
+		var localPos = tx.PointToLocal( pointPos );
+		var voxel = mdf.PositionToVoxel( localPos );
+		var sdfTex = mdf.GetSdfTexture( voxel );
+		if ( sdfTex is null )
+			return;
+
+		var closestPoint = sdfTex.Bounds.ClosestPoint( localPos );
+		var distance = closestPoint.Distance( localPos );
+		if ( distance > mdf.OctreeLeafDims * 0.5f )
+			return;
+
+		var id = HashCode.Combine( mdf.Id, voxel );
+		if ( !_meshColliders.TryGetValue( id, out var ci ) )
 		{
 			ci = new MeshCollisionInfo()
 			{
-				Id = mdf.Id,
-				Mdf = mdf,
+				Id = id,
+				Sdf = sdfTex,
 				Transform = tx,
 			};
-			_meshColliders[mdf.Id] = ci;
+			_meshColliders[id] = ci;
 		}
 		ci.CollidingPoints.Add( pointIndex );
 	}
@@ -458,16 +476,16 @@ public partial class VerletRope
 			{
 				var point = _points[collision];
 				var currentPos = ci.Transform.PointToLocal( point.Position );
-				if ( !ci.Mdf.TrySample( currentPos, out var sample ) )
-					continue;
-				
-				if ( sample.SignedDistance >= SolidRadius )
+				var texel = ci.Sdf.PositionToTexel( currentPos );
+				var sdMesh = ci.Sdf[texel];
+				if ( sdMesh >= SolidRadius )
 					continue;
 
-				// Signed distance is negative, so invert it to travel along normal to surface.
-				currentPos += sample.Gradient * -sample.SignedDistance + SolidRadius;
+				var gradient = ci.Sdf.CalculateGradient( texel );
+				currentPos += gradient * ( -sdMesh + SolidRadius );
 				currentPos = ci.Transform.PointToWorld( currentPos );
 				_points[collision] = point with { Position = currentPos };
+
 			}
 		}
 	}
