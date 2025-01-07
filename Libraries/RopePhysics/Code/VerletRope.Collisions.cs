@@ -476,6 +476,11 @@ public partial class VerletRope
 			{
 				var point = _points[collision];
 				var currentPos = ci.Transform.PointToLocal( point.Position );
+				var closestPoint = ci.Sdf.Bounds.ClosestPoint( currentPos );
+				var distance = currentPos.Distance( closestPoint );
+				if ( distance >= SolidRadius )
+					continue;
+
 				var texel = ci.Sdf.PositionToTexel( currentPos );
 				var sdMesh = ci.Sdf[texel];
 				if ( sdMesh >= SolidRadius )
