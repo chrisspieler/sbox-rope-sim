@@ -109,12 +109,12 @@ internal class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSyste
 		}
 	}
 
-	public CreateMeshOctreeJob AddCreateMeshOctreeJob( MeshDistanceField mdf )
+	public CreateMeshOctreeJob AddCreateMeshOctreeJob( MeshDistanceField mdf, MeshDistanceConfig config = null )
 	{
 		var nextInput = new CreateMeshOctreeJob.InputData
 		{
 			Mdf = mdf,
-			LeafSize = 16,
+			LeafSize = config?.TextureResolution ?? 16,
 		};
 		var job = new CreateMeshOctreeJob( mdf.Id, nextInput );
 		// TODO: Cancel the previous job.
@@ -177,7 +177,6 @@ internal class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSyste
 		_meshExtractionFromModelJobs[id] = job;
 		DebugLog( $"Queue {nameof( ExtractMeshFromModelJob )} # {id}" );
 		return job;
-		
 	}
 
 #endregion

@@ -1,4 +1,6 @@
-﻿namespace Duccsoft;
+﻿using System.Security.Cryptography;
+
+namespace Duccsoft;
 
 public partial class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 {
@@ -12,53 +14,99 @@ public partial class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 
 	public MeshDistanceSystem( Scene scene ) : base( scene ) { }
 
-	private readonly Dictionary<int, MeshDistanceField> _meshDistanceFields = new();
+	private readonly Dictionary<int, MeshDistanceField> _meshDistanceFields = [];
+	private readonly Dictionary<PhysicsShape, int> _physicsShapes = [];
+	private readonly Dictionary<Model, int> _models = [];
+	private readonly Dictionary<MeshDistanceConfig, int> _configs = [];
 
-	public bool Has( int id ) => _meshDistanceFields.ContainsKey( id );
-	public bool Has( PhysicsShape shape ) => Has( MeshDistanceField.GetId( shape ) );
-	public bool Has( Model model ) => Has( MeshDistanceField.GetId( model ) );
-
-	public MeshDistanceField GetMdf( PhysicsShape shape )
+	public bool TryGet( int id, out MeshDistanceField mdf )
 	{
-		var id = MeshDistanceField.GetId( shape );
-		var mdf = GetMdf( id );
-
-		if ( mdf.ExtractMeshJob is null )
-		{
-			BuildSystem.AddExtractMeshJob( id, shape );
-		}
-		return mdf;
+		return _meshDistanceFields.TryGetValue( id, out mdf );
 	}
 
-	public MeshDistanceField GetMdf( Model model )
+	public bool TryGet( PhysicsShape shape, out MeshDistanceField mdf )
 	{
-		var id = MeshDistanceField.GetId( model );
-		var mdf = GetMdf( id );
-
-		if ( mdf.ExtractMeshJob is null )
+		if ( !_physicsShapes.TryGetValue( shape, out int mdfId ) )
 		{
-			BuildSystem.AddExtractMeshJob( id, model );
+			mdf = null;
+			return false;
+		}
+
+		var result = TryGet( mdfId, out mdf );
+		if ( !result )
+		{
+			_physicsShapes.Remove( shape );
+		}
+		return result;
+	}
+
+	public bool TryGet( Model model, out MeshDistanceField mdf )
+	{
+		if ( !_models.TryGetValue( model, out int mdfId ) )
+		{
+			mdf = null;
+			return false;
+		}
+
+		var result = TryGet( mdfId, out mdf );
+		if ( !result )
+		{
+			_models.Remove( model );
+		}
+		return result;
+	}
+
+	public MeshDistanceField GetOrCreate( MeshDistanceConfig config )
+	{
+		if ( !config.IsValid() )
+			return null;
+
+		if ( !_configs.TryGetValue( config, out int mdfId ) )
+		{
+			mdfId = config.GetId();
+			var mdf = CreateMdf( mdfId, config );
+			_configs[config] = mdfId;
+			return mdf;
+		}
+		return GetMdf( mdfId );
+	}
+
+	internal MeshDistanceField CreateMdf( int id, MeshDistanceConfig config = null )
+	{
+		var mdf = new MeshDistanceField( MeshDistanceBuildSystem.Current, id, config );
+		_meshDistanceFields[mdf.Id] = mdf;
+		if ( config is not null )
+		{
+			if ( config.MeshSource == MeshDistanceConfig.MeshSourceType.Model )
+			{
+				if ( config.Model is not null )
+				{
+					BuildSystem.AddExtractMeshJob( id, config.Model );
+					mdf.SourceModel = config.Model;
+					_models[config.Model] = id;
+				}
+			}
+			else if ( config.MeshSource == MeshDistanceConfig.MeshSourceType.Collider )
+			{
+				var shape = config.GetPhysicsShape();
+				if ( shape.IsValid() )
+				{
+					BuildSystem.AddExtractMeshJob( id, shape );
+					mdf.SourceShape = shape;
+					_physicsShapes[shape] = id;
+				}
+			}
 		}
 		return mdf;
 	}
 
 	public MeshDistanceField GetMdf( int id )
 	{
-		// Did we already build a mesh distance field?
-		if ( _meshDistanceFields.TryGetValue( id, out var mdf ) )
-			return mdf;
-
-		mdf = new MeshDistanceField( MeshDistanceBuildSystem.Current, id );
-		AddMdf( id, mdf );
+		_meshDistanceFields.TryGetValue( id, out var mdf );
 		return mdf;
 	}
 
 	public MeshDistanceField this[int id] => GetMdf( id );
-
-	internal void AddMdf( int id, MeshDistanceField mdf )
-	{
-		_meshDistanceFields[id] = mdf;
-	}
 
 	public void RemoveMdf( int id )
 	{
@@ -66,6 +114,18 @@ public partial class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 		{
 			MeshDistanceBuildSystem.Current.StopBuild( id );
 			_meshDistanceFields.Remove( id );
+			if ( mdf.Config is not null )
+			{
+				_configs.Remove( mdf.Config );
+			}
+			if ( mdf.SourceModel is not null )
+			{
+				_models.Remove( mdf.SourceModel );
+			}
+			if ( mdf.SourceShape is not null )
+			{
+				_physicsShapes.Remove( mdf.SourceShape );
+			}
 		}
 	}
 
@@ -129,13 +189,16 @@ public partial class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 
 			var gameObject = collider.GameObject;
 			var localPos = tr.Shape.Body.Transform.PointToLocal( tr.StartPosition );
+			Current.TryGet( tr.Shape, out var mdf );
+			if ( mdf is null )
+				continue;
 
 			yield return new MdfQueryResult
 			{
 				LocalPosition = localPos,
 				Distance = localPos.Length,
 				GameObject = gameObject,
-				Mdf = Current.GetMdf( tr.Shape ),
+				Mdf = mdf,
 				Collider = collider,
 			};
 		}
@@ -173,12 +236,17 @@ public partial class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 				continue;
 
 			var localPos = renderer.WorldTransform.PointToLocal( center );
+			Current.TryGet( renderer.Model, out var mdf );
+
+			if ( mdf is null )
+				continue;
+
 			yield return new MdfQueryResult()
 			{
 				LocalPosition = localPos,
 				Distance = distance,
 				GameObject = renderer.GameObject,
-				Mdf = Current.GetMdf( renderer.Model ),
+				Mdf = mdf,
 				Model = renderer.Model,
 			};
 		}
@@ -206,12 +274,17 @@ public partial class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 			var distance = renderer.WorldPosition.Distance( box.Center );
 
 			var localPos = renderer.WorldTransform.PointToLocal( box.Center );
+			Current.TryGet( renderer.Model, out var mdf );
+
+			if ( mdf is null )
+				continue;
+
 			yield return new MdfQueryResult()
 			{
 				LocalPosition = localPos,
 				Distance = distance,
 				GameObject = renderer.GameObject,
-				Mdf = Current.GetMdf( renderer.Model ),
+				Mdf = mdf,
 				Model = renderer.Model,
 			};
 		}

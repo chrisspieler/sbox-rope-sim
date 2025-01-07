@@ -29,8 +29,11 @@ public class MeshDistanceFieldDemo : Component
 			if ( changed )
 			{
 				_waitForMesh = true;
-				// TODO: Create an MDF cache with a reference counter so I don't have to delete this.
-				MeshDistanceSystem.Current.RemoveMdf( Mdf.Id );
+				if ( Mdf is not null )
+				{
+					// TODO: Create an MDF cache with a reference counter so I don't have to delete this.
+					MeshDistanceSystem.Current.RemoveMdf( Mdf.Id );
+				}
 				OnSelectedGameObjectChanged();
 			}
 		}
@@ -80,7 +83,7 @@ public class MeshDistanceFieldDemo : Component
 	private void OnSelectedGameObjectChanged()
 	{
 		Log.Info( $"Selected gameobject changed" );
-		if ( !SelectedMeshGameObject.IsValid() || (!TryUpdateMdfFromPhysics() && !TryUpdateMdfFromModel()) )
+		if ( !SelectedMeshGameObject.IsValid() || !TryUpdateMdf() )
 		{
 			ClearMdf();
 		}
@@ -93,33 +96,18 @@ public class MeshDistanceFieldDemo : Component
 		ModelViewer.MdfGameObject = null;
 	}
 
-	private bool TryUpdateMdfFromPhysics()
+	private bool TryUpdateMdf()
 	{
-		if ( !SelectedMeshGameObject.Components.TryGet<Collider>( out var collider ) )
+		if ( !SelectedMeshGameObject.Components.TryGet( out MeshDistanceConfig config ) )
+		{
+			Log.Info( "no mdf config" );
 			return false;
-
-		var physicsShape = collider?.KeyframeBody?.Shapes?.FirstOrDefault();
-		if ( !physicsShape.IsValid() )
-			return false;
-
-		Mdf = MeshDistanceSystem.Current.GetMdf( physicsShape );
+		}
+		
+		Mdf = MeshDistanceSystem.Current.GetOrCreate( config );
 		ModelViewer.Mdf = Mdf;
 		ModelViewer.MdfGameObject = SelectedMeshGameObject;
-		return true;
-	}
-
-	private bool TryUpdateMdfFromModel()
-	{
-		if ( !SelectedMeshGameObject.Components.TryGet<ModelRenderer>( out var renderer ) )
-			return false;
-
-		var model = renderer.Model;
-		if ( model is null )
-			return false;
-
-		Mdf = MeshDistanceSystem.Current.GetMdf( model );
-		ModelViewer.Mdf = Mdf;
-		ModelViewer.MdfGameObject = SelectedMeshGameObject;
+		Log.Info( $"mdf getorcreate true" );
 		return true;
 	}
 

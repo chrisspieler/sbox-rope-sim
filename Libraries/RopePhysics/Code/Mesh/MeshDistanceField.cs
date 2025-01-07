@@ -1,4 +1,5 @@
 ﻿using Sandbox.Diagnostics;
+using System.Data;
 
 namespace Duccsoft;
 
@@ -8,10 +9,11 @@ namespace Duccsoft;
 public partial class MeshDistanceField
 {
 	private MeshDistanceField() { }
-	internal MeshDistanceField( MeshDistanceBuildSystem buildSystem, int id )
+	internal MeshDistanceField( MeshDistanceBuildSystem buildSystem, int id, MeshDistanceConfig config = null )
 	{
 		BuildSystem = buildSystem;
 		Id = id;
+		Config = config;
 	}
 
 	public int Id { get; }
@@ -27,6 +29,9 @@ public partial class MeshDistanceField
 	internal GpuMeshData MeshData { get; set; }
 	internal void SetOctree( SparseVoxelOctree<SignedDistanceField> octree ) => Octree = octree;
 	private SparseVoxelOctree<SignedDistanceField> Octree { get; set; }
+
+	internal Model SourceModel { get; set; }
+	internal PhysicsShape SourceShape { get; set; }
 
 	#region Build Jobs
 	public int QueuedJumpFloodJobs => JumpFloodJobs.Count;
@@ -54,6 +59,7 @@ public partial class MeshDistanceField
 
 	internal Job ExtractMeshJob { get; set; }
 	internal ConvertMeshToGpuJob ConvertMeshJob { get; set; }
+	public MeshDistanceConfig Config { get; set; }
 	public bool IsMeshBuilt => MeshData is not null;
 	internal CreateMeshOctreeJob CreateOctreeJob { get; set; }
 	public bool IsOctreeBuilt => Octree is not null;
@@ -66,7 +72,7 @@ public partial class MeshDistanceField
 		OctreeLeafCount = 0;
 
 		SinceBuildStarted = 0;
-		BuildSystem.AddCreateMeshOctreeJob( this );
+		BuildSystem.AddCreateMeshOctreeJob( this, Config );
 	}
 
 	public void RebuildOctreeVoxel( Vector3Int voxel, bool collectDebugData, Action onCompleted = null )

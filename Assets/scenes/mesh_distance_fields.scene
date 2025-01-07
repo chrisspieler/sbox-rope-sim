@@ -140,7 +140,6 @@
           "Flags": 0,
           "Name": "monkey",
           "Rotation": "0,0,1,-0.00000004371139",
-          "Tags": "mdf_demo",
           "Enabled": true,
           "Components": [
             {
@@ -165,6 +164,19 @@
               "Model": "models/monkey/monkey.vmdl",
               "Static": false,
               "SurfaceVelocity": "0,0,0"
+            },
+            {
+              "__type": "Duccsoft.MeshDistanceConfig",
+              "__guid": "72f04cb4-a060-4aff-932d-e05664e8f4db",
+              "Collider": {
+                "_type": "component",
+                "component_id": "ffc63d73-82a9-4d62-bcee-2b4eb2887eb4",
+                "go": "d61a8e4c-d833-4d1c-98f9-853871854bdc",
+                "component_type": "ModelCollider"
+              },
+              "MeshSource": "Collider",
+              "TextureExponent": 4,
+              "TextureResolution": 16
             }
           ]
         },
@@ -1178,7 +1190,6 @@
           "__guid": "a7e7fc6a-e5ec-4c31-9055-df3e33e9cf0a",
           "Flags": 0,
           "Name": "Mesh Sphere",
-          "Tags": "mdf_demo",
           "Components": [
             {
               "__type": "Sandbox.MeshComponent",
@@ -15397,7 +15408,6 @@
           "__guid": "c181a3ba-97ee-4f77-9ab1-a7d4df7aea3a",
           "Flags": 0,
           "Name": "Mesh Box",
-          "Tags": "mdf_demo",
           "Components": [
             {
               "__type": "Sandbox.MeshComponent",
@@ -15525,7 +15535,6 @@
           "Flags": 0,
           "Name": "ducc",
           "Rotation": "0,0,1,-0.00000004371139",
-          "Tags": "mdf_demo",
           "Components": [
             {
               "__type": "Sandbox.ModelRenderer",
@@ -15557,7 +15566,6 @@
           "Flags": 0,
           "Name": "Concave U",
           "Position": "0,0,16",
-          "Tags": "mdf_demo",
           "Components": [
             {
               "__type": "Sandbox.MeshComponent",
@@ -15962,6 +15970,14 @@
               },
               "Tint": "1,1,1,1",
               "UseAnimGraph": true
+            },
+            {
+              "__type": "Duccsoft.MeshDistanceConfig",
+              "__guid": "36b0fda4-181f-42e7-8db9-d51a1c0a54c9",
+              "MeshSource": "Model",
+              "Model": "models/reetuh_bernese.vmdl",
+              "TextureExponent": 5,
+              "TextureResolution": 32
             }
           ]
         },
