@@ -109,12 +109,12 @@ internal class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSyste
 		}
 	}
 
-	public CreateMeshOctreeJob AddCreateMeshOctreeJob( MeshDistanceField mdf, MeshDistanceConfig config = null )
+	public CreateMeshOctreeJob AddCreateMeshOctreeJob( MeshDistanceField mdf )
 	{
 		var nextInput = new CreateMeshOctreeJob.InputData
 		{
 			Mdf = mdf,
-			LeafSize = config?.TextureResolution ?? 16,
+			LeafSize = 16,
 		};
 		var job = new CreateMeshOctreeJob( mdf.Id, nextInput );
 		// TODO: Cancel the previous job.
@@ -143,12 +143,13 @@ internal class MeshDistanceBuildSystem : GameObjectSystem<MeshDistanceBuildSyste
 		}
 	}
 
-	internal JumpFloodSdfJob AddJumpFloodSdfJob( MeshDistanceField mdf, Vector3Int position, bool collectDebugData )
+	internal JumpFloodSdfJob AddJumpFloodSdfJob( MeshDistanceField mdf, Vector3Int position, bool collectDebugData, int textureResolution )
 	{
 		var inputData = new JumpFloodSdfJob.InputData()
 		{
 			Mdf = mdf,
 			OctreeVoxel = position,
+			TextureResolution = textureResolution,
 			EmptySeedCount = JumpFloodSdfJob.NumEmptySeeds,
 			CollectDebugData = collectDebugData,
 		};

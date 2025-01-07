@@ -1,6 +1,7 @@
 ﻿using Duccsoft;
 using Duccsoft.ImGui;
 using System;
+using System.Drawing;
 
 namespace Sandbox;
 
@@ -263,11 +264,11 @@ public class MdfModelViewer : Component
 			SelectedVoxel = LastValidVoxel.WithZ( octreeSlice * Mdf.OctreeLeafDims );
 		}
 		
-		ImGui.Text( $"Selected Octree Voxel: {SelectedVoxel / Mdf.OctreeLeafDims}" );
+		ImGui.Text( $"Selected {size}^3 Voxel: {SelectedVoxel / Mdf.OctreeLeafDims}" );
 		var bounds = Mdf.VoxelToLocalBounds( SelectedVoxel );
 		ImGui.Text( $"mins: ({bounds.Mins.x:F3},{bounds.Mins.y:F3},{bounds.Mins.z:F3})" );
 		ImGui.Text( $"maxs: ({bounds.Maxs.x:F3},{bounds.Maxs.y:F3},{bounds.Maxs.z:F3})" );
-		ImGui.Text( $"Texture: {size}x{size}x{size}, {Mdf.DataSize.FormatBytes()}" );
+		
 	}
 
 	private void PaintTextureViewerDebugOptions()
@@ -318,12 +319,12 @@ public class MdfModelViewer : Component
 			}
 			_showGradients = showGradients;
 		}
-		_maxSlice = Mdf.OctreeLeafDims - 1;
+		_maxSlice = sdfTex.TextureSize - 1;
 		var textureSlice = TextureSlice;
 		if ( ImGui.SliderInt( nameof( TextureSlice ), ref textureSlice, 0, _maxSlice ) )
 		{
 			var diff = textureSlice - TextureSlice;
-			Scene.Camera.WorldPosition += new Vector3( 0f, 0f, MeshDistanceSystem.TexelSize * diff );
+			Scene.Camera.WorldPosition += new Vector3( 0f, 0f, sdfTex.TexelSize * diff );
 		}
 		if ( _copiedTex is null || textureSlice != TextureSlice || _shouldRefreshTexture )
 		{
@@ -364,6 +365,8 @@ public class MdfModelViewer : Component
 		{
 			_hoveredTexel = null;
 		}
+		var res = sdfTex.TextureSize;
+		ImGui.Text( $"Texture: {res}x{res}x{res}, {sdfTex.DataSize.FormatBytes()}" );
 
 		if ( _selectedTexel is not Vector3Int texel  )
 			return;
@@ -444,9 +447,9 @@ public class MdfModelViewer : Component
 
 			var texelPos = sdfTex.TexelToPosition( texel );
 			var tx = MdfGameObject.WorldTransform;
-			var size = MeshDistanceSystem.TexelSize;
-			var texelCenter = texelPos + size * 0.5f;
-			var texelBounds = BBox.FromPositionAndSize( texelCenter, size );
+			var texelSize = sdfTex.TexelSize;
+			var texelCenter = texelPos + texelSize * 0.5f;
+			var texelBounds = BBox.FromPositionAndSize( texelCenter, texelSize );
 			var insideColor = (color * 0.2f).WithAlpha( 0.25f );
 			// Draw texel bounds
 			DebugOverlay.Box( texelBounds, color: color.WithAlpha( 1f ), transform: tx, overlay: false );
@@ -458,7 +461,7 @@ public class MdfModelViewer : Component
 			DebugOverlay.Line( texelBounds.Center, texelBounds.Center + texelGradient * distance, color: Color.Blue, transform: tx, overlay: true );
 
 			var bounds = Mdf.VoxelToLocalBounds( SelectedVoxel );
-			var z = ((float)_textureSlice).Remap( 0f, Mdf.OctreeLeafSize, bounds.Mins.z, bounds.Maxs.z );
+			var z = ((float)_textureSlice).Remap( 0f, sdfTex.TextureSize, bounds.Mins.z, bounds.Maxs.z );
 			var slice = BBox.FromPositionAndSize( bounds.Center.WithZ( z + 0.5f ), bounds.Size.WithZ( 0.2f ) );
 			// Draw slice plane
 			DebugOverlay.Box( slice, color: Color.White, transform: tx, overlay: true );

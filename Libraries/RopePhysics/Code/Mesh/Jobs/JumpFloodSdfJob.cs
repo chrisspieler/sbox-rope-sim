@@ -1,5 +1,4 @@
-﻿using System.Text;
-using static Duccsoft.JumpFloodSdfJob;
+﻿using static Duccsoft.JumpFloodSdfJob;
 
 namespace Duccsoft;
 
@@ -12,6 +11,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 	{
 		public MeshDistanceField Mdf;
 		public Vector3Int OctreeVoxel;
+		public int TextureResolution;
 		public int EmptySeedCount;
 		public bool CollectDebugData;
 	}
@@ -42,9 +42,9 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 	protected override bool RunInternal( out OutputData result )
 	{
 		var bounds = Input.Mdf.VoxelToLocalBounds( Input.OctreeVoxel );
-		int size = Input.Mdf.OctreeLeafDims;
+		int res = Input.TextureResolution;
 
-		var outputSdf = new SignedDistanceField( null, size, bounds );
+		var outputSdf = new SignedDistanceField( null, res, bounds );
 
 		var gpuMesh = Input.Mdf.MeshData;
 		if ( Input.CollectDebugData )
@@ -53,7 +53,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		}
 
 		int triCount = gpuMesh.Indices.ElementCount / 3;
-		int voxelCount = size * size * size;
+		int voxelCount = res * res * res;
 
 		GpuBuffer<float> scratchVoxelSdfGpu;
 		using ( PerfLog.Scope( Id, $"Create {nameof( scratchVoxelSdfGpu )}" ) )
@@ -63,7 +63,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		// Set the attributes for the signed distance field.
 		_meshSdfCs.Attributes.Set( "VoxelMinsOs", bounds.Mins );
 		_meshSdfCs.Attributes.Set( "VoxelMaxsOs", bounds.Maxs );
-		_meshSdfCs.Attributes.Set( "VoxelVolumeDims", new Vector3( size ) );
+		_meshSdfCs.Attributes.Set( "VoxelVolumeDims", new Vector3( res ) );
 		_meshSdfCs.Attributes.Set( "ScratchVoxelSdf", scratchVoxelSdfGpu );
 
 
@@ -73,7 +73,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 			// Initialize each texel of the volume texture as having no associated seed index.
 			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeVolume );
 			_meshSdfCs.Attributes.Set( "VoxelSeeds", voxelSeedsGpu );
-			_meshSdfCs.Dispatch( size, size, size );
+			_meshSdfCs.Dispatch( res, res, res );
 		}
 
 		var seedCount = triCount * 4 + Input.EmptySeedCount;
@@ -114,18 +114,18 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		{
 			// For each seed we found, write it to the seed data.
 			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeSeeds );
-			_meshSdfCs.Dispatch( size, size, size );
+			_meshSdfCs.Dispatch( res, res, res );
 		}
 
 		// Run a jump flooding algorithm to find the nearest seed index for each texel/voxel
 		// and calculate the signed distance to that seed's object space position.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.JumpFlood );
-		for ( int step = size / 2; step > 0; step /= 2 )
+		for ( int step = res / 2; step > 0; step /= 2 )
 		{
 			using ( PerfLog.Scope( Id, $"Dispatch {MdfBuildStage.JumpFlood}, Step Size: {step}" ) )
 			{
 				_meshSdfCs.Attributes.Set( "JumpStep", step );
-				_meshSdfCs.Dispatch( size, size, size );
+				_meshSdfCs.Dispatch( res, res, res );
 			}
 		}
 
@@ -145,7 +145,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		{
 			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.Compress );
 			_meshSdfCs.Attributes.Set( "VoxelSdf", voxelSdfGpu );
-			_meshSdfCs.Dispatch( size, size, size );
+			_meshSdfCs.Dispatch( res, res, res );
 		}
 
 		int[] voxelSdf;

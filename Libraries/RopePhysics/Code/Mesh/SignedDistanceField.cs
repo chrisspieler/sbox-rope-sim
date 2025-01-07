@@ -101,6 +101,6 @@ public partial class SignedDistanceField
 		float ddy = sign * y0 < sign * y1 ? -(y0 - d) : (y1 - d);
 		float ddz = sign * z0 < sign * z1 ? -(z0 - d) : (z1 - d);
 
-		return new Vector3( ddx, ddy, ddz );
+		return new Vector3( ddx, ddy, ddz ).Normal;
 	}
 }

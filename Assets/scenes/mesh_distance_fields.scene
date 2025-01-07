@@ -15401,6 +15401,19 @@
               "SmoothingAngle": 40,
               "Static": true,
               "SurfaceVelocity": "0,0,0"
+            },
+            {
+              "__type": "Duccsoft.MeshDistanceConfig",
+              "__guid": "3d95482d-aa6c-45ec-a81e-5feb4f9a757b",
+              "Collider": {
+                "_type": "component",
+                "component_id": "d3a9f13d-b255-4617-b4fc-e8fc8b54de02",
+                "go": "a7e7fc6a-e5ec-4c31-9055-df3e33e9cf0a",
+                "component_type": "MeshComponent"
+              },
+              "MeshSource": "Collider",
+              "TextureExponent": 4,
+              "TextureResolution": 16
             }
           ]
         },
@@ -15527,6 +15540,19 @@
               "SmoothingAngle": 40,
               "Static": true,
               "SurfaceVelocity": "0,0,0"
+            },
+            {
+              "__type": "Duccsoft.MeshDistanceConfig",
+              "__guid": "785e36cd-67f4-466f-b3cb-b904f0a289e2",
+              "Collider": {
+                "_type": "component",
+                "component_id": "9e9211cb-75da-4c1a-b69f-0ad823ac90be",
+                "go": "c181a3ba-97ee-4f77-9ab1-a7d4df7aea3a",
+                "component_type": "MeshComponent"
+              },
+              "MeshSource": "Collider",
+              "TextureExponent": 4,
+              "TextureResolution": 16
             }
           ]
         },
@@ -15558,6 +15584,14 @@
               "Model": "models/duck_decoration/duck_decoration.vmdl",
               "Static": false,
               "SurfaceVelocity": "0,0,0"
+            },
+            {
+              "__type": "Duccsoft.MeshDistanceConfig",
+              "__guid": "aaeaa36e-13b1-4924-affc-8bd7088ce6c0",
+              "MeshSource": "Model",
+              "Model": "models/duck_decoration/duck_decoration.vmdl",
+              "TextureExponent": 4,
+              "TextureResolution": 16
             }
           ]
         },
@@ -15932,6 +15966,19 @@
               "SmoothingAngle": 40,
               "Static": true,
               "SurfaceVelocity": "0,0,0"
+            },
+            {
+              "__type": "Duccsoft.MeshDistanceConfig",
+              "__guid": "c7e9b20e-9d8d-408f-8fbc-ec83da9409e8",
+              "Collider": {
+                "_type": "component",
+                "component_id": "4fc6925c-d010-4145-a2e5-3993af3b5244",
+                "go": "06a6cc1f-71e6-41cd-9fe0-1d1053bd7524",
+                "component_type": "MeshComponent"
+              },
+              "MeshSource": "Collider",
+              "TextureExponent": 4,
+              "TextureResolution": 16
             }
           ]
         },
@@ -15976,8 +16023,8 @@
               "__guid": "36b0fda4-181f-42e7-8db9-d51a1c0a54c9",
               "MeshSource": "Model",
               "Model": "models/reetuh_bernese.vmdl",
-              "TextureExponent": 5,
-              "TextureResolution": 32
+              "TextureExponent": 4,
+              "TextureResolution": 16
             }
           ]
         },
@@ -16022,6 +16069,14 @@
               "Model": "models/props/dingus.vmdl",
               "Static": false,
               "SurfaceVelocity": "0,0,0"
+            },
+            {
+              "__type": "Duccsoft.MeshDistanceConfig",
+              "__guid": "6369be26-3642-4b4a-a629-2ae6ba271bbe",
+              "MeshSource": "Model",
+              "Model": "models/props/dingus.vmdl",
+              "TextureExponent": 4,
+              "TextureResolution": 16
             }
           ]
         }

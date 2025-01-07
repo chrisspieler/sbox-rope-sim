@@ -28,26 +28,22 @@ public partial class MeshDistanceField
 
 	public bool TrySample( Vector3 localSamplePos, out MeshDistanceSample sample )
 	{
-		// Snap sample point to bounds, in case it's out of bounds.
-		var closestPoint = Bounds.ClosestPoint( localSamplePos );
-		if ( Octree is null )
-		{
-			sample = default;
+		sample = default;
+
+		if ( !Bounds.Contains( localSamplePos ) || Octree is null )
 			return false;
-		}
-		var octreePos = LocalPosToOctree( closestPoint );
+
+		var octreePos = LocalPosToOctree( localSamplePos );
 		var voxel = Octree.Find( octreePos );
 		if ( voxel?.Data is null )
-		{
-			// TODO: Trace ray to nearest leaf and sample its SDF instead.
-			sample = default;
 			return false;
-		}
+
 		var sdf = voxel.Data;
-		var texel = sdf.PositionToTexel( closestPoint );
+		if ( !sdf.Bounds.Contains( localSamplePos ) )
+			return false;
+
+		var texel = sdf.PositionToTexel( localSamplePos );
 		var signedDistance = sdf[texel];
-		// If we were out of bounds, add the amount by which we were out of bounds to the distance.
-		signedDistance += closestPoint.Distance( localSamplePos );
 		sample = new MeshDistanceSample()
 		{
 			Gradient = sdf.CalculateGradient( texel ),

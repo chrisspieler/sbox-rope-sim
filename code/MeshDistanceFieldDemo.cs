@@ -82,7 +82,6 @@ public class MeshDistanceFieldDemo : Component
 
 	private void OnSelectedGameObjectChanged()
 	{
-		Log.Info( $"Selected gameobject changed" );
 		if ( !SelectedMeshGameObject.IsValid() || !TryUpdateMdf() )
 		{
 			ClearMdf();
@@ -100,14 +99,12 @@ public class MeshDistanceFieldDemo : Component
 	{
 		if ( !SelectedMeshGameObject.Components.TryGet( out MeshDistanceConfig config ) )
 		{
-			Log.Info( "no mdf config" );
 			return false;
 		}
 		
 		Mdf = MeshDistanceSystem.Current.GetOrCreate( config );
 		ModelViewer.Mdf = Mdf;
 		ModelViewer.MdfGameObject = SelectedMeshGameObject;
-		Log.Info( $"mdf getorcreate true" );
 		return true;
 	}
 

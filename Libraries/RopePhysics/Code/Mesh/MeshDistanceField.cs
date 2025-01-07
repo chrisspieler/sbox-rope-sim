@@ -72,7 +72,7 @@ public partial class MeshDistanceField
 		OctreeLeafCount = 0;
 
 		SinceBuildStarted = 0;
-		BuildSystem.AddCreateMeshOctreeJob( this, Config );
+		BuildSystem.AddCreateMeshOctreeJob( this );
 	}
 
 	public void RebuildOctreeVoxel( Vector3Int voxel, bool collectDebugData, Action onCompleted = null )
@@ -81,7 +81,7 @@ public partial class MeshDistanceField
 		{
 			existingData.IsRebuilding = true;
 		}
-		var job = BuildSystem.AddJumpFloodSdfJob( this, voxel, collectDebugData );
+		var job = BuildSystem.AddJumpFloodSdfJob( this, voxel, collectDebugData, Config?.TextureResolution ?? 16 );
 		job.OnCompleted += onCompleted;
 		JumpFloodJobs[voxel] = job;
 	}
