@@ -17,6 +17,12 @@
           "ClearFlags": "All",
           "FieldOfView": 60,
           "IsMainCamera": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
           "Orthographic": false,
           "OrthographicHeight": 1204,
           "Priority": 1,
@@ -44,6 +50,12 @@
           "FogMode": "Enabled",
           "FogStrength": 1,
           "LightColor": "0.91373,0.98039,1,1",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
           "Shadows": true,
           "SkyColor": "0,0,0,0"
         }
@@ -64,6 +76,12 @@
           "FogMode": "Enabled",
           "FogStrength": 1,
           "LightColor": "0.30259,0.32395,0.33023,1",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
           "Shadows": true,
           "SkyColor": "0,0,0,0"
         }
@@ -88,6 +106,12 @@
           "FrameInterval": 5,
           "MaxDistance": 512,
           "MultiBounce": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
           "Projection": "Box",
           "RenderDynamically": true,
           "Texture": "textures/cubemaps/default2.vtex",
@@ -117,6 +141,12 @@
             "go": "ab3d85b6-7d7b-4b14-b598-380b906e8998",
             "component_type": "MdfModelViewer"
           },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
           "RotationSpeed": 0,
           "SelectedMeshIndex": 0,
           "ShouldRotate": false
@@ -124,6 +154,12 @@
         {
           "__type": "Sandbox.MdfModelViewer",
           "__guid": "31926279-0e3c-4e2f-9b95-0829005bcc99",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
           "ShouldDrawOctree": true,
           "ShowTextureViewer": false
         }
@@ -136,18 +172,150 @@
       "Enabled": true,
       "Children": [
         {
+          "__guid": "5d77de25-8dbc-4bfe-bd78-70dee0fd5e69",
+          "Flags": 0,
+          "Name": "tifaswimsuit",
+          "Rotation": "0,0,1,0.0000001947072",
+          "Tags": "mdf_model",
+          "Components": [
+            {
+              "__type": "Sandbox.SkinnedModelRenderer",
+              "__guid": "e3b47ece-3b99-4382-8d34-e44510f56efa",
+              "AnimationGraph": null,
+              "BodyGroups": 18446744073709551615,
+              "BoneMergeTarget": null,
+              "CreateAttachments": false,
+              "CreateBoneObjects": false,
+              "MaterialGroup": null,
+              "MaterialOverride": null,
+              "Model": "tifa/models/tifaswimsuit.vmdl",
+              "Morphs": {},
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "Parameters": {
+                "bools": {},
+                "ints": {},
+                "floats": {},
+                "vectors": {},
+                "rotations": {}
+              },
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Sequence": {
+                "Name": null
+              },
+              "Tint": "1,1,1,1",
+              "UseAnimGraph": true
+            },
+            {
+              "__type": "Duccsoft.MeshDistanceConfig",
+              "__guid": "4c0c2075-1246-4e39-af93-b8cea643ff28",
+              "Collider": null,
+              "MeshSource": "Model",
+              "Model": "tifa/models/tifaswimsuit.vmdl",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "TextureExponent": 5,
+              "TextureResolution": 32
+            }
+          ]
+        },
+        {
+          "__guid": "1c8af56c-430d-4e9c-92ba-964859a22510",
+          "Flags": 0,
+          "Name": "reetuh_bernese",
+          "Position": "0,-0.00003738377,0.01763698",
+          "Rotation": "0,0,1,0.0000001947072",
+          "Tags": "mdf_model",
+          "Components": [
+            {
+              "__type": "Sandbox.SkinnedModelRenderer",
+              "__guid": "027c8b75-2c4d-4121-8622-2afabc91105a",
+              "AnimationGraph": null,
+              "BodyGroups": 18446744073709551615,
+              "BoneMergeTarget": null,
+              "CreateAttachments": false,
+              "CreateBoneObjects": false,
+              "MaterialGroup": null,
+              "MaterialOverride": null,
+              "Model": "models/reetuh_bernese.vmdl",
+              "Morphs": {},
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "Parameters": {
+                "bools": {},
+                "ints": {},
+                "floats": {},
+                "vectors": {},
+                "rotations": {}
+              },
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Sequence": {
+                "Name": null
+              },
+              "Tint": "1,1,1,1",
+              "UseAnimGraph": true
+            },
+            {
+              "__type": "Duccsoft.MeshDistanceConfig",
+              "__guid": "36b0fda4-181f-42e7-8db9-d51a1c0a54c9",
+              "Collider": null,
+              "MeshSource": "Model",
+              "Model": "models/reetuh_bernese.vmdl",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "TextureExponent": 5,
+              "TextureResolution": 32
+            }
+          ]
+        },
+        {
           "__guid": "d61a8e4c-d833-4d1c-98f9-853871854bdc",
           "Flags": 0,
           "Name": "monkey",
           "Rotation": "0,0,1,-0.00000004371139",
-          "Enabled": true,
           "Components": [
             {
               "__type": "Sandbox.ModelRenderer",
               "__guid": "79484ee3-bc4a-4887-a1c6-b0f206a2af55",
               "BodyGroups": 18446744073709551615,
               "CreateAttachments": false,
+              "MaterialGroup": null,
+              "MaterialOverride": null,
               "Model": "models/monkey/monkey.vmdl",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
               "RenderOptions": {
                 "GameLayer": true,
                 "OverlayLayer": false,
@@ -160,9 +328,21 @@
             {
               "__type": "Sandbox.ModelCollider",
               "__guid": "ffc63d73-82a9-4d62-bcee-2b4eb2887eb4",
+              "Friction": null,
               "IsTrigger": false,
               "Model": "models/monkey/monkey.vmdl",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "OnObjectTriggerEnter": null,
+              "OnObjectTriggerExit": null,
+              "OnTriggerEnter": null,
+              "OnTriggerExit": null,
               "Static": false,
+              "Surface": null,
               "SurfaceVelocity": "0,0,0"
             },
             {
@@ -175,6 +355,13 @@
                 "component_type": "ModelCollider"
               },
               "MeshSource": "Collider",
+              "Model": null,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
               "TextureExponent": 4,
               "TextureResolution": 16
             }
@@ -191,6 +378,7 @@
               "__guid": "706c5a74-dee8-4788-9900-6ef9d626d517",
               "Collision": "Mesh",
               "Color": "1,1,1,1",
+              "Friction": null,
               "HideInGame": false,
               "IsTrigger": false,
               "Mesh": {
@@ -1180,8 +1368,19 @@
                   "materials/dev/dev_measuregeneric01b.vmat"
                 ]
               },
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "OnObjectTriggerEnter": null,
+              "OnObjectTriggerExit": null,
+              "OnTriggerEnter": null,
+              "OnTriggerExit": null,
               "SmoothingAngle": 40,
               "Static": true,
+              "Surface": null,
               "SurfaceVelocity": "0,0,0"
             }
           ]
@@ -1196,6 +1395,7 @@
               "__guid": "d3a9f13d-b255-4617-b4fc-e8fc8b54de02",
               "Collision": "Mesh",
               "Color": "1,1,1,1",
+              "Friction": null,
               "HideInGame": false,
               "IsTrigger": false,
               "Mesh": {
@@ -15398,8 +15598,19 @@
                   "materials/dev/dev_measuregeneric01b.vmat"
                 ]
               },
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "OnObjectTriggerEnter": null,
+              "OnObjectTriggerExit": null,
+              "OnTriggerEnter": null,
+              "OnTriggerExit": null,
               "SmoothingAngle": 40,
               "Static": true,
+              "Surface": null,
               "SurfaceVelocity": "0,0,0"
             },
             {
@@ -15412,6 +15623,13 @@
                 "component_type": "MeshComponent"
               },
               "MeshSource": "Collider",
+              "Model": null,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
               "TextureExponent": 4,
               "TextureResolution": 16
             }
@@ -15427,6 +15645,7 @@
               "__guid": "9e9211cb-75da-4c1a-b69f-0ad823ac90be",
               "Collision": "Mesh",
               "Color": "1,1,1,1",
+              "Friction": null,
               "HideInGame": false,
               "IsTrigger": false,
               "Mesh": {
@@ -15537,8 +15756,19 @@
                   "materials/dev/dev_measuregeneric01.vmat"
                 ]
               },
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "OnObjectTriggerEnter": null,
+              "OnObjectTriggerExit": null,
+              "OnTriggerEnter": null,
+              "OnTriggerExit": null,
               "SmoothingAngle": 40,
               "Static": true,
+              "Surface": null,
               "SurfaceVelocity": "0,0,0"
             },
             {
@@ -15551,45 +15781,13 @@
                 "component_type": "MeshComponent"
               },
               "MeshSource": "Collider",
-              "TextureExponent": 4,
-              "TextureResolution": 16
-            }
-          ]
-        },
-        {
-          "__guid": "522c3749-018a-4680-9b6f-4377bcbcaf57",
-          "Flags": 0,
-          "Name": "ducc",
-          "Rotation": "0,0,1,-0.00000004371139",
-          "Components": [
-            {
-              "__type": "Sandbox.ModelRenderer",
-              "__guid": "43ee8a5f-f3a0-4f4d-820d-a4bd1a10f86b",
-              "BodyGroups": 18446744073709551615,
-              "CreateAttachments": false,
-              "Model": "models/duck_decoration/duck_decoration.vmdl",
-              "RenderOptions": {
-                "GameLayer": true,
-                "OverlayLayer": false,
-                "BloomLayer": false,
-                "AfterUILayer": false
-              },
-              "RenderType": "On",
-              "Tint": "1,1,1,1"
-            },
-            {
-              "__type": "Sandbox.ModelCollider",
-              "__guid": "f237d989-610f-43c5-bc7a-27876489efef",
-              "IsTrigger": false,
-              "Model": "models/duck_decoration/duck_decoration.vmdl",
-              "Static": false,
-              "SurfaceVelocity": "0,0,0"
-            },
-            {
-              "__type": "Duccsoft.MeshDistanceConfig",
-              "__guid": "aaeaa36e-13b1-4924-affc-8bd7088ce6c0",
-              "MeshSource": "Model",
-              "Model": "models/duck_decoration/duck_decoration.vmdl",
+              "Model": null,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
               "TextureExponent": 4,
               "TextureResolution": 16
             }
@@ -15606,6 +15804,7 @@
               "__guid": "4fc6925c-d010-4145-a2e5-3993af3b5244",
               "Collision": "Mesh",
               "Color": "1,1,1,1",
+              "Friction": null,
               "HideInGame": false,
               "IsTrigger": false,
               "Mesh": {
@@ -15963,8 +16162,19 @@
                   "materials/dev/dev_measuregeneric01.vmat"
                 ]
               },
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "OnObjectTriggerEnter": null,
+              "OnObjectTriggerExit": null,
+              "OnTriggerEnter": null,
+              "OnTriggerExit": null,
               "SmoothingAngle": 40,
               "Static": true,
+              "Surface": null,
               "SurfaceVelocity": "0,0,0"
             },
             {
@@ -15977,99 +16187,15 @@
                 "component_type": "MeshComponent"
               },
               "MeshSource": "Collider",
+              "Model": null,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
               "TextureExponent": 4,
               "TextureResolution": 16
-            }
-          ]
-        },
-        {
-          "__guid": "5d77de25-8dbc-4bfe-bd78-70dee0fd5e69",
-          "Flags": 0,
-          "Name": "tifaswimsuit",
-          "Rotation": "0,0,1,0.0000001947072",
-          "Tags": "mdf_model",
-          "Components": [
-            {
-              "__type": "Sandbox.SkinnedModelRenderer",
-              "__guid": "e3b47ece-3b99-4382-8d34-e44510f56efa",
-              "BodyGroups": 18446744073709551615,
-              "CreateAttachments": false,
-              "CreateBoneObjects": false,
-              "Model": "tifa/models/tifaswimsuit.vmdl",
-              "Morphs": {},
-              "Parameters": {
-                "bools": {},
-                "ints": {},
-                "floats": {},
-                "vectors": {},
-                "rotations": {}
-              },
-              "RenderOptions": {
-                "GameLayer": true,
-                "OverlayLayer": false,
-                "BloomLayer": false,
-                "AfterUILayer": false
-              },
-              "RenderType": "On",
-              "Sequence": {
-                "Name": null
-              },
-              "Tint": "1,1,1,1",
-              "UseAnimGraph": true
-            },
-            {
-              "__type": "Duccsoft.MeshDistanceConfig",
-              "__guid": "4c0c2075-1246-4e39-af93-b8cea643ff28",
-              "MeshSource": "Model",
-              "Model": "tifa/models/tifaswimsuit.vmdl",
-              "TextureExponent": 5,
-              "TextureResolution": 32
-            }
-          ]
-        },
-        {
-          "__guid": "1c8af56c-430d-4e9c-92ba-964859a22510",
-          "Flags": 0,
-          "Name": "reetuh_bernese",
-          "Position": "0,-0.00003738377,0.01763698",
-          "Rotation": "0,0,1,0.0000001947072",
-          "Tags": "mdf_model",
-          "Components": [
-            {
-              "__type": "Sandbox.SkinnedModelRenderer",
-              "__guid": "027c8b75-2c4d-4121-8622-2afabc91105a",
-              "BodyGroups": 18446744073709551615,
-              "CreateAttachments": false,
-              "CreateBoneObjects": false,
-              "Model": "models/reetuh_bernese.vmdl",
-              "Morphs": {},
-              "Parameters": {
-                "bools": {},
-                "ints": {},
-                "floats": {},
-                "vectors": {},
-                "rotations": {}
-              },
-              "RenderOptions": {
-                "GameLayer": true,
-                "OverlayLayer": false,
-                "BloomLayer": false,
-                "AfterUILayer": false
-              },
-              "RenderType": "On",
-              "Sequence": {
-                "Name": null
-              },
-              "Tint": "1,1,1,1",
-              "UseAnimGraph": true
-            },
-            {
-              "__type": "Duccsoft.MeshDistanceConfig",
-              "__guid": "36b0fda4-181f-42e7-8db9-d51a1c0a54c9",
-              "MeshSource": "Model",
-              "Model": "models/reetuh_bernese.vmdl",
-              "TextureExponent": 5,
-              "TextureResolution": 32
             }
           ]
         },
@@ -16082,11 +16208,21 @@
             {
               "__type": "Sandbox.SkinnedModelRenderer",
               "__guid": "b77feb72-e616-40aa-bf85-17058b5a49c4",
+              "AnimationGraph": null,
               "BodyGroups": 18446744073709551615,
+              "BoneMergeTarget": null,
               "CreateAttachments": false,
               "CreateBoneObjects": false,
+              "MaterialGroup": null,
+              "MaterialOverride": null,
               "Model": "models/props/dingus.vmdl",
               "Morphs": {},
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
               "Parameters": {
                 "bools": {},
                 "ints": {},
@@ -16110,16 +16246,111 @@
             {
               "__type": "Sandbox.ModelCollider",
               "__guid": "dc6170e7-b50b-4b99-abb9-f0283c1b57a9",
+              "Friction": null,
               "IsTrigger": false,
               "Model": "models/props/dingus.vmdl",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "OnObjectTriggerEnter": null,
+              "OnObjectTriggerExit": null,
+              "OnTriggerEnter": null,
+              "OnTriggerExit": null,
               "Static": false,
+              "Surface": null,
               "SurfaceVelocity": "0,0,0"
             },
             {
               "__type": "Duccsoft.MeshDistanceConfig",
               "__guid": "6369be26-3642-4b4a-a629-2ae6ba271bbe",
-              "MeshSource": "Model",
+              "Collider": {
+                "_type": "component",
+                "component_id": "dc6170e7-b50b-4b99-abb9-f0283c1b57a9",
+                "go": "4f092c2e-6366-451c-ba83-c747eceaa674",
+                "component_type": "ModelCollider"
+              },
+              "MeshSource": "Collider",
               "Model": "models/props/dingus.vmdl",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "TextureExponent": 4,
+              "TextureResolution": 16
+            }
+          ]
+        },
+        {
+          "__guid": "522c3749-018a-4680-9b6f-4377bcbcaf57",
+          "Flags": 0,
+          "Name": "ducc",
+          "Rotation": "0,0,1,-0.00000004371139",
+          "Components": [
+            {
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "43ee8a5f-f3a0-4f4d-820d-a4bd1a10f86b",
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "MaterialGroup": null,
+              "MaterialOverride": null,
+              "Model": "models/duck_decoration/duck_decoration.vmdl",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "1,1,1,1"
+            },
+            {
+              "__type": "Sandbox.ModelCollider",
+              "__guid": "f237d989-610f-43c5-bc7a-27876489efef",
+              "Friction": null,
+              "IsTrigger": false,
+              "Model": "models/duck_decoration/duck_decoration.vmdl",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "OnObjectTriggerEnter": null,
+              "OnObjectTriggerExit": null,
+              "OnTriggerEnter": null,
+              "OnTriggerExit": null,
+              "Static": false,
+              "Surface": null,
+              "SurfaceVelocity": "0,0,0"
+            },
+            {
+              "__type": "Duccsoft.MeshDistanceConfig",
+              "__guid": "aaeaa36e-13b1-4924-affc-8bd7088ce6c0",
+              "Collider": {
+                "_type": "component",
+                "component_id": "f237d989-610f-43c5-bc7a-27876489efef",
+                "go": "522c3749-018a-4680-9b6f-4377bcbcaf57",
+                "component_type": "ModelCollider"
+              },
+              "MeshSource": "Collider",
+              "Model": "models/duck_decoration/duck_decoration.vmdl",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
               "TextureExponent": 4,
               "TextureResolution": 16
             }
@@ -16143,7 +16374,15 @@
               "__guid": "57372167-3905-4872-9c11-c893bc4132ec",
               "BodyGroups": 18446744073709551615,
               "CreateAttachments": false,
+              "MaterialGroup": null,
+              "MaterialOverride": null,
               "Model": "models/dev/sphere.vmdl",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
               "RenderOptions": {
                 "GameLayer": true,
                 "OverlayLayer": false,
@@ -16157,9 +16396,21 @@
               "__type": "Sandbox.SphereCollider",
               "__guid": "dde3d123-c5df-4520-98c2-03aada734442",
               "Center": "0,0,0",
+              "Friction": null,
               "IsTrigger": false,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "OnObjectTriggerEnter": null,
+              "OnObjectTriggerExit": null,
+              "OnTriggerEnter": null,
+              "OnTriggerExit": null,
               "Radius": 32,
               "Static": false,
+              "Surface": null,
               "SurfaceVelocity": "0,0,0"
             }
           ]
@@ -16177,19 +16428,26 @@
           "__guid": "a3c1d9b0-88fc-4bd6-b844-4a1efb6edd06",
           "CollisionExclude": "noblockrope",
           "CollisionInclude": "",
-          "DuplicateOffset": "8,4,16",
+          "DuplicateOffset": "0,5,0",
           "Duplicates": "1,0,1",
           "FixedEnd": false,
           "FixedStart": true,
           "FollowMouse": false,
           "Iterations": 80,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
           "OscillateEnd": false,
           "OscillateEndAmplitude": "0,100",
           "OscillateEndOffset": "100,0",
           "OscillateEndPeriod": 1,
-          "RopeEndOffset": "0,-200,0",
-          "RopePointCount": 64,
-          "RopeStartOffset": "0,100,50",
+          "Renderer": null,
+          "RopeEndOffset": "0,0,-50",
+          "RopePointCount": 20,
+          "RopeStartOffset": "0,0,100",
           "RopeTarget": {
             "_type": "component",
             "component_id": "e6ace28a-e182-4ac9-accf-b1e5e34d943a",
@@ -16206,7 +16464,13 @@
             "component_id": "2243ff3e-10ee-46ed-b165-681173d8b72d",
             "go": "7032c96c-95a6-4981-9bdc-1395b234634a",
             "component_type": "LineRenderer"
-          }
+          },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
         },
         {
           "__type": "Sandbox.LineRenderer",
@@ -16224,6 +16488,12 @@
           },
           "EndCap": "Triangle",
           "Face": "Camera",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
           "Opaque": true,
           "Points": [],
           "RenderOptions": {
@@ -16278,7 +16548,15 @@
           "__enabled": false,
           "BodyGroups": 18446744073709551615,
           "CreateAttachments": false,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
           "Model": "models/dev/sphere.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
           "RenderOptions": {
             "GameLayer": true,
             "OverlayLayer": false,
@@ -16292,9 +16570,21 @@
           "__type": "Sandbox.SphereCollider",
           "__guid": "e6ace28a-e182-4ac9-accf-b1e5e34d943a",
           "Center": "0,0,0",
+          "Friction": null,
           "IsTrigger": false,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
           "Radius": 10,
           "Static": false,
+          "Surface": null,
           "SurfaceVelocity": "0,0,0"
         },
         {
@@ -16314,6 +16604,12 @@
           "MassCenterOverride": "0,0,0",
           "MassOverride": 0,
           "MotionEnabled": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
           "OverrideMassCenter": false,
           "RigidbodyFlags": "DisableCollisionSounds",
           "StartAsleep": false
