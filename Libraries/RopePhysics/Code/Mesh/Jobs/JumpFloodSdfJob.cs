@@ -123,13 +123,16 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		// and calculate the signed distance to that seed's object space position.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.JumpFlood );
 		_meshSdfCs.Attributes.Set( "InsideDetectionThreshold", InsideThreshold );
+		using ( PerfLog.Scope( Id, $"Dispatch {MdfBuildStage.JumpFlood}, Step Size: 1" ) )
+		{
+			_meshSdfCs.Attributes.Set( "JumpStep", 1 );
+			_meshSdfCs.Dispatch( res, res, res );
+		}
 		for ( int step = res / 2; step > 0; step /= 2 )
 		{
-			using ( PerfLog.Scope( Id, $"Dispatch {MdfBuildStage.JumpFlood}, Step Size: {step}" ) )
-			{
-				_meshSdfCs.Attributes.Set( "JumpStep", step );
-				_meshSdfCs.Dispatch( res, res, res );
-			}
+			using var perfLog = PerfLog.Scope( Id, $"Dispatch {MdfBuildStage.JumpFlood}, Step Size: {step}" );
+			_meshSdfCs.Attributes.Set( "JumpStep", step );
+			_meshSdfCs.Dispatch( res, res, res );
 		}
 
 		if ( Input.CollectDebugData )
