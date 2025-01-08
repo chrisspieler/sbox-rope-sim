@@ -55,7 +55,7 @@ public partial class VerletRope
 
 	public void Simulate()
 	{
-		UpdatePoints();
+		UpdatePoints( Time.Delta );
 		CapturePossibleCollisions();
 		for ( int i = 0; i < Iterations; i++ )
 		{
@@ -64,7 +64,7 @@ public partial class VerletRope
 		}
 	}
 
-	private void UpdatePoints()
+	private void UpdatePoints( float deltaTime )
 	{
 		var gravity = Physics.IsValid() ? Physics.Gravity : Gravity;
 
@@ -87,8 +87,12 @@ public partial class VerletRope
 			}
 
 			var temp = point.Position;
-			point.Position += point.Position - point.LastPosition;
-			point.Position += gravity * ( Time.Delta * Time.Delta ) * GravityScale;
+			var delta = point.Position - point.LastPosition;
+			// Apply damping
+			delta *= 1f - ( 0.95f * deltaTime);
+			point.Position += delta;
+			// Apply gravity
+			point.Position += gravity * ( deltaTime * deltaTime ) * GravityScale;
 			point.LastPosition = temp;
 			_points[i] = point;
 		}

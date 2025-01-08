@@ -5,7 +5,7 @@ namespace Duccsoft;
 internal class JumpFloodSdfJob : Job<InputData, OutputData>
 {
 	[ConVar("rope_mdf_jfa_emptyseeds")]
-	public static int NumEmptySeeds { get; set; } = 256;
+	public static int NumEmptySeeds { get; set; } = 64;
 	[ConVar( "rope_mdf_jfa_inside_threshold" )]
 	public static float InsideThreshold { get; set; } = 0.99f;
 

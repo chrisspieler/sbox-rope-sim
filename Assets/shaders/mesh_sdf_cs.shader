@@ -173,9 +173,9 @@ CS
 			float3 triCenter = Triangle::CalculateCenter( v0, v1, v2 );
 			// Nudge the seed point of each vertex slightly inward.
 			// This avoids any ambiguity about which triangle is closest.
-			v0 += ( triCenter - v0 ) * 0.05;
-			v1 += ( triCenter - v1 ) * 0.05;
-			v2 += ( triCenter - v2 ) * 0.05;
+			v0 += ( triCenter - v0 ) * 0.01;
+			v1 += ( triCenter - v1 ) * 0.01;
+			v2 += ( triCenter - v2 ) * 0.01;
 
 			return Triangle::From( v0, v1, v2 );
 		}

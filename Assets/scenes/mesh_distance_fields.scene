@@ -229,79 +229,8 @@
               "OnComponentFixedUpdate": null,
               "OnComponentStart": null,
               "OnComponentUpdate": null,
-              "TextureExponent": 5,
-              "TextureResolution": 32
-            }
-          ]
-        },
-        {
-          "__guid": "d61a8e4c-d833-4d1c-98f9-853871854bdc",
-          "Flags": 0,
-          "Name": "monkey",
-          "Rotation": "0,0,1,-0.00000004371139",
-          "Components": [
-            {
-              "__type": "Sandbox.ModelRenderer",
-              "__guid": "79484ee3-bc4a-4887-a1c6-b0f206a2af55",
-              "BodyGroups": 18446744073709551615,
-              "CreateAttachments": false,
-              "MaterialGroup": null,
-              "MaterialOverride": null,
-              "Model": "models/monkey/monkey.vmdl",
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "RenderOptions": {
-                "GameLayer": true,
-                "OverlayLayer": false,
-                "BloomLayer": false,
-                "AfterUILayer": false
-              },
-              "RenderType": "On",
-              "Tint": "1,1,1,1"
-            },
-            {
-              "__type": "Sandbox.ModelCollider",
-              "__guid": "ffc63d73-82a9-4d62-bcee-2b4eb2887eb4",
-              "Friction": null,
-              "IsTrigger": false,
-              "Model": "models/monkey/monkey.vmdl",
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "OnObjectTriggerEnter": null,
-              "OnObjectTriggerExit": null,
-              "OnTriggerEnter": null,
-              "OnTriggerExit": null,
-              "Static": false,
-              "Surface": null,
-              "SurfaceVelocity": "0,0,0"
-            },
-            {
-              "__type": "Duccsoft.MeshDistanceConfig",
-              "__guid": "72f04cb4-a060-4aff-932d-e05664e8f4db",
-              "Collider": {
-                "_type": "component",
-                "component_id": "ffc63d73-82a9-4d62-bcee-2b4eb2887eb4",
-                "go": "d61a8e4c-d833-4d1c-98f9-853871854bdc",
-                "component_type": "ModelCollider"
-              },
-              "MeshSource": "Collider",
-              "Model": null,
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "TextureExponent": 4,
-              "TextureResolution": 16
+              "TextureExponent": 6,
+              "TextureResolution": 64
             }
           ]
         },
@@ -1320,6 +1249,97 @@
               "Static": true,
               "Surface": null,
               "SurfaceVelocity": "0,0,0"
+            },
+            {
+              "__type": "Duccsoft.MeshDistanceConfig",
+              "__guid": "96300045-c9ee-4ac1-8951-2544f3818ef9",
+              "Collider": {
+                "_type": "component",
+                "component_id": "706c5a74-dee8-4788-9900-6ef9d626d517",
+                "go": "25d7cb73-8541-4b6c-9f40-587027586fc7",
+                "component_type": "MeshComponent"
+              },
+              "MeshSource": "Collider",
+              "Model": null,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "TextureExponent": 2,
+              "TextureResolution": 4
+            }
+          ]
+        },
+        {
+          "__guid": "d61a8e4c-d833-4d1c-98f9-853871854bdc",
+          "Flags": 0,
+          "Name": "monkey",
+          "Rotation": "0,0,1,-0.00000004371139",
+          "Components": [
+            {
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "79484ee3-bc4a-4887-a1c6-b0f206a2af55",
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "MaterialGroup": null,
+              "MaterialOverride": null,
+              "Model": "models/monkey/monkey.vmdl",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "1,1,1,1"
+            },
+            {
+              "__type": "Sandbox.ModelCollider",
+              "__guid": "ffc63d73-82a9-4d62-bcee-2b4eb2887eb4",
+              "Friction": null,
+              "IsTrigger": false,
+              "Model": "models/monkey/monkey.vmdl",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "OnObjectTriggerEnter": null,
+              "OnObjectTriggerExit": null,
+              "OnTriggerEnter": null,
+              "OnTriggerExit": null,
+              "Static": false,
+              "Surface": null,
+              "SurfaceVelocity": "0,0,0"
+            },
+            {
+              "__type": "Duccsoft.MeshDistanceConfig",
+              "__guid": "72f04cb4-a060-4aff-932d-e05664e8f4db",
+              "Collider": {
+                "_type": "component",
+                "component_id": "ffc63d73-82a9-4d62-bcee-2b4eb2887eb4",
+                "go": "d61a8e4c-d833-4d1c-98f9-853871854bdc",
+                "component_type": "ModelCollider"
+              },
+              "MeshSource": "Collider",
+              "Model": null,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "TextureExponent": 4,
+              "TextureResolution": 16
             }
           ]
         },
@@ -16366,8 +16386,8 @@
           "__guid": "a3c1d9b0-88fc-4bd6-b844-4a1efb6edd06",
           "CollisionExclude": "noblockrope",
           "CollisionInclude": "",
-          "DuplicateOffset": "0,3,0",
-          "Duplicates": "1,20,1",
+          "DuplicateOffset": "5,5,0",
+          "Duplicates": "4,4,1",
           "FixedEnd": false,
           "FixedStart": true,
           "FollowMouse": false,
@@ -16383,9 +16403,9 @@
           "OscillateEndOffset": "100,0",
           "OscillateEndPeriod": 1,
           "Renderer": null,
-          "RopeEndOffset": "0,0,-50",
+          "RopeEndOffset": "0,0,0",
           "RopePointCount": 60,
-          "RopeStartOffset": "0,0,100",
+          "RopeStartOffset": "0,0,150",
           "RopeTarget": {
             "_type": "component",
             "component_id": "e6ace28a-e182-4ac9-accf-b1e5e34d943a",

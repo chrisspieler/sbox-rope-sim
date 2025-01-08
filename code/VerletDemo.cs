@@ -165,7 +165,7 @@ public class VerletDemo : Component
 				.WithAnyTags( Rope.CollisionInclude )
 				.WithoutTags( Rope.CollisionExclude )
 				.Run();
-			if ( tr.Hit )
+			if ( false && tr.Hit )
 			{
 				ropePos = tr.HitPosition + tr.Normal * Rope.SolidRadius;
 			}
@@ -238,7 +238,7 @@ public class VerletDemo : Component
 		ImGui.NewLine();
 		ImGui.Text( "Colliders" );
 		ImGui.Text( "---" );
-		ImGui.Text( $"Sphere: {Rope.SphereColliderCount}, Box: {Rope.BoxColliderCount}, Capsule: {Rope.CapsuleColliderCount}, Mesh: {Rope.MeshColliderCount}, Generic: {Rope.GenericColliderCount}" );
+		ImGui.Text( $"Sphere: {Rope.SphereColliderCount}, Box: {Rope.BoxColliderCount}, Capsule: {Rope.CapsuleColliderCount}, Mesh: {Rope.MeshColliderCount}" );
 		ImGui.NewLine();
 
 		ImGui.Text( "Debug Mode" );
