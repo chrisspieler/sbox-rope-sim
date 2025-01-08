@@ -16371,7 +16371,7 @@
           "FixedEnd": false,
           "FixedStart": true,
           "FollowMouse": false,
-          "Iterations": 80,
+          "Iterations": 40,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -16384,7 +16384,7 @@
           "OscillateEndPeriod": 1,
           "Renderer": null,
           "RopeEndOffset": "0,0,-50",
-          "RopePointCount": 20,
+          "RopePointCount": 60,
           "RopeStartOffset": "0,0,100",
           "RopeTarget": {
             "_type": "component",

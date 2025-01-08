@@ -6,6 +6,8 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 {
 	[ConVar("rope_mdf_jfa_emptyseeds")]
 	public static int NumEmptySeeds { get; set; } = 8;
+	[ConVar( "rope_mdf_jfa_inside_threshold" )]
+	public static float InsideThreshold { get; set; } = 0.75f;
 
 	public struct InputData
 	{
@@ -120,6 +122,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		// Run a jump flooding algorithm to find the nearest seed index for each texel/voxel
 		// and calculate the signed distance to that seed's object space position.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.JumpFlood );
+		_meshSdfCs.Attributes.Set( "InsideDetectionThreshold", InsideThreshold );
 		for ( int step = res / 2; step > 0; step /= 2 )
 		{
 			using ( PerfLog.Scope( Id, $"Dispatch {MdfBuildStage.JumpFlood}, Step Size: {step}" ) )

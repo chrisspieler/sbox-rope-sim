@@ -1,7 +1,5 @@
 ﻿using Duccsoft;
 using Duccsoft.ImGui;
-using System;
-using System.Drawing;
 
 namespace Sandbox;
 
@@ -206,7 +204,10 @@ public class MdfModelViewer : Component
 		if ( ShouldDrawOctree )
 		{
 			// Draw the octree
-			var slice = ShowTextureViewer ? _octreeSlice * Mdf.OctreeLeafDims : -1;
+			var slice = _octreeSlice * Mdf.OctreeLeafDims;
+			if ( !ShowTextureViewer )
+				slice = -1;
+
 			Mdf.DebugDraw( tx, HighlightedVoxel, SelectedVoxel, slice );
 		}
 	}
@@ -417,10 +418,18 @@ public class MdfModelViewer : Component
 			var visibleColor = Color.Green;
 			var hiddenColor = (Color.Green * 0.5f).WithAlpha( 0.5f );
 			var texelPos = Mdf.GetTexelBounds( SelectedVoxel, texel ).Center;
+			var subSeedId = seedId % 4;
 			var triCenter = (tri.A + tri.B + tri.C) / 3f;
-			var lineToCenter = new Line( texelPos, triCenter );
-			DebugOverlay.Line( lineToCenter, hiddenColor, transform: tx, overlay: true );
-			DebugOverlay.Line( lineToCenter, visibleColor, transform: tx );
+			var seedPos = subSeedId switch
+			{
+				1 => tri.A,
+				2 => tri.B,
+				3 => tri.C,
+				_ => triCenter,
+			};
+			var lineToSeed = new Line( texelPos, seedPos );
+			DebugOverlay.Line( lineToSeed, hiddenColor, transform: tx, overlay: true );
+			DebugOverlay.Line( lineToSeed, visibleColor, transform: tx );
 			var v01 = new Line( tri.A, tri.B );
 			var v12 = new Line( tri.B, tri.C );
 			var v20 = new Line( tri.C, tri.A );
