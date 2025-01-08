@@ -5,9 +5,9 @@ namespace Duccsoft;
 internal class JumpFloodSdfJob : Job<InputData, OutputData>
 {
 	[ConVar("rope_mdf_jfa_emptyseeds")]
-	public static int NumEmptySeeds { get; set; } = 8;
+	public static int NumEmptySeeds { get; set; } = 256;
 	[ConVar( "rope_mdf_jfa_inside_threshold" )]
-	public static float InsideThreshold { get; set; } = 0.75f;
+	public static float InsideThreshold { get; set; } = 0.99f;
 
 	public struct InputData
 	{
@@ -123,16 +123,19 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		// and calculate the signed distance to that seed's object space position.
 		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.JumpFlood );
 		_meshSdfCs.Attributes.Set( "InsideDetectionThreshold", InsideThreshold );
-		using ( PerfLog.Scope( Id, $"Dispatch {MdfBuildStage.JumpFlood}, Step Size: 1" ) )
-		{
-			_meshSdfCs.Attributes.Set( "JumpStep", 1 );
-			_meshSdfCs.Dispatch( res, res, res );
-		}
 		for ( int step = res / 2; step > 0; step /= 2 )
 		{
 			using var perfLog = PerfLog.Scope( Id, $"Dispatch {MdfBuildStage.JumpFlood}, Step Size: {step}" );
 			_meshSdfCs.Attributes.Set( "JumpStep", step );
 			_meshSdfCs.Dispatch( res, res, res );
+		}
+		for ( int i = 0; i < 2; i++ )
+		{
+			using ( PerfLog.Scope( Id, $"Dispatch {MdfBuildStage.JumpFlood}, Step Size: 1" ) )
+			{
+				_meshSdfCs.Attributes.Set( "JumpStep", 1 );
+				_meshSdfCs.Dispatch( res, res, res );
+			}
 		}
 
 		if ( Input.CollectDebugData )

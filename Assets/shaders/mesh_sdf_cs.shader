@@ -452,9 +452,9 @@ CS
 
 		if ( closestSeedId > -1 )
 		{
-			float3 dirToSeed = normalize( closestSeed.PositionOs.xyz - voxelPos );
+			float seedToLocalDir = normalize( voxelPos - closestSeed.PositionOs.xyz );
 			// Detect whether we are likely inside the mesh, assuming for now that this triangle is the closest.
-			if ( dot( dirToSeed, closestSeed.Normal.xyz ) > 0 )
+			if ( dot( seedToLocalDir, closestSeed.Normal.xyz ) < 0 )
 			{
 				closestDistance *= -1;
 			}
