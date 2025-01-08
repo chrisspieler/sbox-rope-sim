@@ -104,11 +104,7 @@ public partial class VerletRope
 		{
 			var pointA = _points[i];
 			var pointB = _points[i + 1];
-			
 
-			var diffX = pointA.Position.x - pointB.Position.x;
-			var diffY = pointA.Position.y - pointB.Position.y;
-			var diffZ = pointA.Position.z - pointB.Position.z;
 			var distance = Vector3.DistanceBetween( pointA.Position, pointB.Position );
 			float difference = 0;
 			if ( distance > 0 )
@@ -116,7 +112,7 @@ public partial class VerletRope
 				difference = ( SegmentLength - distance ) / distance;
 			}
 
-			var translation = new Vector3( diffX, diffY, diffZ ) * ( 0.5f * difference );
+			var translation = ( pointA.Position - pointB.Position ) * ( 0.5f * difference );
 			pointA.Position += translation;
 			_points[i] = pointA;
 			pointB.Position -= translation;

@@ -166,6 +166,205 @@
       ]
     },
     {
+      "__guid": "ba6031b3-b24a-4c4a-82db-55e8da11cbc1",
+      "Flags": 0,
+      "Name": "Rope Target",
+      "Position": "0,0,96",
+      "Scale": "0.1,0.1,0.1",
+      "Tags": "noblockrope",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "8aa1fc70-4165-4759-8bc4-734b120a7956",
+          "__enabled": false,
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
+          "Model": "models/dev/sphere.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.SphereCollider",
+          "__guid": "e6ace28a-e182-4ac9-accf-b1e5e34d943a",
+          "Center": "0,0,0",
+          "Friction": null,
+          "IsTrigger": false,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "Radius": 10,
+          "Static": false,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        },
+        {
+          "__type": "Sandbox.Rigidbody",
+          "__guid": "ba94d848-5cfb-404e-a41f-b68e1cd5775c",
+          "AngularDamping": 0,
+          "Gravity": false,
+          "LinearDamping": 0,
+          "Locking": {
+            "X": false,
+            "Y": false,
+            "Z": false,
+            "Pitch": false,
+            "Yaw": false,
+            "Roll": false
+          },
+          "MassCenterOverride": "0,0,0",
+          "MassOverride": 0,
+          "MotionEnabled": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OverrideMassCenter": false,
+          "RigidbodyFlags": "DisableCollisionSounds",
+          "StartAsleep": false
+        }
+      ]
+    },
+    {
+      "__guid": "7032c96c-95a6-4981-9bdc-1395b234634a",
+      "Flags": 0,
+      "Name": "Verlet",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.VerletDemo",
+          "__guid": "a3c1d9b0-88fc-4bd6-b844-4a1efb6edd06",
+          "CollisionExclude": "noblockrope",
+          "CollisionInclude": "",
+          "DuplicateOffset": "5,5,0",
+          "Duplicates": "1,0,1",
+          "FixedEnd": false,
+          "FixedStart": true,
+          "FollowMouse": false,
+          "Iterations": 200,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OscillateEnd": false,
+          "OscillateEndAmplitude": "0,100",
+          "OscillateEndOffset": "100,0",
+          "OscillateEndPeriod": 1,
+          "Renderer": null,
+          "RopeEndOffset": "0,0,-250",
+          "RopePointCount": 200,
+          "RopeStartOffset": "0,0,0",
+          "RopeTarget": {
+            "_type": "component",
+            "component_id": "e6ace28a-e182-4ac9-accf-b1e5e34d943a",
+            "go": "ba6031b3-b24a-4c4a-82db-55e8da11cbc1",
+            "component_type": "SphereCollider"
+          },
+          "ShowWindow": true
+        },
+        {
+          "__type": "Duccsoft.RopeRenderer",
+          "__guid": "4f563558-e97f-406e-9406-24a1944eaad4",
+          "Line": {
+            "_type": "component",
+            "component_id": "2243ff3e-10ee-46ed-b165-681173d8b72d",
+            "go": "7032c96c-95a6-4981-9bdc-1395b234634a",
+            "component_type": "LineRenderer"
+          },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
+        },
+        {
+          "__type": "Sandbox.LineRenderer",
+          "__guid": "2243ff3e-10ee-46ed-b165-681173d8b72d",
+          "CastShadows": true,
+          "Color": {
+            "blend": "Linear",
+            "color": [
+              {
+                "t": 0.5,
+                "c": "1,1,1,1"
+              }
+            ],
+            "alpha": []
+          },
+          "EndCap": "Triangle",
+          "Face": "Camera",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "Opaque": true,
+          "Points": [],
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "SplineBias": 0,
+          "SplineContinuity": 0,
+          "SplineInterpolation": 5,
+          "SplineTension": -0.2,
+          "StartCap": "Triangle",
+          "Texturing": {
+            "Texture": "textures/rope_color.vtex",
+            "WorldSpace": true,
+            "UnitsPerTexture": 50,
+            "Scale": 1,
+            "Offset": 0,
+            "Scroll": 0
+          },
+          "UseVectorPoints": true,
+          "VectorPoints": [],
+          "Width": {
+            "rangey": "0,0.15",
+            "frames": [
+              {
+                "x": 0.5,
+                "y": 5,
+                "in": 0,
+                "out": 0,
+                "mode": "Mirrored"
+              }
+            ]
+          },
+          "Wireframe": false
+        }
+      ]
+    },
+    {
       "__guid": "5033acc0-1340-4e28-b4fe-0ae364eed887",
       "Flags": 0,
       "Name": "Meshes",
@@ -16372,205 +16571,6 @@
               "SurfaceVelocity": "0,0,0"
             }
           ]
-        }
-      ]
-    },
-    {
-      "__guid": "7032c96c-95a6-4981-9bdc-1395b234634a",
-      "Flags": 0,
-      "Name": "Verlet",
-      "Enabled": true,
-      "Components": [
-        {
-          "__type": "Sandbox.VerletDemo",
-          "__guid": "a3c1d9b0-88fc-4bd6-b844-4a1efb6edd06",
-          "CollisionExclude": "noblockrope",
-          "CollisionInclude": "",
-          "DuplicateOffset": "5,5,0",
-          "Duplicates": "4,4,1",
-          "FixedEnd": false,
-          "FixedStart": true,
-          "FollowMouse": false,
-          "Iterations": 40,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "OscillateEnd": false,
-          "OscillateEndAmplitude": "0,100",
-          "OscillateEndOffset": "100,0",
-          "OscillateEndPeriod": 1,
-          "Renderer": null,
-          "RopeEndOffset": "0,0,0",
-          "RopePointCount": 60,
-          "RopeStartOffset": "0,0,150",
-          "RopeTarget": {
-            "_type": "component",
-            "component_id": "e6ace28a-e182-4ac9-accf-b1e5e34d943a",
-            "go": "ba6031b3-b24a-4c4a-82db-55e8da11cbc1",
-            "component_type": "SphereCollider"
-          },
-          "ShowWindow": true
-        },
-        {
-          "__type": "Duccsoft.RopeRenderer",
-          "__guid": "4f563558-e97f-406e-9406-24a1944eaad4",
-          "Line": {
-            "_type": "component",
-            "component_id": "2243ff3e-10ee-46ed-b165-681173d8b72d",
-            "go": "7032c96c-95a6-4981-9bdc-1395b234634a",
-            "component_type": "LineRenderer"
-          },
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "Sandbox.LineRenderer",
-          "__guid": "2243ff3e-10ee-46ed-b165-681173d8b72d",
-          "CastShadows": true,
-          "Color": {
-            "blend": "Linear",
-            "color": [
-              {
-                "t": 0.5,
-                "c": "1,1,1,1"
-              }
-            ],
-            "alpha": []
-          },
-          "EndCap": "Triangle",
-          "Face": "Camera",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Opaque": true,
-          "Points": [],
-          "RenderOptions": {
-            "GameLayer": true,
-            "OverlayLayer": false,
-            "BloomLayer": false,
-            "AfterUILayer": false
-          },
-          "SplineBias": 0,
-          "SplineContinuity": 0,
-          "SplineInterpolation": 5,
-          "SplineTension": -0.2,
-          "StartCap": "Triangle",
-          "Texturing": {
-            "Texture": "textures/rope_color.vtex",
-            "WorldSpace": true,
-            "UnitsPerTexture": 50,
-            "Scale": 1,
-            "Offset": 0,
-            "Scroll": 0
-          },
-          "UseVectorPoints": true,
-          "VectorPoints": [],
-          "Width": {
-            "rangey": "0,0.15",
-            "frames": [
-              {
-                "x": 0.5,
-                "y": 5,
-                "in": 0,
-                "out": 0,
-                "mode": "Mirrored"
-              }
-            ]
-          },
-          "Wireframe": false
-        }
-      ]
-    },
-    {
-      "__guid": "ba6031b3-b24a-4c4a-82db-55e8da11cbc1",
-      "Flags": 0,
-      "Name": "Rope Target",
-      "Position": "0,0,96",
-      "Scale": "0.1,0.1,0.1",
-      "Tags": "noblockrope",
-      "Enabled": true,
-      "Components": [
-        {
-          "__type": "Sandbox.ModelRenderer",
-          "__guid": "8aa1fc70-4165-4759-8bc4-734b120a7956",
-          "__enabled": false,
-          "BodyGroups": 18446744073709551615,
-          "CreateAttachments": false,
-          "MaterialGroup": null,
-          "MaterialOverride": null,
-          "Model": "models/dev/sphere.vmdl",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "RenderOptions": {
-            "GameLayer": true,
-            "OverlayLayer": false,
-            "BloomLayer": false,
-            "AfterUILayer": false
-          },
-          "RenderType": "On",
-          "Tint": "1,1,1,1"
-        },
-        {
-          "__type": "Sandbox.SphereCollider",
-          "__guid": "e6ace28a-e182-4ac9-accf-b1e5e34d943a",
-          "Center": "0,0,0",
-          "Friction": null,
-          "IsTrigger": false,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "OnObjectTriggerEnter": null,
-          "OnObjectTriggerExit": null,
-          "OnTriggerEnter": null,
-          "OnTriggerExit": null,
-          "Radius": 10,
-          "Static": false,
-          "Surface": null,
-          "SurfaceVelocity": "0,0,0"
-        },
-        {
-          "__type": "Sandbox.Rigidbody",
-          "__guid": "ba94d848-5cfb-404e-a41f-b68e1cd5775c",
-          "AngularDamping": 0,
-          "Gravity": false,
-          "LinearDamping": 0,
-          "Locking": {
-            "X": false,
-            "Y": false,
-            "Z": false,
-            "Pitch": false,
-            "Yaw": false,
-            "Roll": false
-          },
-          "MassCenterOverride": "0,0,0",
-          "MassOverride": 0,
-          "MotionEnabled": true,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "OverrideMassCenter": false,
-          "RigidbodyFlags": "DisableCollisionSounds",
-          "StartAsleep": false
         }
       ]
     }
