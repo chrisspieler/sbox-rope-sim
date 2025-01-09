@@ -66,7 +66,7 @@ public partial class RopeSimulationData
 	/// The total area to search for collisions, encompassing the entire rpoe.
 	/// </summary>
 	public BBox CollisionBounds { get; set; }
-	public RopeCollisionSnapshot Collisions { get; set; }
+	public RopeCollisionSnapshot Collisions { get; set; } = new();
 
 	public void Reset( Vector3 startPos, Vector3 endPos )
 	{

@@ -46,14 +46,26 @@ public partial class VerletRope : Component
 	#region Simulation
 	[Property] public float TimeStep { get; set; } = 0.01f;
 	[Property] public float MaxTimeStepPerUpdate { get; set; } = 0.1f;
-	[Property, Range(0, 255, 1)] public int MaxPoints { get; set; } = 96;
+	[Property, Range(2, 255, 1), Change] public int MaxPoints { get; set; } = 96;
 	[Property] public float Radius { get; set; } = 1f;
 	[Property, Range( 0f, 1f )] public float Stiffness { get; set; } = 0.2f;
+
+	private void OnMaxPointsChanged( int oldValue, int newValue )
+	{
+		if ( Game.ActiveScene != Scene )
+			return;
+
+		DestroyRope();
+		CreateRope();
+	}
 
 	private void UpdateSimulation()
 	{
 		SimData.Radius = Radius;
-		SimData.Iterations = (int)Stiffness.Remap( 0f, 1f, 1, 200 );
+		var minStiffness = MathX.Remap( MaxPoints, 3, 255, 0f, 0.025f );
+		var stiffness = (Stiffness * 0.35f ).Clamp( minStiffness, 0.35f );
+		var maxIterations = MaxPoints.Remap( 3, 255, 1, 255 );
+		SimData.Iterations = (int)stiffness.Remap( 0.0f, 1f, 1, maxIterations );
 	}
 	#endregion
 
@@ -68,14 +80,26 @@ public partial class VerletRope : Component
 		using var scope = Gizmo.Scope( "RopePhysicsDebug" );
 
 		Gizmo.Transform = Scene.LocalTransform;
-		Gizmo.Draw.Color = Color.Blue;
-		Gizmo.Draw.Line( StartPosition, EndPosition );
-		BBox midpointHandle = BBox.FromPositionAndSize( (StartPosition + EndPosition) / 2f, 8f );
-		Gizmo.Hitbox.BBox( midpointHandle );
-		Gizmo.Draw.Color = Gizmo.IsHovered ? Color.White : Color.Red;
-		Gizmo.Draw.LineBBox( midpointHandle );
+		using ( Gizmo.Scope( "Midpoint Handle" ) )
+		{
+			BBox midpointHandle = BBox.FromPositionAndSize( (StartPosition + EndPosition) / 2f, 8f );
+			Gizmo.Hitbox.BBox( midpointHandle );
+			Gizmo.Draw.Color = Gizmo.IsHovered ? Color.White : Color.Red;
+			Gizmo.Draw.LineBBox( midpointHandle );
+		}
 
-		if ( SimData is not null )
+		Gizmo.Draw.Color = Color.Blue;
+		using ( Gizmo.Hitbox.LineScope() )
+		{
+			Gizmo.Draw.Line( StartPosition, EndPosition );
+			Gizmo.Hitbox.AddPotentialLine( StartPosition, EndPosition, 32f );
+		}
+		if ( Gizmo.Pressed.This )
+		{
+			Gizmo.Select();
+		}
+
+		if ( SimData is not null && Gizmo.IsSelected )
 		{
 			Gizmo.Draw.Color = Color.Green;
 			foreach( var point in SimData.Points )

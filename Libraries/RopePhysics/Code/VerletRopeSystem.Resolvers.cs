@@ -4,6 +4,8 @@ public partial class VerletRopeSystem
 {
 	private static void ResolveCollisions( RopeSimulationData simData )
 	{
+		if ( simData.Collisions is null )
+			Log.Info( "null" );
 		ResolveSphereCollisions( simData );
 		ResolveBoxCollisions( simData );
 		ResolveCapsuleCollisions( simData );
