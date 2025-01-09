@@ -802,7 +802,7 @@
       "__guid": "8c5eccc0-2462-428c-aabd-73c656591014",
       "Flags": 0,
       "Name": "Rope",
-      "Position": "128,64,128",
+      "Position": "128,-128,128",
       "Scale": "0.1,0.1,0.1",
       "Enabled": true,
       "Components": [
@@ -832,15 +832,16 @@
         {
           "__type": "Duccsoft.VerletRope",
           "__guid": "23f89180-f93b-47b9-80d2-3f9e9fbe3736",
+          "Color": "0,0,0,1",
           "EnableCollision": true,
           "EnableRendering": true,
           "EndPoint": {
             "_type": "gameobject",
             "go": "b10a2bdd-6abf-408e-8478-aecf029af9e0"
           },
-          "EndPosition": "128.0001,-192,160",
+          "EndPosition": "128,128,128",
           "FixedStart": true,
-          "MaxPoints": 193,
+          "MaxPoints": 24,
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
@@ -849,8 +850,8 @@
           "OnComponentStart": null,
           "OnComponentUpdate": null,
           "Radius": 1,
-          "StartPosition": "128,64,128",
-          "Stiffness": 0.32,
+          "StartPosition": "128,-128,128",
+          "Stiffness": 0.07,
           "TimeStep": 0.01
         }
       ]
@@ -859,7 +860,7 @@
       "__guid": "b10a2bdd-6abf-408e-8478-aecf029af9e0",
       "Flags": 0,
       "Name": "End Point",
-      "Position": "128.0001,-192,160",
+      "Position": "128,128,128",
       "Scale": "0.1,0.1,0.1",
       "Enabled": true,
       "Components": [
@@ -892,7 +893,7 @@
       "__guid": "c1a2897b-0247-4d99-ab78-cfb11a880cc9",
       "Flags": 0,
       "Name": "Cube",
-      "Position": "144.4786,-76.33174,89.62401",
+      "Position": "144.4786,-272,128",
       "Rotation": "-0.5033367,0.1124543,-0.06626552,0.8541751",
       "Enabled": true,
       "Components": [

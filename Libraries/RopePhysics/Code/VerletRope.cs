@@ -65,7 +65,7 @@ public partial class VerletRope : Component, Component.ExecuteInEditor
 	[Property] public float TimeStep { get; set; } = 0.01f;
 	[Property] public float MaxTimeStepPerUpdate { get; set; } = 0.1f;
 	[Property, Range(2, 255, 1), Change] public int MaxPoints { get; set; } = 96;
-	[Property] public float Radius { get; set; } = 1f;
+	[Property, Range( 0.05f, 10f)] public float Radius { get; set; } = 1f;
 	[Property, Range( 0f, 1f )] public float Stiffness { get; set; } = 0.2f;
 
 	private void OnMaxPointsChanged( int oldValue, int newValue )
@@ -78,7 +78,7 @@ public partial class VerletRope : Component, Component.ExecuteInEditor
 	{
 		SimData.Radius = Radius;
 		var minStiffness = MathX.Remap( MaxPoints, 3, 255, 0f, 0.025f );
-		var stiffness = (Stiffness * 0.35f ).Clamp( minStiffness, 0.35f );
+		var stiffness = (Stiffness * 1f ).Clamp( minStiffness, 1f );
 		var maxIterations = MaxPoints.Remap( 3, 255, 1, 255 );
 		SimData.Iterations = (int)stiffness.Remap( 0.0f, 1f, 1, maxIterations );
 	}
@@ -157,6 +157,8 @@ public partial class VerletRope : Component, Component.ExecuteInEditor
 
 	#region Rendering
 	[Property, Change] public bool EnableRendering { get; set; } = true;
+	[Property] public Color Color { get; set; } = Color.Black;
+
 	private LineRenderer Renderer { get; set; }
 
 	private void CreateRenderer()
@@ -168,8 +170,7 @@ public partial class VerletRope : Component, Component.ExecuteInEditor
 		Renderer = Components.Create<LineRenderer>();
 		Renderer.Flags |= ComponentFlags.Hidden | ComponentFlags.NotSaved;
 		Renderer.UseVectorPoints = true;
-		Renderer.Width = new Curve( new Curve.Frame( 0f, Radius * 2 ) );
-		Renderer.EndCap = SceneLineObject.CapStyle.Triangle;
+		Renderer.EndCap = Renderer.StartCap = SceneLineObject.CapStyle.Rounded;
 	}
 
 	private void DestroyRenderer()
@@ -205,6 +206,9 @@ public partial class VerletRope : Component, Component.ExecuteInEditor
 		if ( !Renderer.IsValid() )
 			return;
 
+		Renderer.Color = new Gradient( new Gradient.ColorFrame( 0f, Color ) );
+		Renderer.Width = new Curve( new Curve.Frame( 0f, Radius ) );
+		Renderer.SplineInterpolation = 8;
 		Renderer.VectorPoints = SimData.Points.Select( p => p.Position ).ToList();
 	}
 	#endregion
