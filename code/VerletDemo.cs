@@ -10,43 +10,6 @@ public class VerletDemo : Component
 	[Property] public Vector3Int Duplicates { get; set; } = 0;
 	[Property] public Vector3 DuplicateOffset { get; set; } = 16f;
 	public BBox DuplicateBounds => BBox.FromPositionAndSize( WorldPosition, DuplicateOffset * Duplicates );
-
-	[Property, Range(0, 200)]
-	public int Iterations 
-	{
-		get => _iterations;
-		set
-		{
-			_iterations = value;
-			if ( Rope is not null )
-			{
-				Rope.Iterations = value;
-			}
-		}
-	}
-	private int _iterations = 3;
-	[Property]
-	public Vector3 RopeStartOffset { get; set; } = Vector3.Zero;
-	public Vector3 RopeStart => WorldPosition + RopeStartOffset;
-	[Property]
-	public Vector3 RopeEndOffset { get; set; } = Vector3.Right * 50f;
-	public Vector3 RopeEnd => WorldPosition + RopeEndOffset;
-	[Property, Range( 2, 200 )]
-	public int RopePointCount 
-	{
-		get => _ropePointCount;
-		set
-		{
-			var temp = _ropePointCount;
-			_ropePointCount = value;
-			if ( temp != value && Rope is not null )
-			{
-				Rope.PointCount = value;
-				Rope.Reset();
-			}
-		}
-	}
-	private int _ropePointCount = 32;
 	[Property] public bool FollowMouse
 	{
 		get => _followMouse;
@@ -67,22 +30,11 @@ public class VerletDemo : Component
 	[Property] public float OscillateEndPeriod { get; set; } = 1f;
 	[Property] public TagSet CollisionInclude { get; set; } = [];
 	[Property] public TagSet CollisionExclude { get; set; } = [];
-	[Property] public RopeRenderer Renderer { get; set; }
 	[Property] public Collider RopeTarget { get; set; }
-	public VerletRope Rope { get; set; }
+	public RopeSimulationData Rope { get; set; }
 
 	protected override void OnStart()
 	{
-		Rope = new( RopeStart, RopeEnd, RopePointCount )
-		{
-			Iterations = Iterations,
-			FixedStart = FixedStart,
-			FixedEnd = FixedEnd,
-			Physics = Scene.PhysicsWorld,
-		};
-		Renderer ??= AddComponent<RopeRenderer>();
-		Renderer.Line ??= GetComponent<LineRenderer>();
-		Renderer.Rope = Rope;
 		SpawnDuplicates();
 	}
 
@@ -111,13 +63,9 @@ public class VerletDemo : Component
 
 	private void Simulate()
 	{
-		Rope.StartPosition = RopeStart;
-		Rope.EndPosition = RopeEnd;
-		Rope.FixedStart = FixedStart;
-		Rope.FixedEnd = FixedEnd || OscillateEnd;
 		Rope.CollisionInclude = CollisionInclude;
 		Rope.CollisionExclude = CollisionExclude;
-		Rope.Simulate();
+		// Rope.Simulate();
 
 		if ( RopePhysics.DebugMode < 1 )
 			return;
@@ -126,10 +74,10 @@ public class VerletDemo : Component
 		for ( int i = 0; i < points.Length; i++ )
 		{
 			var point = points[i];
-			DebugOverlay.Sphere( new Sphere( point.Position, Rope.SolidRadius ), color: Color.Red, overlay: true );
+			// DebugOverlay.Sphere( new Sphere( point.Position, Rope.SolidRadius ), color: Color.Red, overlay: true );
 			if ( RopePhysics.DebugMode == 2 )
 			{
-				DebugOverlay.Sphere( new Sphere( point.Position, Rope.CollisionRadius ), color: Color.Green.WithAlpha( 0.05f ) );
+				// DebugOverlay.Sphere( new Sphere( point.Position, Rope.CollisionRadius ), color: Color.Green.WithAlpha( 0.05f ) );
 			}
 			if ( i == 0 )
 				continue;
@@ -154,59 +102,10 @@ public class VerletDemo : Component
 		if ( Rope is null )
 			return;
 
-		UpdateInput();
-
-		if ( FollowMouse )
-		{
-			var ropePos = RopeStart;
-			var mouseRay = Scene.Camera.ScreenPixelToRay( Mouse.Position );
-			var tr = Scene.Trace
-				.Ray( mouseRay, 2000f )
-				.WithAnyTags( Rope.CollisionInclude )
-				.WithoutTags( Rope.CollisionExclude )
-				.Run();
-			if ( false && tr.Hit )
-			{
-				ropePos = tr.HitPosition + tr.Normal * Rope.SolidRadius;
-			}
-			else
-			{
-				var plane = new Plane( WorldPosition, WorldTransform.Forward );
-				var hit = plane.Trace( mouseRay, twosided: true );
-				if ( hit.HasValue )
-				{
-					ropePos = hit.Value;
-				}
-			}
-
-			if ( RopeTarget.IsValid() )
-			{
-				if ( RopeTarget.Rigidbody.IsValid() )
-				{
-					RopeTarget.Rigidbody.SmoothMove( new Transform( ropePos ), 0.1f, Time.Delta );
-				}
-				else
-				{
-					RopeTarget.KeyframeBody.SmoothMove( new Transform( ropePos ), 0.1f, Time.Delta );
-				}
-				RopeStartOffset = RopeTarget.WorldPosition;
-			}
-			else
-			{
-				var delta = ropePos - RopeStart;
-				delta = delta.SubtractDirection( Scene.Camera.WorldRotation.Forward, 0.8f );
-				ropePos = RopeStart.ExpDecayTo( RopeStart + delta, 16f );
-				RopeStartOffset = WorldTransform.PointToLocal( ropePos );
-			}
-			
-		}
-
-		// Simulate();
-
 		if ( !ShowWindow )
 			return;
 
-		if ( ImGui.Begin( "Verlet Demo" ) )
+		if ( ImGui.Begin( "Rope Physics Demo" ) )
 		{
 			DrawWindow();
 		}
@@ -215,174 +114,11 @@ public class VerletDemo : Component
 
 	private void UpdateInput()
 	{
-		if ( Input.Pressed( "RopeFollow" ) )
-		{
-			FollowMouse = !FollowMouse;
-		}
+		
 	}
-
-	private bool _collapseWindow = true;
 
 	private void DrawWindow()
 	{
-		var collapse = _collapseWindow;
-		ImGui.Checkbox( "Collapse", ref collapse );
-		_collapseWindow = collapse;
-		if ( _collapseWindow )
-			return;
-
-
-		ImGui.NewLine();
-		// Debug info
-		ImGui.Text( $"Points: {Rope.PointCount}" );
-		ImGui.NewLine();
-		ImGui.Text( "Colliders" );
-		ImGui.Text( "---" );
-		ImGui.Text( $"Sphere: {Rope.SphereColliderCount}, Box: {Rope.BoxColliderCount}, Capsule: {Rope.CapsuleColliderCount}, Mesh: {Rope.MeshColliderCount}" );
-		ImGui.NewLine();
-
-		ImGui.Text( "Debug Mode" );
-		var debugMode1 = RopePhysics.DebugMode > 0;
-		ImGui.PushID( nameof( debugMode1 ) );
-		if ( ImGui.Checkbox( "Default", ref debugMode1 ) )
-		{
-			RopePhysics.DebugMode = RopePhysics.DebugMode switch
-			{
-				1 => 0,
-				_ => 1,
-			};
-		}
-		ImGui.PopID();
-		ImGui.SameLine();
-		var debugMode2 = RopePhysics.DebugMode > 1;
-		ImGui.PushID( nameof( debugMode2 ) );
-		if ( ImGui.Checkbox( "Collision Radius", ref debugMode2 ) )
-		{
-			RopePhysics.DebugMode = RopePhysics.DebugMode switch
-			{
-				2 => 1,
-				_ => 2,
-			};
-		}
-		ImGui.PopID();
-		ImGui.NewLine();
-
-		ImGui.Text( "Simulation Parameters" );
-		var iterations = Iterations;
-		ImGui.Text( "Iterations:" ); ImGui.SameLine();
-		ImGui.PushID( 0 );
-		ImGui.SliderInt( "Iterations", ref iterations, 0, 200 );
-		ImGui.PopID();
-		Iterations = iterations;
-		ImGui.Text( "Collision Search Radius:" );
-		var collisionRadiusScale = Rope.CollisionSearchRadius;
-		ImGui.PushID( "CollisionRadiusScale" );
-		ImGui.SliderFloat( "CollisionRadiusScale", ref collisionRadiusScale, 0.1f, 50f );
-		ImGui.PopID();
-		Rope.CollisionSearchRadius = collisionRadiusScale;
-		ImGui.NewLine();
-
-		if ( !FollowMouse )
-		{
-			if ( ImGui.Button( "Follow Mouse" ) )
-			{
-				FollowMouse = true;
-			}
-		}
-		else
-		{
-			if ( ImGui.Button( "Stop Following Mouse" ) )
-			{
-				FollowMouse = false;
-			}
-			return;
-		}
-
-		ImGui.Text( $"Rope Generation" );
-
-		// Fixed Start
-		var fixedStart = FixedStart;
-		ImGui.PushID( "Fixed Start" );
-		ImGui.Checkbox( "Fixed Start", ref fixedStart );
-		ImGui.PopID();
-		FixedStart = fixedStart;
-		if ( FixedStart )
-		{
-			// Start Pos
-			ImGui.Text( $"Start Pos:" ); ImGui.SameLine();
-			var startOffset = new Vector2( -RopeStartOffset.y, RopeStartOffset.z );
-			ImGui.PushID( 1 );
-			ImGui.SliderFloat2( "Start Offset", ref startOffset, -200f, 200f );
-			ImGui.PopID();
-			RopeStartOffset = new Vector3( 0f, -startOffset.x, startOffset.y );
-		}
-
-		// Fixed End
-		var fixedEnd = FixedEnd;
-		ImGui.PushID( "FixedEnd" );
-		if ( ImGui.Checkbox( "Fixed End", ref fixedEnd ) )
-		{
-			OscillateEnd = false;
-		}
-		ImGui.SameLine();
-		ImGui.PopID();
-		FixedEnd = fixedEnd;
-		var oscillateEnd = OscillateEnd;
-		ImGui.PushID( "OscillateEnd" );
-		if ( ImGui.Checkbox( "Oscillate End", ref oscillateEnd ) )
-		{
-			FixedEnd = false;
-		}
-		ImGui.PopID();
-		OscillateEnd = oscillateEnd;
-		if ( FixedEnd )
-		{
-			// End Pos
-			ImGui.Text( $"End Pos:" ); ImGui.SameLine();
-			var endOffset = new Vector2( -RopeEndOffset.y, RopeEndOffset.z );
-			ImGui.PushID( 2 );
-			ImGui.SliderFloat2( "End Offset", ref endOffset, -200f, 200f );
-			ImGui.PopID();
-			RopeEndOffset = new Vector3( 0f, -endOffset.x, endOffset.y );
-		}
-		if ( OscillateEnd )
-		{
-			var oscEndOffset = OscillateEndOffset;
-			ImGui.Text( nameof( oscEndOffset ) + ":" ); ImGui.SameLine();
-			ImGui.PushID( nameof( oscEndOffset ) );
-			ImGui.SliderFloat2( nameof( oscEndOffset ), ref oscEndOffset, -200, 200 );
-			ImGui.PopID();
-			OscillateEndOffset = oscEndOffset;
-			var oscEndAmplitude = OscillateEndAmplitude;
-			ImGui.Text( nameof( oscEndAmplitude ) + ":" ); ImGui.SameLine();
-			ImGui.PushID( nameof( oscEndAmplitude ) );
-			ImGui.SliderFloat2( nameof( oscEndAmplitude ), ref oscEndAmplitude, 0, 500 );
-			ImGui.PopID();
-			OscillateEndAmplitude = oscEndAmplitude;
-			var oscEndPeriod = OscillateEndPeriod;
-			ImGui.Text( nameof( oscEndPeriod ) + ":" ); ImGui.SameLine();
-			ImGui.PushID( nameof( oscEndPeriod ) );
-			ImGui.SliderFloat( nameof( oscEndPeriod ), ref oscEndPeriod, 0.01f, 5 );
-			ImGui.PopID();
-			OscillateEndPeriod = oscEndPeriod;
-			var offset = new Vector3( 0, -OscillateEndOffset.x, OscillateEndOffset.y );
-			var maxAmplitudes = new Vector3( 0f, -OscillateEndAmplitude.x, OscillateEndAmplitude.y );
-			var currentAmplitude = MathF.Sin( MathF.Abs( Time.Now * MathF.PI / OscillateEndPeriod ) );
-			RopeEndOffset = offset + maxAmplitudes * currentAmplitude;
-		}
-
-		// Point Count
-		var numPoints = RopePointCount;
-		ImGui.Text( "Point Count:" ); ImGui.SameLine();
-		ImGui.PushID( 3 );
-		ImGui.SliderInt( "Point Count", ref numPoints, 0, 200 );
-		ImGui.PopID();
-		RopePointCount = numPoints;
-
-		// Reset Rope
-		if ( ImGui.Button( $"Reset Rope" ) )
-		{
-			Rope.Reset();
-		}
+		
 	}
 }

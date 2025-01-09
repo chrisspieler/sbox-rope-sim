@@ -16,6 +16,12 @@
           "ClearFlags": "All",
           "FieldOfView": 60,
           "IsMainCamera": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
           "Orthographic": false,
           "OrthographicHeight": 1204,
           "Priority": 1,
@@ -39,6 +45,12 @@
         {
           "__type": "Sandbox.SkyBox2D",
           "__guid": "e7e5258b-f8dd-4a75-8d67-76a0bcf41faf",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
           "SkyIndirectLighting": true,
           "SkyMaterial": "materials/skybox/skybox_day_01.vmat",
           "Tint": "1,1,1,1"
@@ -59,6 +71,12 @@
               "FogMode": "Enabled",
               "FogStrength": 1,
               "LightColor": "0.91373,0.98039,1,1",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
               "Shadows": true,
               "SkyColor": "0,0,0,0"
             }
@@ -78,6 +96,7 @@
           "__guid": "f686f50d-75fe-47c8-949e-29c0c16d0c25",
           "Collision": "Mesh",
           "Color": "1,1,1,1",
+          "Friction": null,
           "HideInGame": false,
           "IsTrigger": false,
           "Mesh": {
@@ -310,9 +329,40 @@
               "materials/dev/dev_measuregeneric01b.vmat"
             ]
           },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
           "SmoothingAngle": 40,
           "Static": true,
+          "Surface": null,
           "SurfaceVelocity": "0,0,0"
+        },
+        {
+          "__type": "Duccsoft.MeshDistanceConfig",
+          "__guid": "96c7e1c4-95c2-4900-8975-e5d30ac727d0",
+          "Collider": {
+            "_type": "component",
+            "component_id": "f686f50d-75fe-47c8-949e-29c0c16d0c25",
+            "go": "415ac9db-4e4e-420c-9210-9f37d70613ad",
+            "component_type": "MeshComponent"
+          },
+          "MeshSource": "Collider",
+          "Model": null,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "TextureExponent": 4,
+          "TextureResolution": 16
         }
       ]
     },
@@ -329,6 +379,7 @@
           "__guid": "757a241f-f19c-4fa6-83be-32a9c37f399c",
           "Collision": "Mesh",
           "Color": "1,1,1,1",
+          "Friction": null,
           "HideInGame": false,
           "IsTrigger": false,
           "Mesh": {
@@ -667,8 +718,19 @@
               "materials/dev/dev_measuregeneric01.vmat"
             ]
           },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
           "SmoothingAngle": 40,
           "Static": true,
+          "Surface": null,
           "SurfaceVelocity": "0,0,0"
         }
       ]
@@ -692,6 +754,12 @@
           "FrameInterval": 5,
           "MaxDistance": 512,
           "MultiBounce": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
           "Projection": "Box",
           "RenderDynamically": true,
           "Texture": "textures/cubemaps/default2.vtex",
@@ -703,42 +771,101 @@
       ]
     },
     {
-      "__guid": "c42f8a47-be0f-42dd-b4ce-cadd5b864d9b",
+      "__guid": "8c5eccc0-2462-428c-aabd-73c656591014",
       "Flags": 0,
-      "Name": "Rope Origin",
-      "Position": "128,0,224",
+      "Name": "Rope",
+      "Position": "128,0,128",
       "Enabled": true,
+      "Components": [
+        {
+          "__type": "Duccsoft.RopePhysics",
+          "__guid": "bbaac820-b31a-4db1-8451-375a8af465f5",
+          "EnableCollision": false,
+          "EnableRendering": true,
+          "EndPoint": {
+            "_type": "gameobject",
+            "go": "b10a2bdd-6abf-408e-8478-aecf029af9e0"
+          },
+          "EndPosition": "128.0001,-144,192",
+          "FixedStart": true,
+          "MaxPoints": 96,
+          "MaxTimeStepPerUpdate": 0.1,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "Radius": 1,
+          "StartPosition": "128,0,128",
+          "TimeStep": 0.01
+        }
+      ],
       "Children": [
         {
-          "__guid": "ad9fd7c0-f27a-4aa3-8ddb-406f018eb45e",
+          "__guid": "5e65e49b-8c00-4121-8af2-6d454e3a1eab",
           "Flags": 0,
-          "Name": "Rope",
+          "Name": "Sphere",
+          "Scale": "0.1,0.1,0.1",
           "Enabled": true,
           "Components": [
             {
-              "__type": "Duccsoft.RopePhysics",
-              "__guid": "dbbc5219-e79b-44ae-b580-ed879151d4fd",
-              "PointCount": 0
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "57946768-37de-4c24-be92-8ed9825b9a6c",
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "MaterialGroup": null,
+              "MaterialOverride": null,
+              "Model": "models/dev/sphere.vmdl",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "1,1,1,1"
             }
           ]
         }
       ]
     },
     {
-      "__guid": "6de97713-2a31-4b94-ad1e-e9722ee5c757",
+      "__guid": "b10a2bdd-6abf-408e-8478-aecf029af9e0",
       "Flags": 0,
-      "Name": "Demo",
+      "Name": "End Point",
+      "Position": "128.0001,-144,192",
+      "Scale": "0.1,0.1,0.1",
       "Enabled": true,
       "Components": [
         {
-          "__type": "Sandbox.RopeModificationDemo",
-          "__guid": "2f3bb5b7-f340-438c-90f4-21d0e787fc3b",
-          "TargetRope": {
-            "_type": "component",
-            "component_id": "dbbc5219-e79b-44ae-b580-ed879151d4fd",
-            "go": "ad9fd7c0-f27a-4aa3-8ddb-406f018eb45e",
-            "component_type": "RopePhysics"
-          }
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "9a228892-0cba-43af-90e9-46ad7d487a81",
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
+          "Model": "models/dev/sphere.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
         }
       ]
     }
