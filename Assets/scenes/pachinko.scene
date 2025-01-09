@@ -774,7 +774,8 @@
       "__guid": "8c5eccc0-2462-428c-aabd-73c656591014",
       "Flags": 0,
       "Name": "Rope",
-      "Position": "128,0,128",
+      "Position": "128,-80,320",
+      "Scale": "0.1,0.1,0.1",
       "Enabled": true,
       "Components": [
         {
@@ -797,42 +798,31 @@
           "OnComponentStart": null,
           "OnComponentUpdate": null,
           "Radius": 1,
-          "StartPosition": "128,0,128",
+          "StartPosition": "128,-80,320",
           "TimeStep": 0.01
-        }
-      ],
-      "Children": [
+        },
         {
-          "__guid": "5e65e49b-8c00-4121-8af2-6d454e3a1eab",
-          "Flags": 0,
-          "Name": "Sphere",
-          "Scale": "0.1,0.1,0.1",
-          "Enabled": true,
-          "Components": [
-            {
-              "__type": "Sandbox.ModelRenderer",
-              "__guid": "57946768-37de-4c24-be92-8ed9825b9a6c",
-              "BodyGroups": 18446744073709551615,
-              "CreateAttachments": false,
-              "MaterialGroup": null,
-              "MaterialOverride": null,
-              "Model": "models/dev/sphere.vmdl",
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "RenderOptions": {
-                "GameLayer": true,
-                "OverlayLayer": false,
-                "BloomLayer": false,
-                "AfterUILayer": false
-              },
-              "RenderType": "On",
-              "Tint": "1,1,1,1"
-            }
-          ]
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "57946768-37de-4c24-be92-8ed9825b9a6c",
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
+          "Model": "models/dev/sphere.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
         }
       ]
     },
@@ -866,6 +856,33 @@
           },
           "RenderType": "On",
           "Tint": "1,1,1,1"
+        }
+      ]
+    },
+    {
+      "__guid": "82311ea5-d1cc-46d9-8b0b-669865c9f5df",
+      "Flags": 0,
+      "Name": "Mouse Plane",
+      "Position": "128,0,128",
+      "Rotation": "0,0,1,0.0000001947072",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.MousePlane",
+          "__guid": "96507b88-caee-4bf3-a369-648dda74a395",
+          "Cursor": {
+            "_type": "gameobject",
+            "go": "b10a2bdd-6abf-408e-8478-aecf029af9e0"
+          },
+          "CursorTranslationExpDecay": 4,
+          "MaxDistance": "Infinity",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "TwoSided": true
         }
       ]
     }
