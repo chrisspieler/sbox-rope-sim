@@ -48,6 +48,13 @@ public partial class VerletRope : Component
 	[Property] public float MaxTimeStepPerUpdate { get; set; } = 0.1f;
 	[Property, Range(0, 255, 1)] public int MaxPoints { get; set; } = 96;
 	[Property] public float Radius { get; set; } = 1f;
+	[Property, Range( 0f, 1f )] public float Stiffness { get; set; } = 0.2f;
+
+	private void UpdateSimulation()
+	{
+		SimData.Radius = Radius;
+		SimData.Iterations = (int)Stiffness.Remap( 0f, 1f, 1, 200 );
+	}
 	#endregion
 
 	#region Collision
@@ -83,6 +90,7 @@ public partial class VerletRope : Component
 	protected override void OnUpdate()
 	{
 		UpdateAnchors();
+		UpdateSimulation();
 		UpdateRenderer();
 	}
 
