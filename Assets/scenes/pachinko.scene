@@ -779,29 +779,6 @@
       "Enabled": true,
       "Components": [
         {
-          "__type": "Duccsoft.RopePhysics",
-          "__guid": "bbaac820-b31a-4db1-8451-375a8af465f5",
-          "EnableCollision": false,
-          "EnableRendering": true,
-          "EndPoint": {
-            "_type": "gameobject",
-            "go": "b10a2bdd-6abf-408e-8478-aecf029af9e0"
-          },
-          "EndPosition": "128.0001,-144,192",
-          "FixedStart": true,
-          "MaxPoints": 96,
-          "MaxTimeStepPerUpdate": 0.1,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Radius": 1,
-          "StartPosition": "128,-80,320",
-          "TimeStep": 0.01
-        },
-        {
           "__type": "Sandbox.ModelRenderer",
           "__guid": "57946768-37de-4c24-be92-8ed9825b9a6c",
           "BodyGroups": 18446744073709551615,
@@ -823,6 +800,29 @@
           },
           "RenderType": "On",
           "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Duccsoft.VerletRope",
+          "__guid": "23f89180-f93b-47b9-80d2-3f9e9fbe3736",
+          "EnableCollision": false,
+          "EnableRendering": true,
+          "EndPoint": {
+            "_type": "gameobject",
+            "go": "b10a2bdd-6abf-408e-8478-aecf029af9e0"
+          },
+          "EndPosition": "128.0001,-144,192",
+          "FixedStart": true,
+          "MaxPoints": 96,
+          "MaxTimeStepPerUpdate": 0.1,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "Radius": 1,
+          "StartPosition": "128,-80,320",
+          "TimeStep": 0.01
         }
       ]
     },
@@ -874,7 +874,7 @@
             "_type": "gameobject",
             "go": "b10a2bdd-6abf-408e-8478-aecf029af9e0"
           },
-          "CursorTranslationExpDecay": 4,
+          "CursorTranslationSmoothing": 4,
           "MaxDistance": "Infinity",
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,

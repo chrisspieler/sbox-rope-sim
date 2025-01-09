@@ -15,14 +15,14 @@ public partial class VerletRopeSystem : GameObjectSystem<VerletRopeSystem>
 		if ( !Game.IsPlaying )
 			return;
 
-		var ropes = Scene.GetAllComponents<RopePhysics>();
+		var ropes = Scene.GetAllComponents<VerletRope>();
 		foreach( var rope in ropes )
 		{
 			UpdateRope( rope );
 		}
 	}
 
-	private void UpdateRope( RopePhysics rope )
+	private void UpdateRope( VerletRope rope )
 	{
 		if ( !rope.IsValid() || rope.SimData is null )
 			return;

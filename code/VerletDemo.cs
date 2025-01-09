@@ -67,7 +67,7 @@ public class VerletDemo : Component
 		Rope.CollisionExclude = CollisionExclude;
 		// Rope.Simulate();
 
-		if ( RopePhysics.DebugMode < 1 )
+		if ( VerletRope.DebugMode < 1 )
 			return;
 
 		var points = Rope.Points.ToArray();
@@ -75,7 +75,7 @@ public class VerletDemo : Component
 		{
 			var point = points[i];
 			// DebugOverlay.Sphere( new Sphere( point.Position, Rope.SolidRadius ), color: Color.Red, overlay: true );
-			if ( RopePhysics.DebugMode == 2 )
+			if ( VerletRope.DebugMode == 2 )
 			{
 				// DebugOverlay.Sphere( new Sphere( point.Position, Rope.CollisionRadius ), color: Color.Green.WithAlpha( 0.05f ) );
 			}
@@ -86,7 +86,7 @@ public class VerletDemo : Component
 			DebugOverlay.Line( lastPoint.Position, point.Position, color: Color.Blue, overlay: true );
 		}
 
-		if ( RopePhysics.DebugMode == 2 )
+		if ( VerletRope.DebugMode == 2 )
 		{
 			DebugOverlay.Box( Rope.CollisionBounds, color: Color.Green.WithAlpha( 0.2f ) );
 		}

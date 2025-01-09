@@ -1,6 +1,6 @@
 namespace Duccsoft;
 
-public partial class RopePhysics : Component
+public partial class VerletRope : Component
 {
 	[ConVar( "rope_debug" )]
 	public static int DebugMode { get; set; } = 0;
@@ -103,7 +103,7 @@ public partial class RopePhysics : Component
 	}
 
 	#region Rendering
-	[Property, Change] public bool EnableRendering { get; set; }
+	[Property, Change] public bool EnableRendering { get; set; } = true;
 	private LineRenderer Renderer { get; set; }
 
 	private void CreateRenderer()
