@@ -143,7 +143,7 @@ public partial class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 	{
 		var scene = Game.ActiveScene;
 		if ( !scene.IsValid() || !Game.IsPlaying )
-			return default;
+			return [];
 
 		List<MdfQueryResult> results = [];
 		results.AddRange( FindPhysicsShapesInBox( box, scene.PhysicsWorld ) );

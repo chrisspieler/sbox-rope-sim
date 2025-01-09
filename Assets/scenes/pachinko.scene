@@ -832,15 +832,15 @@
         {
           "__type": "Duccsoft.VerletRope",
           "__guid": "23f89180-f93b-47b9-80d2-3f9e9fbe3736",
-          "EnableCollision": false,
+          "EnableCollision": true,
           "EnableRendering": true,
           "EndPoint": {
             "_type": "gameobject",
             "go": "b10a2bdd-6abf-408e-8478-aecf029af9e0"
           },
-          "EndPosition": "128.0001,-128,128",
+          "EndPosition": "128.0001,-192,160",
           "FixedStart": true,
-          "MaxPoints": 28,
+          "MaxPoints": 193,
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
@@ -850,7 +850,7 @@
           "OnComponentUpdate": null,
           "Radius": 1,
           "StartPosition": "128,64,128",
-          "Stiffness": 0.2,
+          "Stiffness": 0.32,
           "TimeStep": 0.01
         }
       ]
@@ -859,7 +859,7 @@
       "__guid": "b10a2bdd-6abf-408e-8478-aecf029af9e0",
       "Flags": 0,
       "Name": "End Point",
-      "Position": "128.0001,-128,128",
+      "Position": "128.0001,-192,160",
       "Scale": "0.1,0.1,0.1",
       "Enabled": true,
       "Components": [
@@ -885,6 +885,60 @@
           },
           "RenderType": "On",
           "Tint": "1,1,1,1"
+        }
+      ]
+    },
+    {
+      "__guid": "c1a2897b-0247-4d99-ab78-cfb11a880cc9",
+      "Flags": 0,
+      "Name": "Cube",
+      "Position": "144.4786,-76.33174,89.62401",
+      "Rotation": "-0.5033367,0.1124543,-0.06626552,0.8541751",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "cfd95ccd-9e6a-4680-817b-0681bad7de1c",
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
+          "Model": "models/dev/box.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.BoxCollider",
+          "__guid": "c269b022-8eac-4199-9f75-048efc39350b",
+          "Center": "0,0,0",
+          "Friction": null,
+          "IsTrigger": false,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "Scale": "50,50,50",
+          "Static": false,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
         }
       ]
     }

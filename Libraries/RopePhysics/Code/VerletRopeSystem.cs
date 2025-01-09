@@ -12,7 +12,8 @@ public partial class VerletRopeSystem : GameObjectSystem<VerletRopeSystem>
 
 	private void UpdateAllRopes()
 	{
-		if ( !Game.IsPlaying )
+		// When playing a different scene in the editor, don't simulate this scene.
+		if ( Game.IsPlaying && Scene.IsEditor )
 			return;
 
 		var ropes = Scene.GetAllComponents<VerletRope>();
