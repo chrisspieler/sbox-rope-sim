@@ -5,9 +5,8 @@ public partial class RopeSimulationData
 	public RopeSimulationData( PhysicsWorld physics, Vector3 startPos, Vector3 endPos, int pointCount )
 	{
 		Physics = physics;
-		PointCount = pointCount;
 
-		Reset( startPos, endPos );
+		Reset( startPos, endPos, pointCount );
 	}
 
 	public struct Point
@@ -68,15 +67,17 @@ public partial class RopeSimulationData
 	public BBox CollisionBounds { get; set; }
 	public RopeCollisionSnapshot Collisions { get; set; } = new();
 
-	public void Reset( Vector3 startPos, Vector3 endPos )
+	public void Reset( Vector3 startPos, Vector3 endPos, int pointCount )
 	{
+		PointCount = pointCount;
 		Points = new Point[PointCount];
 
 		var ray = new Ray( startPos, (endPos - startPos).Normal );
 		var distance = startPos.Distance( endPos );
-		SegmentLength = PointCount > 1
-			? distance / PointCount - 1
-			: 0f;
+		if ( PointCount < 2 )
+			return;
+
+		SegmentLength = distance / ( PointCount - 1 );
 
 		for ( int i = 0; i < PointCount; i++ )
 		{

@@ -1,6 +1,6 @@
 namespace Duccsoft;
 
-public partial class VerletRope : Component
+public partial class VerletRope : Component, Component.ExecuteInEditor
 {
 	[ConVar( "rope_debug" )]
 	public static int DebugMode { get; set; } = 0;
@@ -35,11 +35,29 @@ public partial class VerletRope : Component
 
 	private void UpdateAnchors()
 	{
+		void UpdateTerminalPositions()
+		{
+			SimData.FixedFirstPosition = FixedStart ? WorldPosition : null;
+			SimData.FixedLastPosition = EndPoint?.WorldPosition;
+		}
+
 		if ( SimData is null )
 			return;
 
-		SimData.FixedFirstPosition = FixedStart ? WorldPosition : null;
-		SimData.FixedLastPosition = EndPoint?.WorldPosition;
+		if ( Game.IsPlaying )
+		{
+			UpdateTerminalPositions();
+			return;
+		}
+
+		var previousFirst = SimData.FixedFirstPosition;
+		var previousLast = SimData.FixedLastPosition;
+		UpdateTerminalPositions();
+		var hasChanged = previousFirst != SimData.FixedFirstPosition || previousLast != SimData.FixedLastPosition;
+		if ( hasChanged )
+		{
+			ResetSimulation();
+		}
 	}
 	#endregion
 
@@ -52,9 +70,6 @@ public partial class VerletRope : Component
 
 	private void OnMaxPointsChanged( int oldValue, int newValue )
 	{
-		if ( Game.ActiveScene != Scene )
-			return;
-
 		DestroyRope();
 		CreateRope();
 	}
@@ -116,6 +131,12 @@ public partial class VerletRope : Component
 		UpdateAnchors();
 		UpdateSimulation();
 		UpdateRenderer();
+	}
+
+	public void ResetSimulation()
+	{
+		DestroyRope();
+		CreateRope();
 	}
 
 	private void CreateRope()

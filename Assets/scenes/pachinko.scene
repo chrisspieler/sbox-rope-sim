@@ -802,7 +802,7 @@
       "__guid": "8c5eccc0-2462-428c-aabd-73c656591014",
       "Flags": 0,
       "Name": "Rope",
-      "Position": "128,48,128",
+      "Position": "128,64,128",
       "Scale": "0.1,0.1,0.1",
       "Enabled": true,
       "Components": [
@@ -838,9 +838,9 @@
             "_type": "gameobject",
             "go": "b10a2bdd-6abf-408e-8478-aecf029af9e0"
           },
-          "EndPosition": "128.0001,-144,128",
+          "EndPosition": "128.0001,-128,128",
           "FixedStart": true,
-          "MaxPoints": 111,
+          "MaxPoints": 28,
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
@@ -849,7 +849,7 @@
           "OnComponentStart": null,
           "OnComponentUpdate": null,
           "Radius": 1,
-          "StartPosition": "128,48,128",
+          "StartPosition": "128,64,128",
           "Stiffness": 0.2,
           "TimeStep": 0.01
         }
@@ -859,7 +859,7 @@
       "__guid": "b10a2bdd-6abf-408e-8478-aecf029af9e0",
       "Flags": 0,
       "Name": "End Point",
-      "Position": "128.0001,-144,128",
+      "Position": "128.0001,-128,128",
       "Scale": "0.1,0.1,0.1",
       "Enabled": true,
       "Components": [
