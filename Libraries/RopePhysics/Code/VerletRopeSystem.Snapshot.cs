@@ -2,6 +2,17 @@
 
 public partial class VerletRopeSystem
 {
+	private void SetShouldCaptureSnapshot()
+	{
+		var ropes = Scene.GetAllComponents<VerletRope>();
+		foreach( var rope in ropes )
+		{
+			if ( rope.SimData?.Collisions is null )
+				continue;
+
+			rope.SimData.Collisions.ShouldCaptureSnapshot = true;
+		}
+	}
 	public static RopeCollisionSnapshot CaptureCollisionSnapshot( RopeSimulationData simData )
 	{
 		if ( simData is null || !simData.Physics.IsValid() || simData?.Points?.Length < 1 )

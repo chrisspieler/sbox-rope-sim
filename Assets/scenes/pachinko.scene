@@ -347,6 +347,7 @@
         {
           "__type": "Duccsoft.MeshDistanceConfig",
           "__guid": "96c7e1c4-95c2-4900-8975-e5d30ac727d0",
+          "BakeOnStart": false,
           "Collider": {
             "_type": "component",
             "component_id": "f686f50d-75fe-47c8-949e-29c0c16d0c25",
@@ -732,6 +733,27 @@
           "Static": true,
           "Surface": null,
           "SurfaceVelocity": "0,0,0"
+        },
+        {
+          "__type": "Duccsoft.MeshDistanceConfig",
+          "__guid": "308c7733-a44b-47f2-b395-6e22a2bed5a4",
+          "BakeOnStart": true,
+          "Collider": {
+            "_type": "component",
+            "component_id": "757a241f-f19c-4fa6-83be-32a9c37f399c",
+            "go": "fbb260aa-b5c8-47b5-b4f7-6e50831ec0d2",
+            "component_type": "MeshComponent"
+          },
+          "MeshSource": "Collider",
+          "Model": null,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "TextureExponent": 4,
+          "TextureResolution": 16
         }
       ]
     },
@@ -782,10 +804,7 @@
           "__type": "Sandbox.MousePlane",
           "__guid": "96507b88-caee-4bf3-a369-648dda74a395",
           "__enabled": false,
-          "Cursor": {
-            "_type": "gameobject",
-            "go": "b10a2bdd-6abf-408e-8478-aecf029af9e0"
-          },
+          "Cursor": null,
           "CursorTranslationSmoothing": 4,
           "MaxDistance": "Infinity",
           "OnComponentDestroy": null,
@@ -799,102 +818,11 @@
       ]
     },
     {
-      "__guid": "8c5eccc0-2462-428c-aabd-73c656591014",
-      "Flags": 0,
-      "Name": "Rope",
-      "Position": "128,-128,128",
-      "Scale": "0.1,0.1,0.1",
-      "Enabled": true,
-      "Components": [
-        {
-          "__type": "Sandbox.ModelRenderer",
-          "__guid": "57946768-37de-4c24-be92-8ed9825b9a6c",
-          "BodyGroups": 18446744073709551615,
-          "CreateAttachments": false,
-          "MaterialGroup": null,
-          "MaterialOverride": null,
-          "Model": "models/dev/sphere.vmdl",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "RenderOptions": {
-            "GameLayer": true,
-            "OverlayLayer": false,
-            "BloomLayer": false,
-            "AfterUILayer": false
-          },
-          "RenderType": "On",
-          "Tint": "1,1,1,1"
-        },
-        {
-          "__type": "Duccsoft.VerletRope",
-          "__guid": "23f89180-f93b-47b9-80d2-3f9e9fbe3736",
-          "Color": "0,0,0,1",
-          "EnableCollision": true,
-          "EnableRendering": true,
-          "EndPoint": {
-            "_type": "gameobject",
-            "go": "b10a2bdd-6abf-408e-8478-aecf029af9e0"
-          },
-          "EndPosition": "128,128,128",
-          "FixedStart": true,
-          "MaxPoints": 24,
-          "MaxTimeStepPerUpdate": 0.1,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Radius": 1,
-          "StartPosition": "128,-128,128",
-          "Stiffness": 0.07,
-          "TimeStep": 0.01
-        }
-      ]
-    },
-    {
-      "__guid": "b10a2bdd-6abf-408e-8478-aecf029af9e0",
-      "Flags": 0,
-      "Name": "End Point",
-      "Position": "128,128,128",
-      "Scale": "0.1,0.1,0.1",
-      "Enabled": true,
-      "Components": [
-        {
-          "__type": "Sandbox.ModelRenderer",
-          "__guid": "9a228892-0cba-43af-90e9-46ad7d487a81",
-          "BodyGroups": 18446744073709551615,
-          "CreateAttachments": false,
-          "MaterialGroup": null,
-          "MaterialOverride": null,
-          "Model": "models/dev/sphere.vmdl",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "RenderOptions": {
-            "GameLayer": true,
-            "OverlayLayer": false,
-            "BloomLayer": false,
-            "AfterUILayer": false
-          },
-          "RenderType": "On",
-          "Tint": "1,1,1,1"
-        }
-      ]
-    },
-    {
       "__guid": "c1a2897b-0247-4d99-ab78-cfb11a880cc9",
       "Flags": 0,
       "Name": "Cube",
-      "Position": "144.4786,-272,128",
-      "Rotation": "-0.5033367,0.1124543,-0.06626552,0.8541751",
+      "Position": "80,0,192",
+      "Rotation": "0.9125661,0.0510204,0.1201416,0.3875385",
       "Enabled": true,
       "Components": [
         {
@@ -940,6 +868,85 @@
           "Static": false,
           "Surface": null,
           "SurfaceVelocity": "0,0,0"
+        }
+      ]
+    },
+    {
+      "__guid": "13697cb6-6c82-45a5-8850-48790e99f4a3",
+      "Flags": 0,
+      "Name": "Rope",
+      "Position": "128,96,384",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Duccsoft.VerletRope",
+          "__guid": "f8f548a2-ab83-4c61-a2c4-8319d1be5452",
+          "Color": "0,0,0,1",
+          "EffectiveRadius": 1.1502,
+          "EnableCollision": true,
+          "EnableRendering": true,
+          "EndPoint": {
+            "_type": "gameobject",
+            "go": "8f6602f8-3c5b-473f-ae7d-2f1343aef837"
+          },
+          "EndPosition": "145.7469,-125.1581,376.6351",
+          "FixedStart": true,
+          "MaxTimeStepPerUpdate": 0.1,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "PointCount": 35,
+          "PointSpacing": 6.39,
+          "RadiusFraction": 0.36,
+          "StartPosition": "128,96,384",
+          "Stiffness": 0.56,
+          "TimeStep": 0.01
+        }
+      ]
+    },
+    {
+      "__guid": "7548821a-9269-4d2f-a353-1e0492740255",
+      "Flags": 0,
+      "Name": "End Point",
+      "Position": "128,-128,128",
+      "Enabled": true
+    },
+    {
+      "__guid": "8f6602f8-3c5b-473f-ae7d-2f1343aef837",
+      "Flags": 0,
+      "Name": "Rope (1)",
+      "Position": "145.7469,-125.1581,376.6351",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Duccsoft.VerletRope",
+          "__guid": "5021ce74-bc46-4a03-959c-fa86638d2e20",
+          "Color": "0,0,0,1",
+          "EffectiveRadius": 1.1502,
+          "EnableCollision": true,
+          "EnableRendering": true,
+          "EndPoint": {
+            "_type": "gameobject",
+            "go": "7548821a-9269-4d2f-a353-1e0492740255"
+          },
+          "EndPosition": "128,-128,128",
+          "FixedStart": true,
+          "MaxTimeStepPerUpdate": 0.1,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "PointCount": 40,
+          "PointSpacing": 6.39,
+          "RadiusFraction": 0.36,
+          "StartPosition": "145.7469,-125.1581,376.6351",
+          "Stiffness": 0.56,
+          "TimeStep": 0.01
         }
       ]
     }

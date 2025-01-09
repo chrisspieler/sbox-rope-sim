@@ -1,14 +1,13 @@
 ﻿namespace Duccsoft;
 
+// TODO: Rename from VerletRopeSystem to VerletSystem and support cloth as well.
 public partial class VerletRopeSystem : GameObjectSystem<VerletRopeSystem>
 {
 	public VerletRopeSystem( Scene scene ) : base( scene )
 	{
 		Listen( Stage.StartUpdate, 0, UpdateAllRopes, "Update Verlet Ropes" );
-		Listen( Stage.FinishFixedUpdate, 0, () => ShouldCaptureSnapshot = true, "Set ShouldCaptureSnapshot" );
+		Listen( Stage.FinishFixedUpdate, 0, SetShouldCaptureSnapshot, "Set ShouldCaptureSnapshot" );
 	}
-
-	private bool ShouldCaptureSnapshot { get; set; } = true;
 
 	private void UpdateAllRopes()
 	{
@@ -30,10 +29,10 @@ public partial class VerletRopeSystem : GameObjectSystem<VerletRopeSystem>
 
 		var simData = rope.SimData;
 
-		if ( ShouldCaptureSnapshot )
+		if ( simData.Collisions == null || simData.Collisions.ShouldCaptureSnapshot )
 		{
 			simData.Collisions = CaptureCollisionSnapshot( simData );
-			ShouldCaptureSnapshot = false;
+			simData.Collisions.ShouldCaptureSnapshot = false;
 		}
 
 		float totalTime = Time.Delta;

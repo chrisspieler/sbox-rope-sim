@@ -62,25 +62,55 @@ public partial class VerletRope : Component, Component.ExecuteInEditor
 	#endregion
 
 	#region Simulation
-	[Property] public float TimeStep { get; set; } = 0.01f;
-	[Property] public float MaxTimeStepPerUpdate { get; set; } = 0.1f;
-	[Property, Range(2, 255, 1), Change] public int MaxPoints { get; set; } = 96;
-	[Property, Range( 0.05f, 10f)] public float Radius { get; set; } = 1f;
-	[Property, Range( 0f, 1f )] public float Stiffness { get; set; } = 0.2f;
+	private const int POINT_COUNT_MIN = 2;
+	private const int POINT_COUNT_MAX = 255;
 
-	private void OnMaxPointsChanged( int oldValue, int newValue )
+	[Property] 
+	public float TimeStep { get; set; } = 0.01f;
+
+	[Property] 
+	public float MaxTimeStepPerUpdate { get; set; } = 0.1f;
+
+	[Property, Range( 0.05f, 32f ), Change] 
+	public float PointSpacing { get; set; } = 4f;
+	private void OnPointSpacingChanged( float oldValue, float newValue ) => ResetSimulation();
+
+	[Property]
+	public float PointCount => SimData?.PointCount ?? 0;
+
+	[Property, Range( 0.01f, 1f )] 
+	public float RadiusFraction { get; set; } = 0.25f;
+
+	[Property] 
+	public float EffectiveRadius => PointSpacing * ( RadiusFraction * 0.5f );
+
+	[Property, Range( 0f, 1f )] 
+	public float Stiffness { get; set; } = 0.2f;
+
+
+	private int CalculatePointCount( Vector3 startPos, Vector3 endPos )
 	{
-		DestroyRope();
-		CreateRope();
+		float distance = startPos.Distance( endPos );
+		int pointCount = (int)(distance / PointSpacing) + 1;
+		return pointCount.Clamp( POINT_COUNT_MIN, POINT_COUNT_MAX );
 	}
 
 	private void UpdateSimulation()
 	{
-		SimData.Radius = Radius;
-		var minStiffness = MathX.Remap( MaxPoints, 3, 255, 0f, 0.025f );
-		var stiffness = (Stiffness * 1f ).Clamp( minStiffness, 1f );
-		var maxIterations = MaxPoints.Remap( 3, 255, 1, 255 );
-		SimData.Iterations = (int)stiffness.Remap( 0.0f, 1f, 1, maxIterations );
+		SimData.Radius = EffectiveRadius;
+		SimData.Iterations = CalculateIterationCount();
+	}
+
+	private int CalculateIterationCount()
+	{
+		var numPoints = SimData.PointCount;
+		var min = POINT_COUNT_MIN;
+		var max = POINT_COUNT_MAX;
+
+		var minStiffness = MathX.Remap( numPoints, min, max, 0f, 0.025f );
+		var stiffness = (Stiffness * 1f).Clamp( minStiffness, 1f );
+		var maxIterations = numPoints.Remap( min, max, 1, max );
+		return (int)stiffness.Remap( 0.0f, 1f, 1, maxIterations );
 	}
 	#endregion
 
@@ -90,20 +120,40 @@ public partial class VerletRope : Component, Component.ExecuteInEditor
 
 	public RopeSimulationData SimData { get; private set; }
 
+	#region Editor
+	private bool _isDraggingMidpointGizmo;
 	protected override void DrawGizmos()
 	{
 		using var scope = Gizmo.Scope( "RopePhysicsDebug" );
 
 		Gizmo.Transform = Scene.LocalTransform;
+		var ropeLineColor = Color.Blue;
 		using ( Gizmo.Scope( "Midpoint Handle" ) )
 		{
 			BBox midpointHandle = BBox.FromPositionAndSize( (StartPosition + EndPosition) / 2f, 8f );
 			Gizmo.Hitbox.BBox( midpointHandle );
+			var drag = Gizmo.GetMouseDrag( midpointHandle.Center, Gizmo.CameraTransform.Backward );
+			var wasDraggingMidpointGizmo = _isDraggingMidpointGizmo;
+			if ( !Gizmo.IsSelected && Gizmo.Pressed.This )
+			{
+				Gizmo.Select();
+			}
+			_isDraggingMidpointGizmo = Gizmo.Pressed.This && drag.Length > 4f;
+			var releasedMidpointGizmo = wasDraggingMidpointGizmo && !_isDraggingMidpointGizmo;
+			if ( _isDraggingMidpointGizmo || releasedMidpointGizmo )
+			{
+				midpointHandle = midpointHandle.Translate( -drag );
+				ropeLineColor = Color.White;
+			}
+			if ( releasedMidpointGizmo )
+			{
+				SplitRope( midpointHandle.Center, 0.5f );
+			}
 			Gizmo.Draw.Color = Gizmo.IsHovered ? Color.White : Color.Red;
 			Gizmo.Draw.LineBBox( midpointHandle );
 		}
 
-		Gizmo.Draw.Color = Color.Blue;
+		Gizmo.Draw.Color = ropeLineColor;
 		using ( Gizmo.Hitbox.LineScope() )
 		{
 			Gizmo.Draw.Line( StartPosition, EndPosition );
@@ -124,6 +174,36 @@ public partial class VerletRope : Component, Component.ExecuteInEditor
 		}
 	}
 
+	public void SplitRope( Vector3 newRopeStartPosition, float pointSplit )
+	{
+		var newRope = Duplicate();
+		newRope.WorldPosition = newRopeStartPosition;
+		EndPoint = newRope.GameObject;
+	}
+
+	public VerletRope Duplicate()
+	{
+		var midGo = new GameObject( true, GameObject.Name );
+		midGo.MakeNameUnique();
+		var other = midGo.Components.Create<VerletRope>();
+		// Anchors
+		other.FixedStart = FixedStart;
+		other.EndPoint = EndPoint;
+		// Simulation
+		other.TimeStep = TimeStep;
+		other.MaxTimeStepPerUpdate = MaxTimeStepPerUpdate;
+		other.PointSpacing = PointSpacing;
+		other.RadiusFraction = RadiusFraction;
+		other.Stiffness = Stiffness;
+		// Collision
+		other.EnableCollision = EnableCollision;
+		// Rendering
+		other.EnableRendering = EnableRendering;
+		other.Color = Color;
+		return other;
+	}
+	#endregion
+
 	protected override void OnEnabled() => CreateRope();
 	protected override void OnDisabled() => DestroyRope();
 	protected override void OnUpdate()
@@ -141,7 +221,11 @@ public partial class VerletRope : Component, Component.ExecuteInEditor
 
 	private void CreateRope()
 	{
-		SimData = new RopeSimulationData( Scene.PhysicsWorld, StartPosition, EndPosition, MaxPoints )
+		var physics = Scene.PhysicsWorld;
+		var startPos = StartPosition;
+		var endPos = EndPosition;
+		var pointCount = CalculatePointCount( startPos, endPos );
+		SimData = new RopeSimulationData( physics, startPos, endPos, pointCount )
 		{
 			FixedFirstPosition = FixedStart ? WorldPosition : null,
 			FixedLastPosition = EndPoint?.WorldPosition,
@@ -207,7 +291,7 @@ public partial class VerletRope : Component, Component.ExecuteInEditor
 			return;
 
 		Renderer.Color = new Gradient( new Gradient.ColorFrame( 0f, Color ) );
-		Renderer.Width = new Curve( new Curve.Frame( 0f, Radius ) );
+		Renderer.Width = new Curve( new Curve.Frame( 0f, EffectiveRadius ) );
 		Renderer.SplineInterpolation = 8;
 		Renderer.VectorPoints = SimData.Points.Select( p => p.Position ).ToList();
 	}
