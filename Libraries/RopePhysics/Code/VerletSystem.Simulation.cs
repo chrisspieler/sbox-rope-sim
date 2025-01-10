@@ -2,6 +2,31 @@
 
 public partial class VerletSystem
 {
+	private ComputeShader VerletComputeShader;
+
+	private void InitializeGpuCollisions()
+	{
+		VerletComputeShader ??= new ComputeShader( "verlet_cloth_cs" );
+	}
+
+	private void GpuSimulate( VerletComponent verlet, float deltaTime )
+	{
+		var simData = verlet.SimData;
+
+		var xThreads = verlet.SimData.PointGridDims.x;
+		var yThreads = verlet.SimData.PointGridDims.y;
+
+		using ( PerfLog.Scope( verlet.GetHashCode(), $"GPU Simulate {xThreads}x{yThreads}, {simData.GpuPoints.ElementCount} of size {simData.GpuPoints.ElementSize}"))
+		{
+			VerletComputeShader.Attributes.Set( "Points", simData.GpuPoints );
+			VerletComputeShader.Attributes.Set( "Sticks", simData.GpuSticks );
+			VerletComputeShader.Attributes.Set( "NumPoints", simData.Points.Length );
+			VerletComputeShader.Attributes.Set( "NumColumns", simData.PointGridDims.y );
+			VerletComputeShader.Attributes.Set( "DeltaTime", deltaTime );
+			VerletComputeShader.Dispatch( xThreads, yThreads, 1 );
+		}
+	}
+
 	private void CpuSimulate( VerletComponent verlet, float deltaTime )
 	{
 		ApplyForces( verlet.SimData, deltaTime );

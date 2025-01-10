@@ -79,6 +79,9 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 
 	#region Simulation
 	[Property]
+	public bool SimulateOnGPU { get; set; } = false;
+
+	[Property]
 	public float TimeStep { get; set; } = 0.01f;
 
 	[Property]
@@ -123,6 +126,7 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 
 	protected virtual void DestroySimData() 
 	{
+		SimData?.DestroyGpuData();
 		SimData = null;
 	}
 

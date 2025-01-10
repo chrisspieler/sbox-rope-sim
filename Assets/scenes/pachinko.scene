@@ -901,6 +901,7 @@
           "PointCount": 64,
           "PointSpacing": 6.39,
           "RadiusFraction": 0.36,
+          "SimulateOnGPU": false,
           "StartPosition": "127.9999,224,336",
           "Stiffness": 0.56,
           "TimeStep": 0.01
@@ -944,6 +945,7 @@
           "OnComponentUpdate": null,
           "PointCount": 256,
           "Radius": 1,
+          "SimulateOnGPU": false,
           "StartPosition": "48,0,128",
           "Stiffness": 0.22,
           "TimeStep": 0.01

@@ -11,4 +11,5 @@ public struct VerletPoint
 	public Vector3 Position;
 	public int Flags;
 	public Vector3 LastPosition;
+	public int Padding;
 }

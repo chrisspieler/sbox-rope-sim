@@ -12,4 +12,5 @@ public struct VerletStickConstraint
 	public int Point1; 
 	public int Point2;
 	public float Length;
+	public int Padding;
 }

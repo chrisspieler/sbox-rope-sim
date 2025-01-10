@@ -14,6 +14,8 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 		if ( Game.IsPlaying && Scene.IsEditor )
 			return;
 
+		InitializeGpuCollisions();
+
 		var verletComponents = Scene.GetAllComponents<VerletComponent>();
 		foreach( var verlet in verletComponents )
 		{
@@ -34,13 +36,30 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 			simData.Collisions.ShouldCaptureSnapshot = false;
 		}
 
+		if ( verlet.SimulateOnGPU )
+		{
+			verlet.SimData.StorePointsToGpu();
+		}
+
 		float totalTime = Time.Delta;
 		totalTime = MathF.Min( totalTime, verlet.MaxTimeStepPerUpdate );
 		while ( totalTime >= 0 )
 		{
 			var deltaTime = MathF.Min( verlet.TimeStep, totalTime );
-			CpuSimulate( verlet, deltaTime );
+			if ( verlet.SimulateOnGPU )
+			{
+				GpuSimulate( verlet, deltaTime );
+			}
+			else
+			{
+				CpuSimulate( verlet, deltaTime );
+			}
 			totalTime -= verlet.TimeStep;
+		}
+
+		if ( verlet.SimulateOnGPU )
+		{
+			verlet.SimData.LoadPointsFromGpu();
 		}
 
 		simData.RecalculatePointBounds();

@@ -9,8 +9,11 @@ public class SimulationData
 		Sticks = sticks;
 		PointGridDims = new Vector2Int( points.Length / numColumns, numColumns );
 		SegmentLength = segmentLength;
+
+		InitializeGpu();
 	}
 
+	
 	public Vector3 Gravity { get; set; } = Vector3.Down * 800f;
 	public Vector3? FixedFirstPosition { get; set; }
 	public Vector3? FixedLastPosition { get; set; }
@@ -35,7 +38,7 @@ public class SimulationData
 		}
 	}
 
-	public VerletPoint[] Points { get; }
+	public VerletPoint[] Points { get; private set; }
 	public VerletStickConstraint[] Sticks { get; }
 	public float SegmentLength { get; }
 	public Vector2Int PointGridDims { get; }
@@ -59,6 +62,47 @@ public class SimulationData
 	/// </summary>
 	public BBox CollisionBounds { get; set; }
 	public CollisionSnapshot Collisions { get; set; } = new();
+
+	public GpuBuffer<VerletPoint> GpuPoints { get; set; }
+	public GpuBuffer<VerletStickConstraint> GpuSticks { get; set;}
+
+	public void StorePointsToGpu()
+	{
+		if ( GpuPoints is null )
+		{
+			InitializeGpu();
+		}
+		GpuPoints.SetData( Points );
+	}
+
+	public void InitializeGpu()
+	{
+		DestroyGpuData();
+		GpuPoints = new GpuBuffer<VerletPoint>( Points.Length );
+		GpuPoints.SetData( Points );
+		GpuSticks = new GpuBuffer<VerletStickConstraint>( Sticks.Length );
+		GpuSticks.SetData( Sticks );
+	}
+
+	public void LoadPointsFromGpu()
+	{
+		if ( GpuPoints is null )
+			return;
+
+		if ( Points.Length != GpuPoints.ElementCount )
+		{
+			Points = new VerletPoint[GpuPoints.ElementCount];
+		}
+		GpuPoints.GetData( Points );
+	}
+
+	public void DestroyGpuData()
+	{
+		GpuPoints?.Dispose();
+		GpuPoints = null;
+		GpuSticks?.Dispose();
+		GpuSticks = null;
+	}
 
 	public void RecalculatePointBounds()
 	{
