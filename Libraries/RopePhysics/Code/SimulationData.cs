@@ -93,7 +93,10 @@ public class SimulationData
 		{
 			Points = new VerletPoint[GpuPoints.ElementCount];
 		}
-		GpuPoints.GetData( Points );
+		using ( PerfLog.Scope( $"GpuBuffer.GetData with {Points.Length} points and {Iterations} iterations" ) )
+		{
+			GpuPoints.GetData( Points );
+		}
 	}
 
 	public void DestroyGpuData()
@@ -102,6 +105,27 @@ public class SimulationData
 		GpuPoints = null;
 		GpuSticks?.Dispose();
 		GpuSticks = null;
+	}
+
+	public void UpdateAnchors()
+	{
+		if ( Points.Length < 1 )
+			return;
+
+		var anchorFirst = FixedFirstPosition is not null;
+		SetAnchor( 0, anchorFirst );
+		var anchorLast = FixedLastPosition is not null;
+		SetAnchor( Points.Length - 1, anchorLast );
+	}
+	
+	public void SetAnchor( int index, bool isAnchor )
+	{
+		if ( Points.Length < 1 || index < 0 || index >= Points.Length )
+			return;
+
+		var p = Points[index];
+		p.Flags = p.Flags.WithFlag( VerletPointFlags.Anchor, isAnchor );
+		Points[index] = p;
 	}
 
 	public void RecalculatePointBounds()

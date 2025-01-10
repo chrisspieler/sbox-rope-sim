@@ -16,15 +16,18 @@ public partial class VerletSystem
 		var xThreads = verlet.SimData.PointGridDims.x;
 		var yThreads = verlet.SimData.PointGridDims.y;
 
-		using ( PerfLog.Scope( verlet.GetHashCode(), $"GPU Simulate {xThreads}x{yThreads}, {simData.GpuPoints.ElementCount} of size {simData.GpuPoints.ElementSize}"))
-		{
-			VerletComputeShader.Attributes.Set( "Points", simData.GpuPoints );
-			VerletComputeShader.Attributes.Set( "Sticks", simData.GpuSticks );
-			VerletComputeShader.Attributes.Set( "NumPoints", simData.Points.Length );
-			VerletComputeShader.Attributes.Set( "NumColumns", simData.PointGridDims.y );
-			VerletComputeShader.Attributes.Set( "DeltaTime", deltaTime );
-			VerletComputeShader.Dispatch( xThreads, yThreads, 1 );
-		}
+		// using var scope = PerfLog.Scope( $"GPU Simulate {xThreads}x{yThreads}, {simData.GpuPoints.ElementCount} of size {simData.GpuPoints.ElementSize}, sticks {simData.GpuSticks.ElementCount} of size {simData.GpuSticks.ElementSize}" );
+
+		VerletComputeShader.Attributes.Set( "Points", simData.GpuPoints );
+		VerletComputeShader.Attributes.Set( "Sticks", simData.GpuSticks );
+		VerletComputeShader.Attributes.Set( "StartPosition", verlet.StartPosition );
+		VerletComputeShader.Attributes.Set( "EndPosition", verlet.EndPosition );
+		VerletComputeShader.Attributes.Set( "NumPoints", simData.Points.Length );
+		VerletComputeShader.Attributes.Set( "NumSticks", simData.Sticks.Length );
+		VerletComputeShader.Attributes.Set( "NumColumns", simData.PointGridDims.y );
+		VerletComputeShader.Attributes.Set( "Iterations", simData.Iterations );
+		VerletComputeShader.Attributes.Set( "DeltaTime", deltaTime );
+		VerletComputeShader.Dispatch( xThreads, yThreads, 1 );
 	}
 
 	private void CpuSimulate( VerletComponent verlet, float deltaTime )

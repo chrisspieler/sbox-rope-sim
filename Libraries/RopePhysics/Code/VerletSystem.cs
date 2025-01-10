@@ -29,6 +29,7 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 			return;
 
 		var simData = verlet.SimData;
+		simData.UpdateAnchors();
 
 		if ( simData.Collisions == null || simData.Collisions.ShouldCaptureSnapshot )
 		{

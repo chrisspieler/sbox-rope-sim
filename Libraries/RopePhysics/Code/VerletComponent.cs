@@ -78,8 +78,18 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	#endregion
 
 	#region Simulation
+
+	[ConVar( "verlet_gpu_sim" )]
+	public static bool SimulateOnGPUConVar { get; set; } = true;
 	[Property]
-	public bool SimulateOnGPU { get; set; } = false;
+	public bool SimulateOnGPU
+	{
+		get => SimulateOnGPUConVar;
+		set
+		{
+			SimulateOnGPUConVar = value;
+		}
+	}
 
 	[Property]
 	public float TimeStep { get; set; } = 0.01f;

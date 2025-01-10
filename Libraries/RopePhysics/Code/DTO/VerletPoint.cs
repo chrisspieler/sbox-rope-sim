@@ -9,7 +9,14 @@ public struct VerletPoint
 	}
 
 	public Vector3 Position;
-	public int Flags;
+	public VerletPointFlags Flags;
 	public Vector3 LastPosition;
 	public int Padding;
+}
+
+[Flags]
+public enum VerletPointFlags : int
+{
+	None	= 0,
+	Anchor	= 1 << 0
 }
