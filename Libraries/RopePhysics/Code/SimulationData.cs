@@ -1,31 +1,5 @@
 ﻿namespace Duccsoft;
 
-public struct VerletPoint
-{
-	public VerletPoint( Vector3 position, Vector3 lastPosition )
-	{
-		Position = position;
-		LastPosition = lastPosition;
-	}
-
-	public Vector3 Position;
-	public Vector3 LastPosition;
-}
-
-public struct VerletStickConstraint
-{
-	public VerletStickConstraint( int point1, int point2, float length )
-	{
-		Point1 = point1;
-		Point2 = point2;
-		Length = length;
-	}
-
-	public int Point1; 
-	public int Point2;
-	public float Length;
-}
-
 public class SimulationData
 {
 	public SimulationData( PhysicsWorld physics, VerletPoint[] points, VerletStickConstraint[] sticks, int numColumns, float segmentLength )

@@ -1,4 +1,6 @@
-﻿namespace Duccsoft;
+﻿using Sandbox;
+
+namespace Duccsoft;
 
 public class VerletCloth : VerletComponent
 {
@@ -8,6 +10,10 @@ public class VerletCloth : VerletComponent
 	[Property] public bool DebugDrawPoints { get; set; } = false;
 
 	public Model Model { get; private set; }
+	private Mesh Mesh { get; set; }
+	private SimpleVertex[] Vertices { get; set; }
+	private int[] Indices { get; set; }
+
 
 	protected override void OnUpdate()
 	{
@@ -98,14 +104,18 @@ public class VerletCloth : VerletComponent
 		}
 	}
 
-	// Generate a new cloth mesh each frame. Perhaps this could be done more quckly?
 	private void UpdateModel()
 	{
 		if ( !_so.IsValid() || SimData?.Points is null )
 			return;
 
-		var numVertices = ClothResolution * ClothResolution;
-		var vertices = new SimpleVertex[numVertices];
+		int numVertices = ClothResolution * ClothResolution;
+		bool vertexCountChanged = false;
+		if ( Vertices is null || Vertices.Length != numVertices )
+		{
+			vertexCountChanged = true;
+			Vertices = new SimpleVertex[numVertices];
+		}
 
 		for ( int y = 0; y < ClothResolution; y++ )
 		{
@@ -117,12 +127,35 @@ public class VerletCloth : VerletComponent
 				var localPos = WorldTransform.PointToLocal( worldPos );
 				var uv = new Vector2( (float)x / ClothResolution, (float)y / ClothResolution );
 				var vtx = new SimpleVertex( localPos, Vector3.Up, Vector3.Right, uv );
-				vertices[i] = vtx;
+				Vertices[i] = vtx;
 			}
 		}
 
-		var verticesPerLine = ClothResolution;
-		var indices = new List<int>();
+		if ( Indices is null || vertexCountChanged )
+		{
+			UpdateIndices();
+		}
+
+		if ( vertexCountChanged || Mesh is null || Model is null || _so.Model is null )
+		{
+			Mesh = new Mesh( Material );
+			Mesh.CreateVertexBuffer( numVertices, SimpleVertex.Layout, default( Span<SimpleVertex> ) );
+			Mesh.CreateIndexBuffer( Indices.Length, Indices );
+			Model = Model.Builder.AddMesh( Mesh ).Create();
+			_so.Model = Model;
+		}
+		if ( Mesh.VertexCount != Vertices.Length )
+		{
+			Mesh.SetVertexBufferSize( Vertices.Length );
+		}
+		Mesh.LockVertexBuffer<SimpleVertex>( d => Vertices.CopyTo( d ) );
+		Mesh.Bounds = BBox.FromPoints( Vertices.Select( v => v.position ) );
+	}
+
+	private void UpdateIndices()
+	{
+		int verticesPerLine = ClothResolution;
+		List<int> indices = [];
 		// The index buffer loop was copy/pasted from the water plane tesselation used in Sam's water sim on Testbed.
 		for ( int i = 0; i < ClothResolution - 1; i++ )
 		{
@@ -138,13 +171,7 @@ public class VerletCloth : VerletComponent
 				indices.Add( start + verticesPerLine + 1 );
 			}
 		}
-
-		var mesh = new Mesh( Material );
-		mesh.CreateVertexBuffer<SimpleVertex>( numVertices, SimpleVertex.Layout, vertices );
-		mesh.CreateIndexBuffer( indices.Count, indices );
-		mesh.Bounds = BBox.FromPoints( vertices.Select( v => v.position ) );
-		Model = Model.Builder.AddMesh( mesh ).Create();
-		_so.Model = Model;
+		Indices = [.. indices];
 	}
 	#endregion
 }
