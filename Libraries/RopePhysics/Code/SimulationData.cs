@@ -1,24 +1,40 @@
 ﻿namespace Duccsoft;
 
-public partial class RopeSimulationData
+public struct VerletPoint
 {
-	public RopeSimulationData( PhysicsWorld physics, Vector3 startPos, Vector3 endPos, int pointCount )
+	public VerletPoint( Vector3 position, Vector3 lastPosition )
 	{
-		Physics = physics;
-
-		Reset( startPos, endPos, pointCount );
+		Position = position;
+		LastPosition = lastPosition;
 	}
 
-	public struct Point
-	{
-		public Point( Vector3 position, Vector3 lastPosition )
-		{
-			Position = position;
-			LastPosition = lastPosition;
-		}
+	public Vector3 Position;
+	public Vector3 LastPosition;
+}
 
-		public Vector3 Position { get; set; }
-		public Vector3 LastPosition { get; set; }
+public struct VerletStickConstraint
+{
+	public VerletStickConstraint( int point1, int point2, float length )
+	{
+		Point1 = point1;
+		Point2 = point2;
+		Length = length;
+	}
+
+	public int Point1; 
+	public int Point2;
+	public float Length;
+}
+
+public class SimulationData
+{
+	public SimulationData( PhysicsWorld physics, VerletPoint[] points, VerletStickConstraint[] sticks, int numColumns, float segmentLength )
+	{
+		Physics = physics;
+		Points = points;
+		Sticks = sticks;
+		PointGridDims = new Vector2Int( points.Length / numColumns, numColumns );
+		SegmentLength = segmentLength;
 	}
 
 	public Vector3 Gravity { get; set; } = Vector3.Down * 800f;
@@ -44,13 +60,16 @@ public partial class RopeSimulationData
 			return Vector3.Down * 32f;
 		}
 	}
-	public int PointCount { get; set; } = 32;
+
+	public VerletPoint[] Points { get; }
+	public VerletStickConstraint[] Sticks { get; }
+	public float SegmentLength { get; }
+	public Vector2Int PointGridDims { get; }
+
 	public int Iterations { get; set; } = 80;
-	public float SegmentLength { get; private set; }
 	public float Radius { get; set; } = 1f;
 
-	public Point[] Points { get; private set; }
-	[ConVar( "rope_collision_mdf_enable" )]
+	[ConVar( "verlet_collision_mdf_enable" )]
 	public static bool UseMeshDistanceFields { get; set; } = true;
 
 	public PhysicsWorld Physics { get; init; }
@@ -65,26 +84,7 @@ public partial class RopeSimulationData
 	/// The total area to search for collisions, encompassing the entire rpoe.
 	/// </summary>
 	public BBox CollisionBounds { get; set; }
-	public RopeCollisionSnapshot Collisions { get; set; } = new();
-
-	public void Reset( Vector3 startPos, Vector3 endPos, int pointCount )
-	{
-		PointCount = pointCount;
-		Points = new Point[PointCount];
-
-		var ray = new Ray( startPos, (endPos - startPos).Normal );
-		var distance = startPos.Distance( endPos );
-		if ( PointCount < 2 )
-			return;
-
-		SegmentLength = distance / ( PointCount - 1 );
-
-		for ( int i = 0; i < PointCount; i++ )
-		{
-			var pos = ray.Project( SegmentLength * i );
-			Points[i] = new Point( pos, pos );
-		}
-	}
+	public CollisionSnapshot Collisions { get; set; } = new();
 
 	public void RecalculatePointBounds()
 	{

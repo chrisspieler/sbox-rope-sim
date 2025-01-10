@@ -1,19 +1,19 @@
 ﻿namespace Duccsoft;
 
-public partial class VerletRopeSystem
+public partial class VerletSystem
 {
 	private void SetShouldCaptureSnapshot()
 	{
-		var ropes = Scene.GetAllComponents<VerletRope>();
-		foreach( var rope in ropes )
+		var verletComponents = Scene.GetAllComponents<VerletComponent>();
+		foreach( var verlet in verletComponents )
 		{
-			if ( rope.SimData?.Collisions is null )
+			if ( verlet.SimData?.Collisions is null )
 				continue;
 
-			rope.SimData.Collisions.ShouldCaptureSnapshot = true;
+			verlet.SimData.Collisions.ShouldCaptureSnapshot = true;
 		}
 	}
-	public static RopeCollisionSnapshot CaptureCollisionSnapshot( RopeSimulationData simData )
+	public static CollisionSnapshot CaptureCollisionSnapshot( SimulationData simData )
 	{
 		if ( simData is null || !simData.Physics.IsValid() || simData?.Points?.Length < 1 )
 			return new();
@@ -27,7 +27,7 @@ public partial class VerletRopeSystem
 			.WithAnyTags(simData.CollisionInclude)
 			.RunAll();
 
-		RopeCollisionSnapshot snapshot = new();
+		CollisionSnapshot snapshot = new();
 		var points = simData.Points;
 
 		var mdfs = MeshDistanceSystem.FindInBox(collisionBounds);
@@ -40,7 +40,7 @@ public partial class VerletRopeSystem
 			}
 			foreach (var mdf in mdfs)
 			{
-				var useMdf = RopeSimulationData.UseMeshDistanceFields && !mdf.GameObject.Tags.Has("mdf_disable");
+				var useMdf = SimulationData.UseMeshDistanceFields && !mdf.GameObject.Tags.Has("mdf_disable");
 				if (useMdf)
 				{
 					var pointPos = points[i].Position;
@@ -53,7 +53,7 @@ public partial class VerletRopeSystem
 		return snapshot;
 	}
 
-	private static void CaptureConvexCollision(RopeCollisionSnapshot snapshot, int pointIndex, RopeColliderType colliderType, PhysicsShape shape)
+	private static void CaptureConvexCollision(CollisionSnapshot snapshot, int pointIndex, RopeColliderType colliderType, PhysicsShape shape)
 	{
 		switch (colliderType)
 		{

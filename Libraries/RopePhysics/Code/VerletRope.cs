@@ -1,92 +1,25 @@
 namespace Duccsoft;
 
-public partial class VerletRope : Component, Component.ExecuteInEditor
+public partial class VerletRope : VerletComponent
 {
 	[ConVar( "rope_debug" )]
 	public static int DebugMode { get; set; } = 0;
 
-	#region Anchors
-	[Property]
-	public Vector3 StartPosition
-	{
-		get
-		{
-			if ( FixedStart )
-			{
-				return WorldPosition;
-			}
-			return SimData?.FirstPosition ?? WorldPosition;
-		}
-	}
-	[Property]
-	public Vector3 EndPosition
-	{
-		get
-		{
-			if ( EndPoint.IsValid() )
-			{
-				return EndPoint.WorldPosition;
-			}
-			return SimData?.LastPosition ?? WorldPosition + Vector3.Down * 50f;
-		}
-	}
-	[Property] public bool FixedStart { get; set; } = true;
-	[Property] public GameObject EndPoint { get; set; }
-
-	private void UpdateAnchors()
-	{
-		void UpdateTerminalPositions()
-		{
-			SimData.FixedFirstPosition = FixedStart ? WorldPosition : null;
-			SimData.FixedLastPosition = EndPoint?.WorldPosition;
-		}
-
-		if ( SimData is null )
-			return;
-
-		if ( Game.IsPlaying )
-		{
-			UpdateTerminalPositions();
-			return;
-		}
-
-		var previousFirst = SimData.FixedFirstPosition;
-		var previousLast = SimData.FixedLastPosition;
-		UpdateTerminalPositions();
-		var hasChanged = previousFirst != SimData.FixedFirstPosition || previousLast != SimData.FixedLastPosition;
-		if ( hasChanged )
-		{
-			ResetSimulation();
-		}
-	}
-	#endregion
-
 	#region Simulation
-	private const int POINT_COUNT_MIN = 2;
-	private const int POINT_COUNT_MAX = 255;
-
-	[Property] 
-	public float TimeStep { get; set; } = 0.01f;
-
-	[Property] 
-	public float MaxTimeStepPerUpdate { get; set; } = 0.1f;
-
-	[Property, Range( 0.05f, 32f ), Change] 
-	public float PointSpacing { get; set; } = 4f;
-	private void OnPointSpacingChanged( float oldValue, float newValue ) => ResetSimulation();
-
-	[Property]
-	public float PointCount => SimData?.PointCount ?? 0;
 
 	[Property, Range( 0.01f, 1f )] 
 	public float RadiusFraction { get; set; } = 0.25f;
 
 	[Property] 
 	public float EffectiveRadius => PointSpacing * ( RadiusFraction * 0.5f );
+	#endregion
 
-	[Property, Range( 0f, 1f )] 
-	public float Stiffness { get; set; } = 0.2f;
-
+	#region Generation
+	private const int POINT_COUNT_MIN = 2;
+	private const int POINT_COUNT_MAX = 255;
+	[Property, Range( 0.05f, 32f ), Change]
+	public float PointSpacing { get; set; } = 4f;
+	private void OnPointSpacingChanged( float oldValue, float newValue ) => ResetSimulation();
 
 	private int CalculatePointCount( Vector3 startPos, Vector3 endPos )
 	{
@@ -103,7 +36,7 @@ public partial class VerletRope : Component, Component.ExecuteInEditor
 
 	private int CalculateIterationCount()
 	{
-		var numPoints = SimData.PointCount;
+		var numPoints = SimData.Points.Length;
 		var min = POINT_COUNT_MIN;
 		var max = POINT_COUNT_MAX;
 
@@ -113,12 +46,6 @@ public partial class VerletRope : Component, Component.ExecuteInEditor
 		return (int)stiffness.Remap( 0.0f, 1f, 1, maxIterations );
 	}
 	#endregion
-
-	#region Collision
-	[Property] public bool EnableCollision { get; set; }
-	#endregion
-
-	public RopeSimulationData SimData { get; private set; }
 
 	#region Editor
 	private bool _isDraggingMidpointGizmo;
@@ -204,48 +131,40 @@ public partial class VerletRope : Component, Component.ExecuteInEditor
 	}
 	#endregion
 
-	protected override void OnEnabled() => CreateRope();
-	protected override void OnDisabled() => DestroyRope();
+
 	protected override void OnUpdate()
 	{
-		UpdateAnchors();
+		base.OnUpdate();
 		UpdateSimulation();
 		UpdateRenderer();
 	}
 
-	public void ResetSimulation()
-	{
-		DestroyRope();
-		CreateRope();
-	}
-
-	private void CreateRope()
+	protected override SimulationData CreateSimData()
 	{
 		var physics = Scene.PhysicsWorld;
 		var startPos = StartPosition;
 		var endPos = EndPosition;
 		var pointCount = CalculatePointCount( startPos, endPos );
-		SimData = new RopeSimulationData( physics, startPos, endPos, pointCount )
+		var points = RopeGenerator.Generate( startPos, endPos, pointCount, out float segmentLength );
+		var sticks = new VerletStickConstraint[points.Length - 1];
+		for( int i = 0; i < sticks.Length; i++ )
+		{
+			sticks[i] = new VerletStickConstraint( i, i + 1, segmentLength );
+		}
+		return new SimulationData( physics, points, sticks, 1, segmentLength )
 		{
 			FixedFirstPosition = FixedStart ? WorldPosition : null,
 			FixedLastPosition = EndPoint?.WorldPosition,
 		};
-		CreateRenderer();
-	}
-
-	private void DestroyRope()
-	{
-		SimData = null;
-		DestroyRenderer();
 	}
 
 	#region Rendering
-	[Property, Change] public bool EnableRendering { get; set; } = true;
+	
 	[Property] public Color Color { get; set; } = Color.Black;
 
 	private LineRenderer Renderer { get; set; }
 
-	private void CreateRenderer()
+	protected override void CreateRenderer()
 	{
 		if ( !EnableRendering )
 			return;
@@ -255,24 +174,13 @@ public partial class VerletRope : Component, Component.ExecuteInEditor
 		Renderer.Flags |= ComponentFlags.Hidden | ComponentFlags.NotSaved;
 		Renderer.UseVectorPoints = true;
 		Renderer.EndCap = Renderer.StartCap = SceneLineObject.CapStyle.Rounded;
+		Renderer.Lighting = true;
 	}
 
-	private void DestroyRenderer()
+	protected override void DestroyRenderer()
 	{
 		Renderer?.Destroy();
 		Renderer = null;
-	}
-
-	private void OnEnableRenderingChanged( bool oldValue, bool newValue )
-	{
-		if ( newValue )
-		{
-			CreateRenderer();
-		}
-		else
-		{
-			DestroyRenderer();
-		}
 	}
 
 	[Button]
@@ -285,7 +193,7 @@ public partial class VerletRope : Component, Component.ExecuteInEditor
 		Renderer.Flags = Renderer.Flags.WithFlag( ComponentFlags.Hidden, !wasSet );
 	}
 
-	private void UpdateRenderer()
+	protected override void UpdateRenderer()
 	{
 		if ( !Renderer.IsValid() )
 			return;

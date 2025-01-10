@@ -1,6 +1,6 @@
 ﻿namespace Duccsoft;
 
-public class RopeCollisionSnapshot
+public class CollisionSnapshot
 {
 	public Dictionary<int, SphereCollisionInfo> SphereColliders { get; } = [];
 	public Dictionary<int, BoxCollisionInfo> BoxColliders { get; } = [];

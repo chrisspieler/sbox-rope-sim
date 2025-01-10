@@ -1,18 +1,16 @@
 ﻿namespace Duccsoft;
 
-public partial class VerletRopeSystem
+public partial class VerletSystem
 {
-	private static void ResolveCollisions( RopeSimulationData simData )
+	private static void ResolveCollisions( SimulationData simData )
 	{
-		if ( simData.Collisions is null )
-			Log.Info( "null" );
 		ResolveSphereCollisions( simData );
 		ResolveBoxCollisions( simData );
 		ResolveCapsuleCollisions( simData );
 		ResolveMeshCollisions( simData );
 	}
 
-	private static void ResolveSphereCollisions( RopeSimulationData simData )
+	private static void ResolveSphereCollisions( SimulationData simData )
 	{
 		foreach ( var ci in simData.Collisions.SphereColliders.Values )
 		{
@@ -34,7 +32,7 @@ public partial class VerletRopeSystem
 		}
 	}
 
-	private static void ResolveBoxCollisions( RopeSimulationData simData )
+	private static void ResolveBoxCollisions( SimulationData simData )
 	{
 		foreach ( var ci in simData.Collisions.BoxColliders.Values )
 		{
@@ -72,7 +70,7 @@ public partial class VerletRopeSystem
 		}
 	}
 
-	private static void ResolveCapsuleCollisions( RopeSimulationData simData )
+	private static void ResolveCapsuleCollisions( SimulationData simData )
 	{
 		foreach ( var ci in simData.Collisions.CapsuleColliders.Values )
 		{
@@ -110,7 +108,7 @@ public partial class VerletRopeSystem
 		}
 	}
 
-	private static void ResolveMeshCollisions( RopeSimulationData simData )
+	private static void ResolveMeshCollisions( SimulationData simData )
 	{
 		foreach ( var ci in simData.Collisions.MeshColliders.Values )
 		{

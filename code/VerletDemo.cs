@@ -31,7 +31,7 @@ public class VerletDemo : Component
 	[Property] public TagSet CollisionInclude { get; set; } = [];
 	[Property] public TagSet CollisionExclude { get; set; } = [];
 	[Property] public Collider RopeTarget { get; set; }
-	public RopeSimulationData Rope { get; set; }
+	public SimulationData Rope { get; set; }
 
 	protected override void OnStart()
 	{
