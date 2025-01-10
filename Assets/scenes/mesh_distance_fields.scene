@@ -252,7 +252,117 @@
       "__guid": "7032c96c-95a6-4981-9bdc-1395b234634a",
       "Flags": 0,
       "Name": "Verlet",
-      "Enabled": true
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.VerletDemo",
+          "__guid": "a3c1d9b0-88fc-4bd6-b844-4a1efb6edd06",
+          "CollisionExclude": "noblockrope",
+          "CollisionInclude": "",
+          "DuplicateOffset": "5,5,0",
+          "Duplicates": "1,0,1",
+          "FixedEnd": false,
+          "FixedStart": true,
+          "FollowMouse": false,
+          "Iterations": 200,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OscillateEnd": false,
+          "OscillateEndAmplitude": "0,100",
+          "OscillateEndOffset": "100,0",
+          "OscillateEndPeriod": 1,
+          "Renderer": null,
+          "RopeEndOffset": "0,0,-250",
+          "RopePointCount": 200,
+          "RopeStartOffset": "0,0,0",
+          "RopeTarget": {
+            "_type": "component",
+            "component_id": "e6ace28a-e182-4ac9-accf-b1e5e34d943a",
+            "go": "ba6031b3-b24a-4c4a-82db-55e8da11cbc1",
+            "component_type": "SphereCollider"
+          },
+          "ShowWindow": true
+        },
+        {
+          "__type": "Duccsoft.RopeRenderer",
+          "__guid": "4f563558-e97f-406e-9406-24a1944eaad4",
+          "Line": {
+            "_type": "component",
+            "component_id": "2243ff3e-10ee-46ed-b165-681173d8b72d",
+            "go": "7032c96c-95a6-4981-9bdc-1395b234634a",
+            "component_type": "LineRenderer"
+          },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
+        },
+        {
+          "__type": "Sandbox.LineRenderer",
+          "__guid": "2243ff3e-10ee-46ed-b165-681173d8b72d",
+          "CastShadows": true,
+          "Color": {
+            "blend": "Linear",
+            "color": [
+              {
+                "t": 0.5,
+                "c": "1,1,1,1"
+              }
+            ],
+            "alpha": []
+          },
+          "EndCap": "Triangle",
+          "Face": "Camera",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "Opaque": true,
+          "Points": [],
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "SplineBias": 0,
+          "SplineContinuity": 0,
+          "SplineInterpolation": 5,
+          "SplineTension": -0.2,
+          "StartCap": "Triangle",
+          "Texturing": {
+            "Texture": "textures/rope_color.vtex",
+            "WorldSpace": true,
+            "UnitsPerTexture": 50,
+            "Scale": 1,
+            "Offset": 0,
+            "Scroll": 0
+          },
+          "UseVectorPoints": true,
+          "VectorPoints": [],
+          "Width": {
+            "rangey": "0,0.15",
+            "frames": [
+              {
+                "x": 0.5,
+                "y": 5,
+                "in": 0,
+                "out": 0,
+                "mode": "Mirrored"
+              }
+            ]
+          },
+          "Wireframe": false
+        }
+      ]
     },
     {
       "__guid": "5033acc0-1340-4e28-b4fe-0ae364eed887",
@@ -260,78 +370,6 @@
       "Name": "Meshes",
       "Enabled": true,
       "Children": [
-        {
-          "__guid": "522c3749-018a-4680-9b6f-4377bcbcaf57",
-          "Flags": 0,
-          "Name": "ducc",
-          "Rotation": "0,0,1,-0.00000004371139",
-          "Components": [
-            {
-              "__type": "Sandbox.ModelRenderer",
-              "__guid": "43ee8a5f-f3a0-4f4d-820d-a4bd1a10f86b",
-              "BodyGroups": 18446744073709551615,
-              "CreateAttachments": false,
-              "MaterialGroup": null,
-              "MaterialOverride": null,
-              "Model": "models/duck_decoration/duck_decoration.vmdl",
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "RenderOptions": {
-                "GameLayer": true,
-                "OverlayLayer": false,
-                "BloomLayer": false,
-                "AfterUILayer": false
-              },
-              "RenderType": "On",
-              "Tint": "1,1,1,1"
-            },
-            {
-              "__type": "Sandbox.ModelCollider",
-              "__guid": "f237d989-610f-43c5-bc7a-27876489efef",
-              "Friction": null,
-              "IsTrigger": false,
-              "Model": "models/duck_decoration/duck_decoration.vmdl",
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "OnObjectTriggerEnter": null,
-              "OnObjectTriggerExit": null,
-              "OnTriggerEnter": null,
-              "OnTriggerExit": null,
-              "Static": false,
-              "Surface": null,
-              "SurfaceVelocity": "0,0,0"
-            },
-            {
-              "__type": "Duccsoft.MeshDistanceConfig",
-              "__guid": "aaeaa36e-13b1-4924-affc-8bd7088ce6c0",
-              "BakeOnStart": true,
-              "Collider": {
-                "_type": "component",
-                "component_id": "f237d989-610f-43c5-bc7a-27876489efef",
-                "go": "522c3749-018a-4680-9b6f-4377bcbcaf57",
-                "component_type": "ModelCollider"
-              },
-              "MeshSource": "Collider",
-              "Model": "models/duck_decoration/duck_decoration.vmdl",
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "TextureExponent": 4,
-              "TextureResolution": 16
-            }
-          ]
-        },
         {
           "__guid": "1c8af56c-430d-4e9c-92ba-964859a22510",
           "Flags": 0,
@@ -381,7 +419,6 @@
             {
               "__type": "Duccsoft.MeshDistanceConfig",
               "__guid": "36b0fda4-181f-42e7-8db9-d51a1c0a54c9",
-              "BakeOnStart": false,
               "Collider": null,
               "MeshSource": "Model",
               "Model": "models/reetuh_bernese.vmdl",
@@ -1415,7 +1452,6 @@
             {
               "__type": "Duccsoft.MeshDistanceConfig",
               "__guid": "96300045-c9ee-4ac1-8951-2544f3818ef9",
-              "BakeOnStart": false,
               "Collider": {
                 "_type": "component",
                 "component_id": "706c5a74-dee8-4788-9900-6ef9d626d517",
@@ -1487,7 +1523,6 @@
             {
               "__type": "Duccsoft.MeshDistanceConfig",
               "__guid": "72f04cb4-a060-4aff-932d-e05664e8f4db",
-              "BakeOnStart": false,
               "Collider": {
                 "_type": "component",
                 "component_id": "ffc63d73-82a9-4d62-bcee-2b4eb2887eb4",
@@ -15738,7 +15773,6 @@
             {
               "__type": "Duccsoft.MeshDistanceConfig",
               "__guid": "3d95482d-aa6c-45ec-a81e-5feb4f9a757b",
-              "BakeOnStart": false,
               "Collider": {
                 "_type": "component",
                 "component_id": "d3a9f13d-b255-4617-b4fc-e8fc8b54de02",
@@ -15897,7 +15931,6 @@
             {
               "__type": "Duccsoft.MeshDistanceConfig",
               "__guid": "785e36cd-67f4-466f-b3cb-b904f0a289e2",
-              "BakeOnStart": false,
               "Collider": {
                 "_type": "component",
                 "component_id": "9e9211cb-75da-4c1a-b69f-0ad823ac90be",
@@ -16304,7 +16337,6 @@
             {
               "__type": "Duccsoft.MeshDistanceConfig",
               "__guid": "c7e9b20e-9d8d-408f-8fbc-ec83da9409e8",
-              "BakeOnStart": false,
               "Collider": {
                 "_type": "component",
                 "component_id": "4fc6925c-d010-4145-a2e5-3993af3b5244",
@@ -16391,7 +16423,6 @@
             {
               "__type": "Duccsoft.MeshDistanceConfig",
               "__guid": "6369be26-3642-4b4a-a629-2ae6ba271bbe",
-              "BakeOnStart": false,
               "Collider": {
                 "_type": "component",
                 "component_id": "dc6170e7-b50b-4b99-abb9-f0283c1b57a9",
@@ -16400,6 +16431,77 @@
               },
               "MeshSource": "Collider",
               "Model": "models/props/dingus.vmdl",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "TextureExponent": 4,
+              "TextureResolution": 16
+            }
+          ]
+        },
+        {
+          "__guid": "522c3749-018a-4680-9b6f-4377bcbcaf57",
+          "Flags": 0,
+          "Name": "ducc",
+          "Rotation": "0,0,1,-0.00000004371139",
+          "Components": [
+            {
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "43ee8a5f-f3a0-4f4d-820d-a4bd1a10f86b",
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "MaterialGroup": null,
+              "MaterialOverride": null,
+              "Model": "models/duck_decoration/duck_decoration.vmdl",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "1,1,1,1"
+            },
+            {
+              "__type": "Sandbox.ModelCollider",
+              "__guid": "f237d989-610f-43c5-bc7a-27876489efef",
+              "Friction": null,
+              "IsTrigger": false,
+              "Model": "models/duck_decoration/duck_decoration.vmdl",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "OnObjectTriggerEnter": null,
+              "OnObjectTriggerExit": null,
+              "OnTriggerEnter": null,
+              "OnTriggerExit": null,
+              "Static": false,
+              "Surface": null,
+              "SurfaceVelocity": "0,0,0"
+            },
+            {
+              "__type": "Duccsoft.MeshDistanceConfig",
+              "__guid": "aaeaa36e-13b1-4924-affc-8bd7088ce6c0",
+              "Collider": {
+                "_type": "component",
+                "component_id": "f237d989-610f-43c5-bc7a-27876489efef",
+                "go": "522c3749-018a-4680-9b6f-4377bcbcaf57",
+                "component_type": "ModelCollider"
+              },
+              "MeshSource": "Collider",
+              "Model": "models/duck_decoration/duck_decoration.vmdl",
               "OnComponentDestroy": null,
               "OnComponentDisabled": null,
               "OnComponentEnabled": null,

@@ -2,19 +2,53 @@ float3 VoxelMinsOs < Attribute( "VoxelMinsOs" ); >;
 float3 VoxelMaxsOs < Attribute( "VoxelMaxsOs" ); >;
 float3 VoxelVolumeDims < Attribute( "VoxelVolumeDims" ); >;
 RWStructuredBuffer<float> ScratchVoxelSdf < Attribute( "ScratchVoxelSdf"); >;
-globallycoherent RWByteAddressBuffer VoxelSdf < Attribute( "VoxelSdf" ); >;
+RWStructuredBuffer<int> VoxelSdf < Attribute( "VoxelSdf" ); >;
 
-uint FloatToUnsignedByte( float value, float minValue, float maxValue )
+int FloatToByte( float value, float minValue, float maxValue )
 {
 	float invLerp = ( value - minValue ) / ( maxValue - minValue );
 	invLerp = saturate( invLerp );
-	return uint(invLerp * 255 );
+	return int( lerp( -128.0, 127.0, invLerp ) );
 }
 
-float UnsignedByteToFloat(uint byte, float minValue, float maxValue )
+float ByteToFloat(int byte, float minValue, float maxValue )
 {
-	float invLerp = saturate( ( float(byte) + 127.0 ) / 255.0 );
+	float invLerp = ( float(byte) - (-128.0 ) ) / ( 127.0 - (-128.0) );
+	invLerp = saturate( invLerp );
 	return lerp( minValue, maxValue, invLerp );
+}
+
+int PackFloats( float4 values, float minValue, float maxValue )
+{
+	int4 bytes = int4(
+		FloatToByte( values.x, minValue, maxValue ),
+		FloatToByte( values.y, minValue, maxValue ),
+		FloatToByte( values.z, minValue, maxValue ),
+		FloatToByte( values.w, minValue, maxValue )
+	);
+	
+	uint4 ubytes = uint4( bytes + 128 );
+
+	return int(( ubytes.w << 24 ) | ( ubytes.z << 16 ) | ( ubytes.y << 8 ) | ubytes.x );
+}
+
+float4 UnpackFloats( int packed, float minValue, float maxValue )
+{
+	int4 ubytes = int4(
+		(packed) & 0xFF,
+		(packed >> 8 ) & 0xFF,
+		(packed >> 16 ) & 0xFF,
+		(packed >> 24 ) & 0xFF
+	);
+
+	int4 bytes = int4(ubytes) - 128;
+
+	return float4(
+		ByteToFloat( bytes.x, minValue, maxValue ),
+		ByteToFloat( bytes.y, minValue, maxValue ),
+		ByteToFloat( bytes.z, minValue, maxValue ),
+		ByteToFloat( bytes.w, minValue, maxValue )
+	);
 }
 
 struct Voxel
@@ -68,6 +102,15 @@ struct Voxel
 		return ( voxel.z * dims.y * dims.x ) + ( voxel.y * dims.x ) + voxel.x;
 	}
 
+	static int Index3DTo1DQuad( uint3 voxel )
+	{
+		uint3 dims = (uint3)VoxelVolumeDims;
+		int i = ( voxel.z * dims.y * dims.x ) + ( voxel.y * dims.x ) + voxel.x;
+		// When we pack four bytes in to an integer, four consecutive x-axis distances are packed.
+		// This means that a packed index is 1/4th the value of a separated index.
+		return i / 4;
+	}
+
 	static uint3 Index1DTo3D( int i )
 	{
 		int size = VoxelVolumeDims.x;
@@ -77,55 +120,12 @@ struct Voxel
 		return uint3( x, y, z );
 	}
 
-	static void StoreByte( uint3 voxel, float signedDistance )
+	static float4 Load4( uint3 voxel )
 	{
-		int i = Voxel::Index3DTo1D( voxel );
-
-		// How many bytes beyond the DWORD are we?
-		uint offset = i % 4;
-		// What is the DWORD-aligned index of this voxel?
-		int iWord = i - offset;
-		// How many bits left of the lowest byte are we storing this byte?
-		uint shift = 8 * offset;
-
-		// Create our byte...
-		uint byte = FloatToUnsignedByte( signedDistance, VoxelVolumeDims.x * -0.5, VoxelVolumeDims.x * 0.5 );
-		// ...mask it...
-		byte &= 0xFF;
-		// ...and shift it to the correct offset within the DWORD.
-		byte <<= shift;
-
-		uint packed = VoxelSdf.Load( iWord );
-		// Create a mask that will empty out the byte we want to write to.
-		uint mask = (uint)0xFF << shift;
-		packed &= ~mask;
-		// Finally, slot our byte in to its proper place.
-		packed |= byte;
-
-		uint iOut;
-		VoxelSdf.InterlockedExchange( iWord, packed, iOut );
-		// We're using globallycoherent, so don't worry about clobbering other bytes.
-		// VoxelSdf.Store( iWord, packed );
-	}
-
-	static float LoadByte( uint3 voxel )
-	{
-		int i = Voxel::Index3DTo1D( voxel );
-		// How many bytes beyond the DWORD boundary are we?
-		uint offset = i % 4;
-		// What is the DWORD-aligned index of this voxel?
-		int iWord = i - offset;
-		// How many bits left of the lowest byte is the byte we are loading?
-		uint shift = 8 * offset;
-
-		uint packed = VoxelSdf.Load( iWord );
-		
-		// Make sure the lowest byte is the one we're looking for.
-		uint byte = packed >> shift;
-		// Mask out everything we don't need.
-		byte &= 0xFF;
-
-		return UnsignedByteToFloat( byte, VoxelVolumeDims.x * -0.5, VoxelVolumeDims.x * 0.5 );
+		int i = Voxel::Index3DTo1DQuad( voxel );
+		int packed = VoxelSdf[i];
+		float size = VoxelVolumeDims.x;
+		return UnpackFloats( packed, size * -0.5, size * 0.5 );
 	}
 
 	static float Load( uint3 voxel )
@@ -134,13 +134,32 @@ struct Voxel
 		return ScratchVoxelSdf[i];
 	}
 
+	static void Store4( uint3 voxel, float4 signedDistances )
+	{
+		float size = VoxelVolumeDims.x;
+		int packed = PackFloats( signedDistances, size * -0.5, size * 0.5 );
+		int i = Voxel::Index3DTo1DQuad( voxel );
+		VoxelSdf[i] = packed;
+	}
+
 	static void Store( uint3 voxel, float signedDistance )
 	{
 		int i = Voxel::Index3DTo1D( voxel );
-		// Store this voxel as a float to work with more accurately within the shader.
 		ScratchVoxelSdf[i] = signedDistance;
-		// Store this voxel as a byte as well.
-		StoreByte( voxel, signedDistance );
+	}
+
+	static void Compress( uint3 voxel )
+	{
+		// By this point, the signed distance field should have been stored 
+		// as a 3D array of floats.
+
+		float4 floats = float4( 0, 0, 0, 0 );
+		int index = Index3DTo1D( voxel );
+		for( int i = 0; i < 4; i++ )
+		{
+			floats[i] = ScratchVoxelSdf[index + i];
+		}
+		Voxel::Store4( voxel, floats );
 	}
 };
 

@@ -33,6 +33,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		FindSeeds,
 		InitializeSeeds,
 		JumpFlood,
+		Compress
 	}
 
 	public MeshDistanceField MeshDistanceField { get; }
@@ -56,22 +57,15 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		int triCount = gpuMesh.Indices.ElementCount / 3;
 		int voxelCount = res * res * res;
 
-		// A byte buffer, will hold the final form of the signed distance field.
-		GpuBuffer<byte> voxelSdfGpu;
-		using ( PerfLog.Scope( Id, $"Create {nameof( voxelSdfGpu )}" ) )
-		{
-			voxelSdfGpu = new GpuBuffer<byte>( voxelCount, GpuBuffer.UsageFlags.ByteAddress );
-		}
-		// A more precise float buffer for accurate intermediate calculations.
 		GpuBuffer<float> scratchVoxelSdfGpu;
 		using ( PerfLog.Scope( Id, $"Create {nameof( scratchVoxelSdfGpu )}" ) )
 		{
 			scratchVoxelSdfGpu = new GpuBuffer<float>( voxelCount, GpuBuffer.UsageFlags.Structured );
 		}
+		// Set the attributes for the signed distance field.
 		_meshSdfCs.Attributes.Set( "VoxelMinsOs", bounds.Mins );
 		_meshSdfCs.Attributes.Set( "VoxelMaxsOs", bounds.Maxs );
 		_meshSdfCs.Attributes.Set( "VoxelVolumeDims", new Vector3( res ) );
-		_meshSdfCs.Attributes.Set( "VoxelSdf", voxelSdfGpu );
 		_meshSdfCs.Attributes.Set( "ScratchVoxelSdf", scratchVoxelSdfGpu );
 
 
@@ -151,12 +145,23 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 			outputSdf.Debug.VoxelSeedIds = seedIds;
 		}
 
-		byte[] voxelSdf;
+		GpuBuffer<int> voxelSdfGpu;
+		using ( PerfLog.Scope( Id, $"Create {nameof( voxelSdfGpu )}" ) )
+		{
+			voxelSdfGpu = new GpuBuffer<int>( voxelCount / 4, GpuBuffer.UsageFlags.Structured );
+		}
+		using ( PerfLog.Scope( Id, $"Dispatch {MdfBuildStage.Compress}" ) )
+		{
+			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.Compress );
+			_meshSdfCs.Attributes.Set( "VoxelSdf", voxelSdfGpu );
+			_meshSdfCs.Dispatch( res, res, res );
+		}
+
+		int[] voxelSdf;
 		using ( PerfLog.Scope( Id, $"Read {nameof( voxelSdfGpu )}" ) )
 		{
-			voxelSdf = new byte[voxelCount];
+			voxelSdf = new int[voxelCount / 4];
 			voxelSdfGpu.GetData( voxelSdf );
-			Log.Info( voxelSdf.Length );
 		}
 		outputSdf.Data = voxelSdf;
 
