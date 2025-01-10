@@ -2,7 +2,7 @@
 
 public partial class SignedDistanceField
 {
-	public SignedDistanceField( int[] data, int textureDims, BBox bounds )
+	public SignedDistanceField( byte[] data, int textureDims, BBox bounds )
 	{
 		Bounds = bounds;
 		TextureSize = textureDims;
@@ -14,8 +14,8 @@ public partial class SignedDistanceField
 	public int TextureSize { get; init; }
 	// Assume square bounds for now.
 	public float TexelSize => Bounds.Size.x / TextureSize;
-	public int[] Data { get; internal set; }
-	public int DataSize => TextureSize * TextureSize * TextureSize * sizeof( byte );
+	public byte[] Data { get; internal set; }
+	public int DataSize => Data.Length;
 	public DebugData Debug { get; set; }
 
 	public Vector3Int PositionToTexel( Vector3 localPos )
@@ -65,9 +65,7 @@ public partial class SignedDistanceField
 			int y = texel.y.Clamp( 0, TextureSize - 1 );
 			int z = texel.z.Clamp( 0, TextureSize - 1 );
 			int i = Index3DTo1D( x, y, z, TextureSize );
-			int packed = Data[i / 4];
-			int shift = (i % 4) * 8;
-			byte udByte = (byte)((packed >> shift) & 0xFF);
+			byte udByte = Data[i];
 			float sdByte = (float)udByte - 128;
 			// Non-uniform bounds will not be supported in the future - assume VoxelGridDims^3 cube!
 			var maxDistance = TextureSize * 0.5f;

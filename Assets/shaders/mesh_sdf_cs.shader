@@ -452,7 +452,7 @@ CS
 
 		if ( closestSeedId > -1 )
 		{
-			float seedToLocalDir = normalize( voxelPos - closestSeed.PositionOs.xyz );
+			float3 seedToLocalDir = normalize( voxelPos - closestSeed.PositionOs.xyz );
 			// Detect whether we are likely inside the mesh, assuming for now that this triangle is the closest.
 			if ( dot( seedToLocalDir, closestSeed.Normal.xyz ) < 0 )
 			{
@@ -569,25 +569,14 @@ CS
 		pCell.StoreData();
 	}
 
-//------------------------------------------------------------------
-// Stage 4, 3D (Voxels)
-//------------------------------------------------------------------
-	void Compress( uint3 voxel )
-	{
-		voxel.x *= 4;
-		Voxel::Compress( voxel );
-	}
-
 //==================================================================
 // MAIN
 //==================================================================
 
-	DynamicCombo( D_STAGE, 0..4, Sys( All ) );
+	DynamicCombo( D_STAGE, 0..3, Sys( All ) );
 
 	#if D_STAGE == 1
 	[numthreads( 64, 1, 1 )]
-	#elif D_STAGE == 4
-	[numthreads( 2, 8, 8 )]
 	#else 
 	[numthreads( 4, 4, 4 )]
 	#endif
@@ -601,8 +590,6 @@ CS
 			InitializeSeedPoints( id );
 		#elif D_STAGE == 3
 			JumpFlood( id );
-		#elif D_STAGE == 4
-			Compress( id );
 		#endif
 	}
 }

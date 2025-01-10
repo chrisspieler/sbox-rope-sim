@@ -492,7 +492,7 @@ public class MdfModelViewer : Component
 			.WithUAVBinding()
 			.Finish();
 
-		var voxelSdfGpu = new GpuBuffer<int>( size * size * size / 4, GpuBuffer.UsageFlags.Structured );
+		var voxelSdfGpu = new GpuBuffer<byte>( voxelData.DataSize, GpuBuffer.UsageFlags.ByteAddress );
 		voxelSdfGpu.SetData( voxelData.Data );
 		if ( voxelData.Debug is null )
 		{
@@ -511,7 +511,7 @@ public class MdfModelViewer : Component
 		_textureSliceCs.Attributes.Set( "VoxelSdf", voxelSdfGpu );
 		_textureSliceCs.Attributes.Set( "ZLayer", z );
 		_textureSliceCs.Attributes.Set( "OutputTexture", outputTex );
-		_textureSliceCs.Dispatch( size, size, size );
+		_textureSliceCs.Dispatch( size, size, 1 );
 		return outputTex;
 	}
 

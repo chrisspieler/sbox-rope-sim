@@ -55,24 +55,16 @@ CS
 		#endif
 	}
 
-	[numthreads( 2, 8, 8 )]
+	[numthreads( 8, 8, 1 )]
 	void MainCs( uint3 id : SV_DispatchThreadID )
 	{
-		uint3 quadVoxel = uint3( id.x, id.y, ZLayer );
-		quadVoxel.x *= 4;
+		uint3 voxel = uint3( id.x, id.y, ZLayer );
 
-		if ( !Voxel::IsInVolume( quadVoxel ) )
+		if ( !Voxel::IsInVolume( voxel ) )
 			return;
 
-		float4 distances = Voxel::Load4( quadVoxel );
-		for( int i = 0; i < 4; i++ )
-		{
-			float sdMesh = distances[i];
-			uint3 fullVoxel = quadVoxel + uint3( i, 0, 0 );
-
-			float3 texCol = GetOutputColor( fullVoxel, sdMesh );
-
-			OutputTexture[fullVoxel.xy] = float4( texCol.rgb, 1 );
-		}
+		float sdMesh = Voxel::LoadByte( voxel );
+		float3 texCol = GetOutputColor( voxel, sdMesh );
+		OutputTexture[voxel.xy] = float4( texCol.rgb, 1 );
 	}	
 }
