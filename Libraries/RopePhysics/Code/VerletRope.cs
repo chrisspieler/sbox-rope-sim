@@ -36,7 +36,7 @@ public partial class VerletRope : VerletComponent
 
 	private int CalculateIterationCount()
 	{
-		var numPoints = SimData.Points.Length;
+		var numPoints = SimData.CpuPoints.Length;
 		var min = POINT_COUNT_MIN;
 		var max = POINT_COUNT_MAX;
 
@@ -91,10 +91,17 @@ public partial class VerletRope : VerletComponent
 			Gizmo.Select();
 		}
 
-		if ( SimData is not null && Gizmo.IsSelected )
+		if ( SimData is null || !Gizmo.IsSelected )
+			return;
+
+		if ( SimulateOnGPU )
+		{
+
+		}
+		else
 		{
 			Gizmo.Draw.Color = Color.Green;
-			foreach( var point in SimData.Points )
+			foreach ( var point in SimData.CpuPoints )
 			{
 				Gizmo.Draw.LineSphere( point.Position, SimData.Radius );
 			}
@@ -156,6 +163,7 @@ public partial class VerletRope : VerletComponent
 			FixedFirstPosition = FixedStart ? WorldPosition : null,
 			FixedLastPosition = EndPoint?.WorldPosition,
 		};
+		simData.UpdateAnchors();
 		simData.InitializeGpu();
 		return simData;
 	}
@@ -163,47 +171,58 @@ public partial class VerletRope : VerletComponent
 	#region Rendering
 	
 	[Property] public Color Color { get; set; } = Color.Black;
-
-	private LineRenderer Renderer { get; set; }
+	[Property] public bool Wireframe { get; set; } = false;
+	[Property, Range( 0.05f, 50f )] public float RenderWidthScale { get; set; } = 1f;
+	private SceneRopeObject _so;
 
 	protected override void CreateRenderer()
 	{
 		if ( !EnableRendering )
 			return;
 
-		Renderer?.Destroy();
-		Renderer = Components.Create<LineRenderer>();
-		Renderer.Flags |= ComponentFlags.Hidden | ComponentFlags.NotSaved;
-		Renderer.UseVectorPoints = true;
-		Renderer.EndCap = Renderer.StartCap = SceneLineObject.CapStyle.Rounded;
-		Renderer.Lighting = true;
+		_so = new SceneRopeObject( Scene.SceneWorld );
+	}
+
+	private void EnsureRenderer()
+	{
+		if ( !_so.IsValid() )
+		{
+			CreateRenderer();
+		}
 	}
 
 	protected override void DestroyRenderer()
 	{
-		Renderer?.Destroy();
-		Renderer = null;
-	}
-
-	[Button]
-	private void ToggleHideRenderer()
-	{
-		if ( !Renderer.IsValid() )
-			return;
-
-		var wasSet = Renderer.Flags.HasFlag( ComponentFlags.Hidden );
-		Renderer.Flags = Renderer.Flags.WithFlag( ComponentFlags.Hidden, !wasSet );
+		_so?.Delete();
+		_so = null;
 	}
 
 	protected override void UpdateRenderer()
 	{
-		if ( !Renderer.IsValid() )
+		if ( !SimulateOnGPU )
+		{
+			DestroyRenderer();
+		}
+		else
+		{
+			EnsureRenderer();
+		}
+
+		if ( !_so.IsValid() )
 			return;
 
-		Renderer.Color = new Gradient( new Gradient.ColorFrame( 0f, Color ) );
-		Renderer.Width = new Curve( new Curve.Frame( 0f, EffectiveRadius ) );
-		Renderer.SplineInterpolation = 8;
-		Renderer.VectorPoints = SimData.Points.Select( p => p.Position ).ToList();
+		_so.RenderingEnabled = true;
+		_so.Transform = WorldTransform;
+		_so.Bounds = BBox.FromPositionAndSize( ( StartPosition + EndPosition ) / 2f, 512f );
+		_so.Vertices = SimData.ReadbackVertices;
+		_so.Face = SceneRopeObject.FaceMode.Camera;
+		_so.StartCap = SceneRopeObject.CapStyle.Rounded;
+		_so.EndCap = SceneRopeObject.CapStyle.Rounded;
+		_so.Opaque = true;
+		_so.EnableLighting = true;
+		_so.Wireframe = Wireframe;
+		_so.ColorTint = Color;
+		_so.Flags.CastShadows = true;
 	}
 	#endregion
 }

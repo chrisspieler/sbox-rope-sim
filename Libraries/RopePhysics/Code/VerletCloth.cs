@@ -37,9 +37,9 @@ public class VerletCloth : VerletComponent
 			return;
 
 		Gizmo.Draw.Color = Color.Green;
-		for ( int i = 0; i < SimData.Points.Length; i++ )
+		for ( int i = 0; i < SimData.CpuPoints.Length; i++ )
 		{
-			var point = SimData.Points[i];
+			var point = SimData.CpuPoints[i];
 			Gizmo.Draw.LineSphere( new Sphere( point.Position, Radius ) );
 		}
 	}
@@ -106,7 +106,7 @@ public class VerletCloth : VerletComponent
 
 	private void UpdateModel()
 	{
-		if ( !_so.IsValid() || SimData?.Points is null )
+		if ( !_so.IsValid() || SimData?.CpuPoints is null )
 			return;
 
 		int numVertices = ClothResolution * ClothResolution;
@@ -122,7 +122,7 @@ public class VerletCloth : VerletComponent
 			for ( int x = 0; x < ClothResolution; x++ )
 			{
 				var i = y * ClothResolution + x;
-				var worldPos = SimData.Points[i].Position;
+				var worldPos = SimData.CpuPoints[i].Position;
 				// worldPos += worldPos - SimData.CollisionBounds.Center;
 				var localPos = WorldTransform.PointToLocal( worldPos );
 				var uv = new Vector2( (float)x / ClothResolution, (float)y / ClothResolution );

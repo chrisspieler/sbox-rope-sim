@@ -1,4 +1,5 @@
 ﻿using Sandbox.Utility;
+using System.Text.Json.Serialization;
 
 namespace Duccsoft;
 
@@ -79,17 +80,38 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 
 	#region Simulation
 
-	[ConVar( "verlet_gpu_sim" )]
+	[ConCmd( "verlet_gpu_sim" )]
+	public static void SimulateAllOnGpu( bool simulateOnGpu )
+	{
+		if ( !Game.ActiveScene.IsValid() )
+			return;
+
+		var verletComponents = Game.ActiveScene.GetAllComponents<VerletComponent>();
+		foreach( var verlet in verletComponents )
+		{
+			verlet.SimulateOnGPU = simulateOnGpu;
+		}
+	}
 	public static bool SimulateOnGPUConVar { get; set; } = true;
+
 	[Property]
 	public bool SimulateOnGPU
 	{
-		get => SimulateOnGPUConVar;
+		get => _simulateOnGpu;
 		set
 		{
-			SimulateOnGPUConVar = value;
+			_simulateOnGpu = value;
+			if ( value )
+			{
+				SimData?.StorePointsToGpu();
+			}
+			else
+			{
+				SimData?.LoadPointsFromGpu();
+			}
 		}
 	}
+	private bool _simulateOnGpu = true;
 
 	[Property]
 	public float TimeStep { get; set; } = 0.01f;
@@ -98,10 +120,26 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	public float MaxTimeStepPerUpdate { get; set; } = 0.1f;
 
 	[Property]
-	public float PointCount => SimData?.Points?.Length ?? 0;
+	public float PointCount
+	{
+		get
+		{
+			if ( SimulateOnGPU )
+			{
+				return SimData?.GpuPoints?.ElementCount ?? 0;
+			}
+			else
+			{
+				return SimData?.CpuPoints?.Length ?? 0;
+			}
+		}
+	}
 
 	[Property, Range( 0.01f, 1f )]
 	public float Stiffness { get; set; } = 0.2f;
+
+	[Property, ReadOnly, JsonIgnore]
+	public float IterationCount => SimData?.Iterations ?? 0;
 	#endregion
 
 	#region Collision
@@ -146,7 +184,7 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 
 	protected virtual void UpdateRenderer() { }
 
-	[Property] public string SimulationFrameTime
+	[Property, ReadOnly, JsonIgnore] public string SimulationCpuTime
 	{
 		get
 		{
@@ -167,15 +205,15 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	[Button]
 	public void DumpSimData()
 	{
-		if ( SimData?.Points == null )
+		if ( SimData?.CpuPoints == null )
 		{
 			Log.Info( $"null points" );
 			return;
 		}
 
-		for ( int i = 0; i < SimData.Points.Length; i++ )
+		for ( int i = 0; i < SimData.CpuPoints.Length; i++ )
 		{
-			var point = SimData.Points[i];
+			var point = SimData.CpuPoints[i];
 			var x = i % SimData.PointGridDims.x;
 			var y = i / SimData.PointGridDims.y;
 			Log.Info( $"({x},{y}) pos{point.Position}, lastPos: {point.LastPosition}" );

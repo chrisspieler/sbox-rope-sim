@@ -15,7 +15,7 @@ public partial class VerletSystem
 	}
 	public static CollisionSnapshot CaptureCollisionSnapshot( SimulationData simData )
 	{
-		if ( simData is null || !simData.Physics.IsValid() || simData?.Points?.Length < 1 )
+		if ( simData is null || !simData.Physics.IsValid() || simData?.CpuPoints?.Length < 1 )
 			return new();
 
 		var collisionBounds = simData.CollisionBounds;
@@ -28,7 +28,7 @@ public partial class VerletSystem
 			.RunAll();
 
 		CollisionSnapshot snapshot = new();
-		var points = simData.Points;
+		var points = simData.CpuPoints;
 
 		var mdfs = MeshDistanceSystem.FindInBox(collisionBounds);
 		for (int i = 0; i < points.Length; i++)

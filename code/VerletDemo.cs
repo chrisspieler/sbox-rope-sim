@@ -70,7 +70,7 @@ public class VerletDemo : Component
 		if ( VerletRope.DebugMode < 1 )
 			return;
 
-		var points = Rope.Points.ToArray();
+		var points = Rope.CpuPoints.ToArray();
 		for ( int i = 0; i < points.Length; i++ )
 		{
 			var point = points[i];

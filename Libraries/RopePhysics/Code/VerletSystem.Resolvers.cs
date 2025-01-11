@@ -18,7 +18,7 @@ public partial class VerletSystem
 
 			foreach ( var pointId in ci.CollidingPoints )
 			{
-				var point = simData.Points[pointId];
+				var point = simData.CpuPoints[pointId];
 				var pointPos = ci.Transform.PointToLocal( point.Position );
 				var distance = Vector3.DistanceBetween( ci.Center, pointPos );
 				if ( distance - radius > simData.Radius )
@@ -27,7 +27,7 @@ public partial class VerletSystem
 				var direction = (pointPos - ci.Center).Normal;
 				var hitPosition = ci.Center + direction * ( radius + simData.Radius );
 				hitPosition = ci.Transform.PointToWorld( hitPosition );
-				simData.Points[pointId] = point with { Position = hitPosition };
+				simData.CpuPoints[pointId] = point with { Position = hitPosition };
 			}
 		}
 	}
@@ -38,7 +38,7 @@ public partial class VerletSystem
 		{
 			foreach ( var pointId in ci.CollidingPoints )
 			{
-				var point = simData.Points[pointId];
+				var point = simData.CpuPoints[pointId];
 				var pointPos = ci.Transform.PointToLocal( point.Position );
 				var halfSize = ci.Size * 0.5f;
 				var scale = ci.Transform.Scale;
@@ -65,7 +65,7 @@ public partial class VerletSystem
 				}
 
 				var hitPos = ci.Transform.PointToWorld( pointPos );
-				simData.Points[pointId] = point with { Position = hitPos };
+				simData.CpuPoints[pointId] = point with { Position = hitPos };
 			}
 		}
 	}
@@ -85,7 +85,7 @@ public partial class VerletSystem
 
 			foreach ( var collision in ci.CollidingPoints )
 			{
-				var point = simData.Points[collision];
+				var point = simData.CpuPoints[collision];
 				var localPos = ci.Transform.PointToLocal( point.Position );
 				var sdf = CapsuleSdf( localPos );
 				if ( sdf > simData.Radius )
@@ -103,7 +103,7 @@ public partial class VerletSystem
 				gradient = gradient.Normal;
 				var currentPos = localPos + gradient * (-sdf + simData.Radius );
 				currentPos = ci.Transform.PointToWorld( currentPos );
-				simData.Points[collision] = point with { Position = currentPos };
+				simData.CpuPoints[collision] = point with { Position = currentPos };
 			}
 		}
 	}
@@ -114,7 +114,7 @@ public partial class VerletSystem
 		{
 			foreach ( var collision in ci.CollidingPoints )
 			{
-				var point = simData.Points[collision];
+				var point = simData.CpuPoints[collision];
 				var currentPos = ci.Transform.PointToLocal( point.Position );
 				var currentClosestPoint = ci.Sdf.Bounds.ClosestPoint( currentPos );
 				var currentDistance = currentPos.Distance( currentClosestPoint );
@@ -129,7 +129,7 @@ public partial class VerletSystem
 				var gradient = ci.Sdf.CalculateGradient( texel );
 				currentPos += gradient * (-sdMesh + simData.Radius );
 				currentPos = ci.Transform.PointToWorld( currentPos );
-				simData.Points[collision] = point with { Position = currentPos };
+				simData.CpuPoints[collision] = point with { Position = currentPos };
 			}
 		}
 	}

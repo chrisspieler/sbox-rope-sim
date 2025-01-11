@@ -22,11 +22,20 @@ public partial class VerletSystem
 		VerletComputeShader.Attributes.Set( "Sticks", simData.GpuSticks );
 		VerletComputeShader.Attributes.Set( "StartPosition", verlet.StartPosition );
 		VerletComputeShader.Attributes.Set( "EndPosition", verlet.EndPosition );
-		VerletComputeShader.Attributes.Set( "NumPoints", simData.Points.Length );
+		VerletComputeShader.Attributes.Set( "NumPoints", simData.CpuPoints.Length );
 		VerletComputeShader.Attributes.Set( "NumSticks", simData.Sticks.Length );
 		VerletComputeShader.Attributes.Set( "NumColumns", simData.PointGridDims.y );
 		VerletComputeShader.Attributes.Set( "Iterations", simData.Iterations );
 		VerletComputeShader.Attributes.Set( "DeltaTime", deltaTime );
+		// TODO: Allow subtypes of VerletComponent to set these.
+		if ( verlet is VerletRope rope )
+		{
+			VerletComputeShader.Attributes.Set( "RopeWidth", rope.EffectiveRadius );
+			VerletComputeShader.Attributes.Set( "RopeRenderWidth", rope.EffectiveRadius * rope.RenderWidthScale );
+			VerletComputeShader.Attributes.Set( "RopeTextureCoord", 0f );
+			VerletComputeShader.Attributes.Set( "RopeTint", rope.Color );
+		}
+		VerletComputeShader.Attributes.Set( "OutputVertices", simData.ReadbackVertices );
 		VerletComputeShader.Dispatch( xThreads, yThreads, 1 );
 	}
 
@@ -36,14 +45,17 @@ public partial class VerletSystem
 		for ( int i = 0; i < verlet.SimData.Iterations; i++ )
 		{
 			ApplyConstraints( verlet.SimData );
-			ResolveCollisions( verlet.SimData );
+			if ( verlet.EnableCollision )
+			{
+				ResolveCollisions( verlet.SimData );
+			}
 		}
 	}
 
 	private static void ApplyForces( SimulationData simData, float deltaTime )
 	{
 		var gravity = simData.Gravity;
-		var points = simData.Points;
+		var points = simData.CpuPoints;
 
 		for ( int y = 0; y < simData.PointGridDims.y; y++ )
 		{
@@ -82,7 +94,7 @@ public partial class VerletSystem
 
 	private static void ApplyConstraints( SimulationData simData )
 	{
-		var points = simData.Points;
+		var points = simData.CpuPoints;
 		var sticks = simData.Sticks;
 
 		for ( int i = 0; i < sticks.Length; i++ )
@@ -98,10 +110,16 @@ public partial class VerletSystem
 				: 0f;
 			Vector3 offset = delta * distanceFactor;
 
-			pointA.Position += offset;
-			points[stick.Point1] = pointA;
-			pointB.Position -= offset;
-			points[stick.Point2] = pointB;
+			if ( !pointA.IsAnchor )
+			{
+				pointA.Position += offset;
+				points[stick.Point1] = pointA;
+			}
+			if ( !pointB.IsAnchor )
+			{
+				pointB.Position -= offset;
+				points[stick.Point2] = pointB;
+			}
 		}
 	}
 }

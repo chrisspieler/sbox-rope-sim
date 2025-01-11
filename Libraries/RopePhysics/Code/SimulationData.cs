@@ -5,7 +5,7 @@ public class SimulationData
 	public SimulationData( PhysicsWorld physics, VerletPoint[] points, VerletStickConstraint[] sticks, int numColumns, float segmentLength )
 	{
 		Physics = physics;
-		Points = points;
+		CpuPoints = points;
 		Sticks = sticks;
 		PointGridDims = new Vector2Int( points.Length / numColumns, numColumns );
 		SegmentLength = segmentLength;
@@ -21,8 +21,8 @@ public class SimulationData
 	{
 		get
 		{
-			if ( Points.Length > 0 )
-				return Points[0].Position;
+			if ( CpuPoints.Length > 0 )
+				return CpuPoints[0].Position;
 
 			return Vector3.Zero;
 		}
@@ -31,14 +31,14 @@ public class SimulationData
 	{
 		get
 		{
-			if ( Points.Length > 0 )
-				return Points[^1].Position;
+			if ( CpuPoints.Length > 0 )
+				return CpuPoints[^1].Position;
 
 			return Vector3.Down * 32f;
 		}
 	}
 
-	public VerletPoint[] Points { get; private set; }
+	public VerletPoint[] CpuPoints { get; private set; }
 	public VerletStickConstraint[] Sticks { get; }
 	public float SegmentLength { get; }
 	public Vector2Int PointGridDims { get; }
@@ -65,37 +65,56 @@ public class SimulationData
 
 	public GpuBuffer<VerletPoint> GpuPoints { get; set; }
 	public GpuBuffer<VerletStickConstraint> GpuSticks { get; set;}
+	public GpuBuffer<VerletVertex> ReadbackVertices { get; set; }
 
 	public void StorePointsToGpu()
 	{
 		if ( GpuPoints is null )
 		{
 			InitializeGpu();
+			return;
 		}
-		GpuPoints.SetData( Points );
+		GpuPoints.SetData( CpuPoints );
 	}
 
 	public void InitializeGpu()
 	{
 		DestroyGpuData();
-		GpuPoints = new GpuBuffer<VerletPoint>( Points.Length );
-		GpuPoints.SetData( Points );
+		GpuPoints = new GpuBuffer<VerletPoint>( CpuPoints.Length );
+		GpuPoints.SetData( CpuPoints );
 		GpuSticks = new GpuBuffer<VerletStickConstraint>( Sticks.Length );
 		GpuSticks.SetData( Sticks );
+		ReadbackVertices = new GpuBuffer<VerletVertex>( CpuPoints.Length + 2, GpuBuffer.UsageFlags.Vertex | GpuBuffer.UsageFlags.Structured );
 	}
 
 	public void LoadPointsFromGpu()
 	{
-		if ( GpuPoints is null )
+		if ( !ReadbackVertices.IsValid() )
 			return;
 
-		if ( Points.Length != GpuPoints.ElementCount )
+		using var scope = PerfLog.Scope( $"Vertex readback with {CpuPoints.Length} points and {Iterations} iterations" );
+
+		if ( CpuPoints.Length != GpuPoints.ElementCount )
 		{
-			Points = new VerletPoint[GpuPoints.ElementCount];
+			CpuPoints = new VerletPoint[GpuPoints.ElementCount];
 		}
-		using ( PerfLog.Scope( $"GpuBuffer.GetData with {Points.Length} points and {Iterations} iterations" ) )
+		
+		var vertices = new VerletVertex[ReadbackVertices.ElementCount];
+		ReadbackVertices.GetData( vertices );
+		for ( int i = 1; i < vertices.Length - 1; i++ )
 		{
-			GpuPoints.GetData( Points );
+			if ( i == 0 )
+				continue;
+
+			var pIndex = i - 1;
+
+			var vtx = vertices[i];
+			var p = CpuPoints[pIndex];
+			CpuPoints[pIndex] = p with
+			{
+				Position = vtx.Position,
+				LastPosition = vtx.Position - vtx.Tangent0,
+			};
 		}
 	}
 
@@ -109,32 +128,32 @@ public class SimulationData
 
 	public void UpdateAnchors()
 	{
-		if ( Points.Length < 1 )
+		if ( CpuPoints.Length < 1 )
 			return;
 
 		var anchorFirst = FixedFirstPosition is not null;
 		SetAnchor( 0, anchorFirst );
 		var anchorLast = FixedLastPosition is not null;
-		SetAnchor( Points.Length - 1, anchorLast );
+		SetAnchor( CpuPoints.Length - 1, anchorLast );
 	}
 	
 	public void SetAnchor( int index, bool isAnchor )
 	{
-		if ( Points.Length < 1 || index < 0 || index >= Points.Length )
+		if ( CpuPoints.Length < 1 || index < 0 || index >= CpuPoints.Length )
 			return;
 
-		var p = Points[index];
+		var p = CpuPoints[index];
 		p.Flags = p.Flags.WithFlag( VerletPointFlags.Anchor, isAnchor );
-		Points[index] = p;
+		CpuPoints[index] = p;
 	}
 
 	public void RecalculatePointBounds()
 	{
 		BBox collisionBounds = default;
 
-		for ( int i = 0; i < Points.Length; i++ )
+		for ( int i = 0; i < CpuPoints.Length; i++ )
 		{
-			var point = Points[i];
+			var point = CpuPoints[i];
 			var pointBounds = BBox.FromPositionAndSize( point.Position, CollisionSearchRadius );
 			if ( i == 0 )
 			{

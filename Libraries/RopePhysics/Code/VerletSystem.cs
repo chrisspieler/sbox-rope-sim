@@ -57,11 +57,6 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 			totalTime -= verlet.TimeStep;
 		}
 
-		if ( verlet.SimulateOnGPU )
-		{
-			verlet.SimData.LoadPointsFromGpu();
-		}
-
 		simData.RecalculatePointBounds();
 
 		verlet.PushDebugTime( timer.ElapsedMilliSeconds );

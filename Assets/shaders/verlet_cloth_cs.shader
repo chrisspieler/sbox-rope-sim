@@ -8,6 +8,16 @@ CS
 	#include "system.fxc"
 	#include "common.fxc"
 
+	struct Vertex 
+	{
+		float3 Position;
+		float4 TexCoord0;
+		float4 Normal;
+		float4 Tangent0;
+		float4 TexCoord1;
+		float4 Color0;
+	};
+
 	struct VerletPoint
 	{
 		float3 Position;
@@ -35,7 +45,12 @@ CS
 	int NumColumns < Attribute( "NumColumns" ); >;
 	int Iterations < Attribute( "Iterations" ); >;
 	float DeltaTime < Attribute( "DeltaTime" ); >;
+	float RopeWidth < Attribute( "RopeWidth" ); Default( 1.0 ); >;
+	float RopeRenderWidth < Attribute( "RopeRenderWidth" ); Default( 1.0 ); >;
+	float RopeTextureCoord < Attribute( "RopeTextureCoord" ); Default( 1.0 ); >;
+	float4 RopeTint < Attribute( "RopeTint"); Default4( 0.0, 0.0, 0.0, 1.0 ); >;
 
+	RWStructuredBuffer<Vertex> OutputVertices < Attribute( "OutputVertices" ); >;
 
 
 	int Index2DTo1D( uint2 i )
@@ -117,19 +132,45 @@ CS
 		return;
 	}
 
+	void OutputVertex( int pIndex )
+	{
+		VerletPoint p = Points[pIndex];
+		float3 delta = p.Position - p.LastPosition;
+		Vertex v;
+		v.Position = p.Position;
+		v.TexCoord0 = float4( RopeRenderWidth, RopeTextureCoord, 0, 0 );
+		v.Normal = float4( 0, 0, 1, 0 );
+		v.Tangent0 = float4( delta.xyz, 0 );
+		v.TexCoord1 = RopeTint;
+		v.Color0 = float4( 1, 1, 1, 1 );
+		if ( pIndex == 0 )
+		{
+			OutputVertices[0] = v;
+		}
+		OutputVertices[pIndex + 1] = v;
+		if ( pIndex == NumPoints - 1 )
+		{
+			OutputVertices[NumPoints + 1] = v;
+		}
+	}
+
 	[numthreads( 512, 1, 1 )]
 	void MainCs( uint3 id : SV_DispatchThreadID )
 	{
 		int pIndex = Index2DTo1D( id.xy );
+		VerletPoint p = Points[pIndex];
+
 		ApplyForces( pIndex );
 
-		if ( Points[pIndex].IsAnchor() )
-			return;
-
-		for ( int i = 0; i < Iterations; i++ )
+		if ( !p.IsAnchor() )
 		{
-			ApplyConstraints( pIndex );
-			ResolveCollisions( pIndex );
+			for ( int i = 0; i < Iterations; i++ )
+			{
+				ApplyConstraints( pIndex );
+				ResolveCollisions( pIndex );
+			}
 		}
+
+		OutputVertex( pIndex );
 	}
 }

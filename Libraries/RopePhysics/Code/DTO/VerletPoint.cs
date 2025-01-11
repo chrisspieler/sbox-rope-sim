@@ -12,6 +12,8 @@ public struct VerletPoint
 	public VerletPointFlags Flags;
 	public Vector3 LastPosition;
 	public int Padding;
+
+	public readonly bool IsAnchor => Flags.HasFlag( VerletPointFlags.Anchor );
 }
 
 [Flags]
