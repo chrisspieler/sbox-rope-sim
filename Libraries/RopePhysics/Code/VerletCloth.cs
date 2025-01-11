@@ -50,35 +50,7 @@ public class VerletCloth : VerletComponent
 		var startPos = WorldPosition;
 		var endPos = EndPoint?.WorldPosition ?? startPos + Vector3.Right * 128f;
 		var points = ClothGenerator.Generate( startPos, endPos, ClothResolution, out float spacing );
-		List<VerletStickConstraint> sticks = [];
-		for ( int y = 0; y < ClothResolution; y++ )
-		{
-			for ( int x = 0; x < ClothResolution; x++ )
-			{
-				var iA = y * ClothResolution + x;
-				var iB = y * ClothResolution + x + 1;
-				var iC = (y + 1) * ClothResolution + x + 1;
-				var iD = (y + 1) * ClothResolution + x;
-
-				if ( iB < points.Length )
-				{
-					sticks.Add( new VerletStickConstraint( iA, iB, spacing ) );
-				}
-				if ( iB < points.Length && iC < points.Length )
-				{
-					sticks.Add( new VerletStickConstraint( iB, iC, spacing ) );
-				}
-				if ( iC < points.Length && iD < points.Length )
-				{
-					sticks.Add( new VerletStickConstraint( iC, iD, spacing ) );
-				}
-				if ( iD < points.Length )
-				{
-					sticks.Add( new VerletStickConstraint( iD, iA, spacing ) );
-				}
-			}
-		}
-		return new SimulationData( physics, points, [.. sticks], ClothResolution, spacing );
+		return new SimulationData( physics, points, ClothResolution, spacing );
 	}
 	#region Rendering
 	[Property] public Material Material { get; set; }

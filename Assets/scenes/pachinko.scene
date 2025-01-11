@@ -921,7 +921,7 @@
       "__guid": "1e27d789-0980-4439-82d0-10cf86e4b85c",
       "Flags": 0,
       "Name": "Rope",
-      "Position": "128,128,128",
+      "Position": "128,112,112",
       "Enabled": true,
       "Components": [
         {
@@ -935,7 +935,7 @@
             "_type": "gameobject",
             "go": "7548821a-9269-4d2f-a353-1e0492740255"
           },
-          "EndPosition": "128,-128,128",
+          "EndPosition": "128,-144,112",
           "FixedStart": true,
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
@@ -944,13 +944,13 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
-          "PointCount": 65,
-          "PointSpacing": 4,
-          "RadiusFraction": 0.25,
+          "PointCount": 255,
+          "PointSpacing": 1,
+          "RadiusFraction": 1,
           "RenderWidthScale": 1,
           "SimulateOnGPU": true,
-          "StartPosition": "128,128,128",
-          "Stiffness": 0.33,
+          "StartPosition": "128,112,112",
+          "Stiffness": 1,
           "TimeStep": 0.01,
           "Wireframe": false
         }

@@ -37,13 +37,12 @@ CS
 	};
 
 	RWStructuredBuffer<VerletPoint> Points < Attribute( "Points" ); >;
-	RWStructuredBuffer<VerletStickConstraint> Sticks < Attribute( "Sticks" ); >;
 	float3 StartPosition < Attribute( "StartPosition" ); >;
 	float3 EndPosition < Attribute( "EndPosition" ); >;
 	int NumPoints < Attribute( "NumPoints" ); >;
-	int NumSticks < Attribute( "NumSticks" ); >;
 	int NumColumns < Attribute( "NumColumns" ); >;
 	int Iterations < Attribute( "Iterations" ); >;
+	float SegmentLength < Attribute( "SegmentLength" ); Default( 1.0 ); >;
 	float DeltaTime < Attribute( "DeltaTime" ); >;
 	float RopeWidth < Attribute( "RopeWidth" ); Default( 1.0 ); >;
 	float RopeRenderWidth < Attribute( "RopeRenderWidth" ); Default( 1.0 ); >;
@@ -88,43 +87,49 @@ CS
 		Points[pIndex] = p;
 	}
 
-	void ApplyStickConstraints( int pIndex )
+
+	void ApplyRopeConstraints( int pIndex )
 	{
-		for( int i = 0; i < NumSticks; i++ )
+		VerletPoint pCurr = Points[pIndex];
+
+		if ( pIndex < NumPoints - 1 )
 		{
-			VerletStickConstraint c = Sticks[i];
-			if ( c.Point1 != pIndex && c.Point2 != pIndex )
-				continue;
+			VerletPoint pNext = Points[pIndex + 1];
 
-			VerletPoint pointA = Points[c.Point1];
-			VerletPoint pointB = Points[c.Point2];
-
-			float3 delta = pointA.Position - pointB.Position;
+			float3 delta = pCurr.Position - pNext.Position;
 			float distance = length( delta );
 			float distanceFactor = 0;
 			if ( distance > 0 )
 			{
-				distanceFactor = ( c.Length - distance ) / distance * 0.5;
+				distanceFactor = ( SegmentLength - distance ) / distance * 0.5;
 			}
 			float3 offset = delta * distanceFactor;
 
-			pointA.Position += offset;
-			pointB.Position -= offset;
+			pCurr.Position += offset;
+			Points[pIndex] = pCurr;
+		}
 
-			if ( c.Point1 == pIndex )
+		if  ( pIndex > 0 )
+		{
+			VerletPoint pPrev = Points[pIndex - 1];
+
+			float3 delta = pPrev.Position - pCurr.Position;
+			float distance = length( delta );
+			float distanceFactor = 0;
+			if ( distance > 0 )
 			{
-				Points[c.Point1] = pointA;
+				distanceFactor = ( SegmentLength - distance ) / distance * 0.5;
 			}
-			if ( c.Point2 == pIndex )
-			{
-				Points[c.Point2] = pointB;
-			}
+			float3 offset = delta * distanceFactor;
+
+			pCurr.Position -= offset;
+			Points[pIndex] = pCurr;
 		}
 	}
 
 	void ApplyConstraints( int pIndex )
 	{
-		ApplyStickConstraints( pIndex );
+		ApplyRopeConstraints( pIndex );
 	}
 
 	void ResolveCollisions( int pIndex )

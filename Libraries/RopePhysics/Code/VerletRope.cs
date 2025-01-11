@@ -153,12 +153,7 @@ public partial class VerletRope : VerletComponent
 		var endPos = EndPosition;
 		var pointCount = CalculatePointCount( startPos, endPos );
 		var points = RopeGenerator.Generate( startPos, endPos, pointCount, out float segmentLength );
-		var sticks = new VerletStickConstraint[points.Length - 1];
-		for( int i = 0; i < sticks.Length; i++ )
-		{
-			sticks[i] = new VerletStickConstraint( i, i + 1, segmentLength );
-		}
-		var simData = new SimulationData( physics, points, sticks, 1, segmentLength )
+		var simData = new SimulationData( physics, points, 1, segmentLength )
 		{
 			FixedFirstPosition = FixedStart ? WorldPosition : null,
 			FixedLastPosition = EndPoint?.WorldPosition,

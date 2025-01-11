@@ -19,12 +19,11 @@ public partial class VerletSystem
 		// using var scope = PerfLog.Scope( $"GPU Simulate {xThreads}x{yThreads}, {simData.GpuPoints.ElementCount} of size {simData.GpuPoints.ElementSize}, sticks {simData.GpuSticks.ElementCount} of size {simData.GpuSticks.ElementSize}" );
 
 		VerletComputeShader.Attributes.Set( "Points", simData.GpuPoints );
-		VerletComputeShader.Attributes.Set( "Sticks", simData.GpuSticks );
 		VerletComputeShader.Attributes.Set( "StartPosition", verlet.StartPosition );
 		VerletComputeShader.Attributes.Set( "EndPosition", verlet.EndPosition );
 		VerletComputeShader.Attributes.Set( "NumPoints", simData.CpuPoints.Length );
-		VerletComputeShader.Attributes.Set( "NumSticks", simData.Sticks.Length );
 		VerletComputeShader.Attributes.Set( "NumColumns", simData.PointGridDims.y );
+		VerletComputeShader.Attributes.Set( "SegmentLength", simData.SegmentLength );
 		VerletComputeShader.Attributes.Set( "Iterations", simData.Iterations );
 		VerletComputeShader.Attributes.Set( "DeltaTime", deltaTime );
 		// TODO: Allow subtypes of VerletComponent to set these.
@@ -95,30 +94,30 @@ public partial class VerletSystem
 	private static void ApplyConstraints( SimulationData simData )
 	{
 		var points = simData.CpuPoints;
-		var sticks = simData.Sticks;
 
-		for ( int i = 0; i < sticks.Length; i++ )
+		for ( int pIndex = 0; pIndex < points.Length - 1; pIndex++ )
 		{
-			VerletStickConstraint stick = sticks[i];
-			VerletPoint pointA = points[stick.Point1];
-			VerletPoint pointB = points[stick.Point2];
+			VerletPoint pCurr = points[pIndex];
+			VerletPoint pNext = points[pIndex + 1];
 
-			Vector3 delta = pointA.Position - pointB.Position;
+			Vector3 delta = pCurr.Position - pNext.Position;
 			float distance = delta.Length;
-			float distanceFactor = distance > 0f
-				? (stick.Length - distance) / distance * 0.5f
-				: 0f;
+			float distanceFactor = 0;
+			if ( distance > 0 )
+			{
+				distanceFactor = (simData.SegmentLength - distance) / distance * 0.5f;
+			}
 			Vector3 offset = delta * distanceFactor;
 
-			if ( !pointA.IsAnchor )
+			if ( !pCurr.IsAnchor )
 			{
-				pointA.Position += offset;
-				points[stick.Point1] = pointA;
+				pCurr.Position += offset;
+				points[pIndex] = pCurr;
 			}
-			if ( !pointB.IsAnchor )
+			if ( !pNext.IsAnchor )
 			{
-				pointB.Position -= offset;
-				points[stick.Point2] = pointB;
+				pNext.Position -= offset;
+				points[pIndex + 1] = pNext;
 			}
 		}
 	}

@@ -2,11 +2,10 @@
 
 public class SimulationData
 {
-	public SimulationData( PhysicsWorld physics, VerletPoint[] points, VerletStickConstraint[] sticks, int numColumns, float segmentLength )
+	public SimulationData( PhysicsWorld physics, VerletPoint[] points, int numColumns, float segmentLength )
 	{
 		Physics = physics;
 		CpuPoints = points;
-		Sticks = sticks;
 		PointGridDims = new Vector2Int( points.Length / numColumns, numColumns );
 		SegmentLength = segmentLength;
 
@@ -39,7 +38,6 @@ public class SimulationData
 	}
 
 	public VerletPoint[] CpuPoints { get; private set; }
-	public VerletStickConstraint[] Sticks { get; }
 	public float SegmentLength { get; }
 	public Vector2Int PointGridDims { get; }
 
@@ -64,7 +62,6 @@ public class SimulationData
 	public CollisionSnapshot Collisions { get; set; } = new();
 
 	public GpuBuffer<VerletPoint> GpuPoints { get; set; }
-	public GpuBuffer<VerletStickConstraint> GpuSticks { get; set;}
 	public GpuBuffer<VerletVertex> ReadbackVertices { get; set; }
 
 	public void StorePointsToGpu()
@@ -82,8 +79,6 @@ public class SimulationData
 		DestroyGpuData();
 		GpuPoints = new GpuBuffer<VerletPoint>( CpuPoints.Length );
 		GpuPoints.SetData( CpuPoints );
-		GpuSticks = new GpuBuffer<VerletStickConstraint>( Sticks.Length );
-		GpuSticks.SetData( Sticks );
 		ReadbackVertices = new GpuBuffer<VerletVertex>( CpuPoints.Length + 2, GpuBuffer.UsageFlags.Vertex | GpuBuffer.UsageFlags.Structured );
 	}
 
@@ -122,8 +117,6 @@ public class SimulationData
 	{
 		GpuPoints?.Dispose();
 		GpuPoints = null;
-		GpuSticks?.Dispose();
-		GpuSticks = null;
 	}
 
 	public void UpdateAnchors()
