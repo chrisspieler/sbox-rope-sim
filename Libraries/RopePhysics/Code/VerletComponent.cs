@@ -1,4 +1,5 @@
-﻿using Sandbox.Utility;
+﻿using Sandbox.Diagnostics;
+using Sandbox.Utility;
 using System.Text.Json.Serialization;
 
 namespace Duccsoft;
@@ -205,6 +206,16 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	[Button]
 	public void DumpSimData()
 	{
+		if ( SimData is null )
+			return;
+
+		var timer = FastTimer.StartNew();
+		if ( SimulateOnGPU )
+		{
+			SimData.LoadPointsFromGpu();
+		}
+
+		var elapsedMilliseconds = timer.ElapsedMilliSeconds;
 		if ( SimData?.CpuPoints == null )
 		{
 			Log.Info( $"null points" );
@@ -217,6 +228,11 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 			var x = i % SimData.PointGridDims.x;
 			var y = i / SimData.PointGridDims.y;
 			Log.Info( $"({x},{y}) pos{point.Position}, lastPos: {point.LastPosition}" );
+		}
+
+		if ( SimulateOnGPU )
+		{
+			Log.Info( $"Got {SimData.CpuPoints?.Length ?? 0} points from GPU in {elapsedMilliseconds:F3}ms" );
 		}
 	}
 }

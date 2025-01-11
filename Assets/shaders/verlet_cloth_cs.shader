@@ -159,7 +159,7 @@ CS
 		}
 	}
 
-	[numthreads( 512, 1, 1 )]
+	[numthreads( 1024, 1, 1 )]
 	void MainCs( uint3 id : SV_DispatchThreadID )
 	{
 		int pIndex = Index2DTo1D( id.xy );

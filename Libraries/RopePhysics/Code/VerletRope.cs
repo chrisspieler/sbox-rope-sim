@@ -16,7 +16,7 @@ public partial class VerletRope : VerletComponent
 
 	#region Generation
 	private const int POINT_COUNT_MIN = 2;
-	private const int POINT_COUNT_MAX = 255;
+	private const int POINT_COUNT_MAX = 1024;
 	[Property, Range( 0.05f, 32f ), Change]
 	public float PointSpacing { get; set; } = 4f;
 	private void OnPointSpacingChanged( float oldValue, float newValue ) => ResetSimulation();
