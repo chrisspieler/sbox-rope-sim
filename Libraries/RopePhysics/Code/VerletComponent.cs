@@ -1,4 +1,6 @@
-﻿namespace Duccsoft;
+﻿using Sandbox.Utility;
+
+namespace Duccsoft;
 
 public abstract class VerletComponent : Component, Component.ExecuteInEditor
 {
@@ -31,8 +33,6 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	}
 	[Property] public bool FixedStart { get; set; } = true;
 	[Property] public GameObject EndPoint { get; set; }
-
-
 
 	private void UpdateAnchors()
 	{
@@ -145,6 +145,24 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	protected virtual void CreateRenderer() { }
 
 	protected virtual void UpdateRenderer() { }
+
+	[Property] public string SimulationFrameTime
+	{
+		get
+		{
+			if ( !_debugTimes.IsEmpty )
+			{
+				return $" {_debugTimes.Average():F3}ms";
+			}
+			return string.Empty;
+		}
+	}
+	private CircularBuffer<double> _debugTimes = new CircularBuffer<double>( 25 );
+
+	internal void PushDebugTime( double time )
+	{
+		_debugTimes.PushFront( time );
+	}
 
 	[Button]
 	public void DumpSimData()

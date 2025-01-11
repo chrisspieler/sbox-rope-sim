@@ -151,11 +151,13 @@ public partial class VerletRope : VerletComponent
 		{
 			sticks[i] = new VerletStickConstraint( i, i + 1, segmentLength );
 		}
-		return new SimulationData( physics, points, sticks, 1, segmentLength )
+		var simData = new SimulationData( physics, points, sticks, 1, segmentLength )
 		{
 			FixedFirstPosition = FixedStart ? WorldPosition : null,
 			FixedLastPosition = EndPoint?.WorldPosition,
 		};
+		simData.InitializeGpu();
+		return simData;
 	}
 
 	#region Rendering

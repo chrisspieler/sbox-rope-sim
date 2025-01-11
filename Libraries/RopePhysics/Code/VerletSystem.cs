@@ -1,4 +1,6 @@
-﻿namespace Duccsoft;
+﻿using Sandbox.Diagnostics;
+
+namespace Duccsoft;
 
 public partial class VerletSystem : GameObjectSystem<VerletSystem>
 {
@@ -28,6 +30,8 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 		if ( !verlet.IsValid() || verlet.SimData is null )
 			return;
 
+		var timer = FastTimer.StartNew();
+
 		var simData = verlet.SimData;
 		simData.UpdateAnchors();
 
@@ -35,11 +39,6 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 		{
 			simData.Collisions = CaptureCollisionSnapshot( simData );
 			simData.Collisions.ShouldCaptureSnapshot = false;
-		}
-
-		if ( verlet.SimulateOnGPU )
-		{
-			verlet.SimData.StorePointsToGpu();
 		}
 
 		float totalTime = Time.Delta;
@@ -64,5 +63,7 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 		}
 
 		simData.RecalculatePointBounds();
+
+		verlet.PushDebugTime( timer.ElapsedMilliSeconds );
 	}
 }
