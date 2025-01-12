@@ -881,7 +881,7 @@
         {
           "__type": "Duccsoft.VerletCloth",
           "__guid": "cce8db93-6d8d-4952-9e30-c30a29a05288",
-          "ClothResolution": 8,
+          "ClothResolution": 16,
           "DebugDrawPoints": true,
           "EnableCollision": true,
           "EnableRendering": true,
@@ -907,7 +907,7 @@
             "_type": "gameobject",
             "go": "30a5ac78-ac28-49b9-93a8-d773041257b8"
           },
-          "Stiffness": 0.01,
+          "Stiffness": 0.04,
           "TimeStep": 0.01
         }
       ],
@@ -954,12 +954,12 @@
           "PointSpacing": 7.91,
           "RadiusFraction": 1,
           "RenderWidthScale": 1,
-          "SimulateOnGPU": true,
+          "SimulateOnGPU": false,
           "StartTarget": {
             "_type": "gameobject",
             "go": "1e27d789-0980-4439-82d0-10cf86e4b85c"
           },
-          "Stiffness": 0.92,
+          "Stiffness": 0.06,
           "TimeStep": 0.01,
           "Wireframe": false
         }

@@ -92,12 +92,12 @@ public partial class VerletSystem
 	{
 		var points = simData.CpuPoints;
 
-		for ( int pIndex = 0; pIndex < points.Length - 1; pIndex++ )
+		void ApplySegmentConstraint( int pIndex, int qIndex )
 		{
-			VerletPoint pCurr = points[pIndex];
-			VerletPoint pNext = points[pIndex + 1];
+			VerletPoint p = points[pIndex];
+			VerletPoint q = points[qIndex];
 
-			Vector3 delta = pCurr.Position - pNext.Position;
+			Vector3 delta = p.Position - q.Position;
 			float distance = delta.Length;
 			float distanceFactor = 0;
 			if ( distance > 0 )
@@ -106,15 +106,29 @@ public partial class VerletSystem
 			}
 			Vector3 offset = delta * distanceFactor;
 
-			if ( !pCurr.IsAnchor )
+			if ( !p.IsAnchor )
 			{
-				pCurr.Position += offset;
-				points[pIndex] = pCurr;
+				p.Position += offset;
+				points[pIndex] = p;
 			}
-			if ( !pNext.IsAnchor )
+			if ( !q.IsAnchor )
 			{
-				pNext.Position -= offset;
-				points[pIndex + 1] = pNext;
+				q.Position -= offset;
+				points[qIndex] = q;
+			}
+		}
+
+		for ( int pIndex = 0; pIndex < points.Length - 1; pIndex++ )
+		{
+			int xSize = simData.PointGridDims.x;
+			if ( pIndex % xSize < xSize - 1 )
+			{
+				ApplySegmentConstraint( pIndex, pIndex + 1 );
+			}
+			int ySize = simData.PointGridDims.y;
+			if ( pIndex / ySize < ySize - 1 )
+			{
+				ApplySegmentConstraint( pIndex, pIndex + ySize );
 			}
 		}
 	}
