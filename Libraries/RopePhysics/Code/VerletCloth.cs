@@ -33,7 +33,7 @@ public class VerletCloth : VerletComponent
 		if ( !Gizmo.IsSelected )
 			return;
 
-		if ( SimulateOnGPU )
+		if ( !DebugDrawPoints )
 			return;
 
 		Gizmo.Draw.Color = Color.Green;
@@ -47,9 +47,7 @@ public class VerletCloth : VerletComponent
 	protected override SimulationData CreateSimData()
 	{
 		var physics = Scene.PhysicsWorld;
-		var startPos = WorldPosition;
-		var endPos = EndPoint?.WorldPosition ?? startPos + Vector3.Right * 128f;
-		var points = ClothGenerator.Generate( startPos, endPos, ClothResolution, out float spacing );
+		var points = ClothGenerator.Generate( StartPosition, EndPosition, ClothResolution, out float spacing );
 		return new SimulationData( physics, points, ClothResolution, spacing );
 	}
 	#region Rendering
@@ -93,7 +91,7 @@ public class VerletCloth : VerletComponent
 			return;
 
 		_so.Vertices = SimData.ReadbackVertices;
-		_so.Bounds = BBox.FromPositionAndSize( (StartPosition + EndPosition) / 2f, 512f );
+		_so.Bounds = BBox.FromPositionAndSize( (FirstRopePointPosition + LastRopePointPosition) / 2f, 512f );
 	}
 	#endregion
 }

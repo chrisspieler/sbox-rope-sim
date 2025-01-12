@@ -57,7 +57,7 @@ public partial class VerletRope : VerletComponent
 		var ropeLineColor = Color.Blue;
 		using ( Gizmo.Scope( "Midpoint Handle" ) )
 		{
-			BBox midpointHandle = BBox.FromPositionAndSize( (StartPosition + EndPosition) / 2f, 8f );
+			BBox midpointHandle = BBox.FromPositionAndSize( (FirstRopePointPosition + LastRopePointPosition) / 2f, 8f );
 			Gizmo.Hitbox.BBox( midpointHandle );
 			var drag = Gizmo.GetMouseDrag( midpointHandle.Center, Gizmo.CameraTransform.Backward );
 			var wasDraggingMidpointGizmo = _isDraggingMidpointGizmo;
@@ -83,8 +83,8 @@ public partial class VerletRope : VerletComponent
 		Gizmo.Draw.Color = ropeLineColor;
 		using ( Gizmo.Hitbox.LineScope() )
 		{
-			Gizmo.Draw.Line( StartPosition, EndPosition );
-			Gizmo.Hitbox.AddPotentialLine( StartPosition, EndPosition, 32f );
+			Gizmo.Draw.Line( FirstRopePointPosition, LastRopePointPosition );
+			Gizmo.Hitbox.AddPotentialLine( FirstRopePointPosition, LastRopePointPosition, 32f );
 		}
 		if ( Gizmo.Pressed.This )
 		{
@@ -112,7 +112,7 @@ public partial class VerletRope : VerletComponent
 	{
 		var newRope = Duplicate();
 		newRope.WorldPosition = newRopeStartPosition;
-		EndPoint = newRope.GameObject;
+		EndTarget = newRope.GameObject;
 	}
 
 	public VerletRope Duplicate()
@@ -122,7 +122,7 @@ public partial class VerletRope : VerletComponent
 		var other = midGo.Components.Create<VerletRope>();
 		// Anchors
 		other.FixedStart = FixedStart;
-		other.EndPoint = EndPoint;
+		other.EndTarget = EndTarget;
 		// Simulation
 		other.TimeStep = TimeStep;
 		other.MaxTimeStepPerUpdate = MaxTimeStepPerUpdate;
@@ -149,16 +149,13 @@ public partial class VerletRope : VerletComponent
 	protected override SimulationData CreateSimData()
 	{
 		var physics = Scene.PhysicsWorld;
-		var startPos = StartPosition;
-		var endPos = EndPosition;
+		var startPos = FirstRopePointPosition;
+		var endPos = LastRopePointPosition;
 		var pointCount = CalculatePointCount( startPos, endPos );
 		var points = RopeGenerator.Generate( startPos, endPos, pointCount, out float segmentLength );
-		var simData = new SimulationData( physics, points, 1, segmentLength )
-		{
-			FixedFirstPosition = FixedStart ? WorldPosition : null,
-			FixedLastPosition = EndPoint?.WorldPosition,
-		};
-		simData.UpdateAnchors();
+		var simData = new SimulationData( physics, points, 1, segmentLength );
+		simData.AnchorToStart( StartPosition );
+		simData.AnchorToEnd( EndPosition );
 		simData.InitializeGpu();
 		return simData;
 	}
@@ -208,7 +205,7 @@ public partial class VerletRope : VerletComponent
 
 		_so.RenderingEnabled = true;
 		_so.Transform = WorldTransform;
-		_so.Bounds = BBox.FromPositionAndSize( ( StartPosition + EndPosition ) / 2f, 512f );
+		_so.Bounds = BBox.FromPositionAndSize( ( FirstRopePointPosition + LastRopePointPosition ) / 2f, 512f );
 		_so.Vertices = SimData.ReadbackVertices;
 		_so.Face = SceneRopeObject.FaceMode.Camera;
 		_so.StartCap = SceneRopeObject.CapStyle.Rounded;

@@ -27,8 +27,8 @@ public partial class VerletSystem
 
 		VerletComputeShader.Attributes.SetComboEnum( "D_SHAPE_TYPE", shapeType );
 		VerletComputeShader.Attributes.Set( "Points", simData.GpuPoints );
-		VerletComputeShader.Attributes.Set( "StartPosition", verlet.StartPosition );
-		VerletComputeShader.Attributes.Set( "EndPosition", verlet.EndPosition );
+		VerletComputeShader.Attributes.Set( "StartPosition", verlet.FirstRopePointPosition );
+		VerletComputeShader.Attributes.Set( "EndPosition", verlet.LastRopePointPosition );
 		VerletComputeShader.Attributes.Set( "NumPoints", simData.CpuPoints.Length );
 		VerletComputeShader.Attributes.Set( "NumColumns", simData.PointGridDims.y );
 		VerletComputeShader.Attributes.Set( "SegmentLength", simData.SegmentLength );
@@ -72,20 +72,8 @@ public partial class VerletSystem
 				var i = y * simData.PointGridDims.x + x;
 
 				var point = points[i];
-				if ( simData.FixedFirstPosition is Vector3 firstPos && i == 0 )
-				{
-					point.Position = firstPos;
-					point.LastPosition = firstPos;
-					points[i] = point;
+				if ( point.IsAnchor )
 					continue;
-				}
-				else if ( simData.FixedLastPosition is Vector3 lastPos && i == points.Length - 1 )
-				{
-					point.Position = lastPos;
-					point.LastPosition = lastPos;
-					points[i] = point;
-					continue;
-				}
 
 				var temp = point.Position;
 				var delta = point.Position - point.LastPosition;

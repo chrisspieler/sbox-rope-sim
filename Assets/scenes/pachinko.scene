@@ -881,16 +881,18 @@
         {
           "__type": "Duccsoft.VerletCloth",
           "__guid": "cce8db93-6d8d-4952-9e30-c30a29a05288",
-          "ClothResolution": 16,
-          "DebugDrawPoints": false,
+          "ClothResolution": 8,
+          "DebugDrawPoints": true,
           "EnableCollision": true,
           "EnableRendering": true,
-          "EndPoint": {
+          "EndTarget": {
             "_type": "gameobject",
             "go": "195f251d-269f-49a7-95eb-d550dd694435"
           },
-          "EndPosition": "48,-128,128",
+          "FirstRopePointPosition": "48,0,128",
+          "FixedEnd": true,
           "FixedStart": true,
+          "LastRopePointPosition": "48,-128,128",
           "Material": "materials/cloth_default.vmat",
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
@@ -899,11 +901,13 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
-          "PointCount": 256,
           "Radius": 1,
-          "SimulateOnGPU": true,
-          "StartPosition": "48,0,128",
-          "Stiffness": 0.22,
+          "SimulateOnGPU": false,
+          "StartTarget": {
+            "_type": "gameobject",
+            "go": "30a5ac78-ac28-49b9-93a8-d773041257b8"
+          },
+          "Stiffness": 0.01,
           "TimeStep": 0.01
         }
       ],
@@ -923,6 +927,7 @@
       "Flags": 0,
       "Name": "Rope",
       "Position": "128,208,496",
+      "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletRope",
@@ -931,12 +936,14 @@
           "EffectiveRadius": 3.955,
           "EnableCollision": false,
           "EnableRendering": true,
-          "EndPoint": {
+          "EndTarget": {
             "_type": "gameobject",
             "go": "7548821a-9269-4d2f-a353-1e0492740255"
           },
-          "EndPosition": "128,-816,496",
+          "FirstRopePointPosition": "128,208,496",
+          "FixedEnd": true,
           "FixedStart": true,
+          "LastRopePointPosition": "128,-816,496",
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
@@ -944,12 +951,14 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
-          "PointCount": 0,
           "PointSpacing": 7.91,
           "RadiusFraction": 1,
           "RenderWidthScale": 1,
           "SimulateOnGPU": true,
-          "StartPosition": "128,208,496",
+          "StartTarget": {
+            "_type": "gameobject",
+            "go": "1e27d789-0980-4439-82d0-10cf86e4b85c"
+          },
           "Stiffness": 0.92,
           "TimeStep": 0.01,
           "Wireframe": false

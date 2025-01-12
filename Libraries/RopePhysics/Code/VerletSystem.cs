@@ -33,12 +33,16 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 		var timer = FastTimer.StartNew();
 
 		var simData = verlet.SimData;
-		simData.UpdateAnchors();
 
 		if ( simData.Collisions == null || simData.Collisions.ShouldCaptureSnapshot )
 		{
 			simData.Collisions = CaptureCollisionSnapshot( simData );
 			simData.Collisions.ShouldCaptureSnapshot = false;
+		}
+
+		if ( verlet.SimulateOnGPU && simData.CpuPointsAreDirty )
+		{
+			simData.StorePointsToGpu();
 		}
 
 		float totalTime = Time.Delta;

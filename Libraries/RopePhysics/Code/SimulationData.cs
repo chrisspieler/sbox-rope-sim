@@ -1,4 +1,6 @@
-﻿namespace Duccsoft;
+﻿using static Sandbox.VertexLayout;
+
+namespace Duccsoft;
 
 public class SimulationData
 {
@@ -14,8 +16,19 @@ public class SimulationData
 
 	
 	public Vector3 Gravity { get; set; } = Vector3.Down * 800f;
-	public Vector3? FixedFirstPosition { get; set; }
-	public Vector3? FixedLastPosition { get; set; }
+	public Vector3? FixedFirstPosition { get; private set; }
+	public Vector3? FixedLastPosition { get; private set; }
+	public Vector3 FixedColumnCrossDirection
+	{
+		get
+		{
+			if ( FixedFirstPosition is not Vector3 firstPos || FixedLastPosition is not Vector3 lastPos )
+				return Vector3.Forward;
+
+			Vector3 dir = ( lastPos - firstPos ).Normal;
+			return dir.Cross( Vector3.Up );
+		}
+	}
 	public Vector3 FirstPosition
 	{
 		get
@@ -38,6 +51,7 @@ public class SimulationData
 	}
 
 	public VerletPoint[] CpuPoints { get; private set; }
+	public bool CpuPointsAreDirty { get; private set; }
 	public float SegmentLength { get; }
 	public Vector2Int PointGridDims { get; }
 
@@ -73,6 +87,7 @@ public class SimulationData
 			return;
 		}
 		GpuPoints.SetData( CpuPoints );
+		CpuPointsAreDirty = false;
 	}
 
 	public void InitializeGpu()
@@ -112,6 +127,7 @@ public class SimulationData
 				LastPosition = vtx.Position - vtx.Tangent0,
 			};
 		}
+		CpuPointsAreDirty = false;
 	}
 
 	public void DestroyGpuData()
@@ -120,25 +136,61 @@ public class SimulationData
 		GpuPoints = null;
 	}
 
-	public void UpdateAnchors()
+	public void AnchorToStart( Vector3? firstPos )
 	{
-		if ( CpuPoints.Length < 1 )
+		if ( firstPos == FixedFirstPosition )
 			return;
 
-		var anchorFirst = FixedFirstPosition is not null;
-		SetAnchor( 0, anchorFirst );
-		var anchorLast = FixedLastPosition is not null;
-		SetAnchor( CpuPoints.Length - 1, anchorLast );
+		AnchorToNth( firstPos, 0 );
+
+		FixedFirstPosition = firstPos;
+		CpuPointsAreDirty = true;
 	}
-	
-	public void SetAnchor( int index, bool isAnchor )
+
+	public void AnchorToEnd( Vector3? pos )
 	{
-		if ( CpuPoints.Length < 1 || index < 0 || index >= CpuPoints.Length )
+		if ( pos == FixedLastPosition )
 			return;
 
-		var p = CpuPoints[index];
-		p.Flags = p.Flags.WithFlag( VerletPointFlags.Anchor, isAnchor );
-		CpuPoints[index] = p;
+		AnchorToNth( pos, PointGridDims.x - 1 );
+
+		FixedLastPosition = pos;
+		CpuPointsAreDirty = true;
+	}
+
+	private void AnchorToNth( Vector3? startPos, int n )
+	{
+		Ray yRay = new( startPos ?? Vector3.Zero, FixedColumnCrossDirection );
+		for ( int y = 0; y < PointGridDims.y; y++ )
+		{
+			int i = y * PointGridDims.x + n;
+			if ( startPos is null )
+			{
+				CpuPoints[i] = CpuPoints[i] with { IsAnchor = false };
+				continue;
+			}
+
+			Vector3 anchorPos = yRay.Project( y * SegmentLength );
+			CpuPoints[i] = CpuPoints[i] with
+			{
+				Position = anchorPos,
+				LastPosition = anchorPos,
+				IsAnchor = true,
+			};
+		}
+	}
+
+
+	private void SetPointPosition( int i, Vector3 position )
+	{
+		CpuPoints[i] = CpuPoints[i] with { Position = position, LastPosition = position };
+		// TODO: Queue a store to GPU because the CpuPoints are dirty
+	}
+
+	public void SetPointPosition( Vector2Int coord, Vector3 position )
+	{
+		var i = coord.y * PointGridDims.x + coord.x;
+		SetPointPosition( i, position );
 	}
 
 	public void RecalculatePointBounds()

@@ -2,10 +2,11 @@
 
 public struct VerletPoint
 {
-	public VerletPoint( Vector3 position, Vector3 lastPosition )
+	public VerletPoint( Vector3 position, Vector3 lastPosition, VerletPointFlags flags = VerletPointFlags.None )
 	{
 		Position = position;
 		LastPosition = lastPosition;
+		Flags = flags;
 	}
 
 	public Vector3 Position;
@@ -13,7 +14,11 @@ public struct VerletPoint
 	public Vector3 LastPosition;
 	public int Padding;
 
-	public readonly bool IsAnchor => Flags.HasFlag( VerletPointFlags.Anchor );
+	public bool IsAnchor
+	{
+		get => Flags.HasFlag( VerletPointFlags.Anchor );
+		set => Flags = Flags.WithFlag( VerletPointFlags.Anchor, value );
+	}
 }
 
 [Flags]

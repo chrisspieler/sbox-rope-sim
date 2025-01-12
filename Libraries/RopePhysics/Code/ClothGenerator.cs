@@ -7,7 +7,7 @@ public static class ClothGenerator
 		var points = new VerletPoint[dims * dims];
 
 		var xDir = (endPos - startPos).Normal;
-		var yDir = xDir.Cross( Vector3.Up );
+		var yDir = xDir.Cross( Vector3.Down );
 		var yRay = new Ray( startPos, yDir );
 
 		spacing = startPos.Distance( endPos ) / dims;
@@ -16,13 +16,13 @@ public static class ClothGenerator
 		{
 			for( int x = 0; x < dims; x++ )
 			{
-				var xPos = yRay.Project( spacing * y );
-				var xRay = new Ray( xPos, xDir );
-				var pos = xRay.Project( spacing * x );
-				points[ y * dims + x ] = new VerletPoint( pos, pos );
+				Vector3 xPos = yRay.Project( spacing * y );
+				Ray xRay = new( xPos, xDir );
+				Vector3 pos = xRay.Project( spacing * x );
+				VerletPoint p = new( pos, pos );
+				points[ y * dims + x ] = p;
 			}
 		}
-		
 		return points;
 	}
 }

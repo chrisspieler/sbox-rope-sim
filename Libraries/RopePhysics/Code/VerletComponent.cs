@@ -10,7 +10,7 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 
 	#region Anchors
 	[Property]
-	public Vector3 StartPosition
+	public Vector3 FirstRopePointPosition
 	{
 		get
 		{
@@ -22,44 +22,40 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 		}
 	}
 	[Property]
-	public Vector3 EndPosition
+	public Vector3 LastRopePointPosition
 	{
 		get
 		{
-			if ( EndPoint.IsValid() )
+			if ( EndTarget.IsValid() )
 			{
-				return EndPoint.WorldPosition;
+				return EndTarget.WorldPosition;
 			}
 			return SimData?.LastPosition ?? WorldPosition + Vector3.Down * 50f;
 		}
 	}
-	[Property] public bool FixedStart { get; set; } = true;
-	[Property] public GameObject EndPoint { get; set; }
-
-	private void UpdateAnchors()
+	[Property, Change] public bool FixedStart { get; set; } = true;
+	private void OnFixedStartChanged( bool oldValue, bool newValue )
 	{
-		void UpdateTerminalPositions()
+		SimData?.AnchorToStart( FixedStart ? StartPosition : null );
+	}
+	[Property, Change] public bool FixedEnd { get; set; } = false;
+	private void OnFixedEndChanged( bool oldValue, bool newValue )
+	{
+		SimData?.AnchorToEnd( FixedEnd ? EndPosition : null );
+	}
+	[Property] public GameObject StartTarget { get; set; }
+	[Property] public GameObject EndTarget { get; set; }
+	[Property, ReadOnly, JsonIgnore] 
+	public Vector3 StartPosition => StartTarget?.WorldPosition ?? WorldPosition;
+	[Property, ReadOnly, JsonIgnore]
+	public Vector3 EndPosition
+	{
+		get
 		{
-			SimData.FixedFirstPosition = FixedStart ? WorldPosition : null;
-			SimData.FixedLastPosition = EndPoint?.WorldPosition;
-		}
+			if ( EndTarget.IsValid() )
+				return EndTarget.WorldPosition;
 
-		if ( SimData is null )
-			return;
-
-		if ( Game.IsPlaying )
-		{
-			UpdateTerminalPositions();
-			return;
-		}
-
-		var previousFirst = SimData.FixedFirstPosition;
-		var previousLast = SimData.FixedLastPosition;
-		UpdateTerminalPositions();
-		var hasChanged = previousFirst != SimData.FixedFirstPosition || previousLast != SimData.FixedLastPosition;
-		if ( hasChanged )
-		{
-			ResetSimulation();
+			return EndTarget?.WorldPosition ?? WorldPosition + Vector3.Right * 128f;
 		}
 	}
 	#endregion
@@ -88,7 +84,7 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 			return;
 
 		var verletComponents = Game.ActiveScene.GetAllComponents<VerletComponent>();
-		foreach( var verlet in verletComponents )
+		foreach ( var verlet in verletComponents )
 		{
 			verlet.SimulateOnGPU = simulateOnGpu;
 		}
@@ -120,18 +116,26 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	[Property]
 	public float MaxTimeStepPerUpdate { get; set; } = 0.1f;
 
-	[Property]
-	public float PointCount
+	[Property, ReadOnly, JsonIgnore]
+	public float SegmentLength => SimData?.SegmentLength ?? 1f;
+
+	[Property, ReadOnly, JsonIgnore]
+	public int PointCount
 	{
 		get
 		{
-			if ( SimulateOnGPU )
+			if ( SimulateOnGPU && SimData?.GpuPoints.IsValid() == true )
 			{
-				return SimData?.GpuPoints?.ElementCount ?? 0;
+				return SimData.GpuPoints.ElementCount;
+			}
+			else if ( SimData?.CpuPoints is not null )
+			{
+				return SimData.CpuPoints.Length;
 			}
 			else
 			{
-				return SimData?.CpuPoints?.Length ?? 0;
+				var distance = StartPosition.Distance( EndPosition );
+				return (int)(distance / SegmentLength);
 			}
 		}
 	}
@@ -150,11 +154,7 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	protected override void OnEnabled() => CreateSimulation();
 	protected override void OnDisabled() => DestroySimulation();
 
-	protected override void OnUpdate()
-	{
-		UpdateAnchors();
-	}
-
+	[Button]
 	public void ResetSimulation()
 	{
 		DestroySimulation();
@@ -170,6 +170,8 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	private void CreateSimulation()
 	{
 		SimData = CreateSimData();
+		SimData.AnchorToStart( FixedStart ? StartPosition : null );
+		SimData.AnchorToEnd( FixedEnd ? EndPosition : null );
 		CreateRenderer();
 	}
 
@@ -227,7 +229,7 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 			var point = SimData.CpuPoints[i];
 			var x = i % SimData.PointGridDims.x;
 			var y = i / SimData.PointGridDims.y;
-			Log.Info( $"({x},{y}) pos{point.Position}, lastPos: {point.LastPosition}" );
+			Log.Info( $"({x},{y}) anchor: {point.IsAnchor}, pos{point.Position}, lastPos: {point.LastPosition}" );
 		}
 
 		if ( SimulateOnGPU )
