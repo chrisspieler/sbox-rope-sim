@@ -9,15 +9,23 @@ public partial class VerletSystem
 		VerletComputeShader ??= new ComputeShader( "verlet_cloth_cs" );
 	}
 
+	private enum VerletShapeType
+	{
+		Rope = 0,
+		Cloth = 1,
+	}
+
 	private void GpuSimulate( VerletComponent verlet, float deltaTime )
 	{
 		var simData = verlet.SimData;
 
 		var xThreads = verlet.SimData.PointGridDims.x;
 		var yThreads = verlet.SimData.PointGridDims.y;
+		var shapeType = yThreads > 1 ? VerletShapeType.Cloth : VerletShapeType.Rope;
 
 		// using var scope = PerfLog.Scope( $"GPU Simulate {xThreads}x{yThreads}, {simData.GpuPoints.ElementCount} of size {simData.GpuPoints.ElementSize}, sticks {simData.GpuSticks.ElementCount} of size {simData.GpuSticks.ElementSize}" );
 
+		VerletComputeShader.Attributes.SetComboEnum( "D_SHAPE_TYPE", shapeType );
 		VerletComputeShader.Attributes.Set( "Points", simData.GpuPoints );
 		VerletComputeShader.Attributes.Set( "StartPosition", verlet.StartPosition );
 		VerletComputeShader.Attributes.Set( "EndPosition", verlet.EndPosition );
@@ -26,6 +34,7 @@ public partial class VerletSystem
 		VerletComputeShader.Attributes.Set( "SegmentLength", simData.SegmentLength );
 		VerletComputeShader.Attributes.Set( "Iterations", simData.Iterations );
 		VerletComputeShader.Attributes.Set( "DeltaTime", deltaTime );
+		VerletComputeShader.Attributes.Set( "Gravity", simData.Gravity );
 		// TODO: Allow subtypes of VerletComponent to set these.
 		if ( verlet is VerletRope rope )
 		{

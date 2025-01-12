@@ -33,7 +33,7 @@ public class VerletCloth : VerletComponent
 		if ( !Gizmo.IsSelected )
 			return;
 
-		if ( !DebugDrawPoints )
+		if ( SimulateOnGPU )
 			return;
 
 		Gizmo.Draw.Color = Color.Green;
@@ -54,10 +54,10 @@ public class VerletCloth : VerletComponent
 	}
 	#region Rendering
 	[Property] public Material Material { get; set; }
-	private SceneModel _so;
+	private SceneClothObject _so;
 	protected override void CreateRenderer()
 	{
-		_so = new SceneModel( Scene.SceneWorld, Model.Plane, WorldTransform );
+		_so = new SceneClothObject( Scene.SceneWorld );
 		_so.Flags.IsOpaque = true;
 		_so.Flags.CastShadows = true;
 	}
@@ -78,72 +78,22 @@ public class VerletCloth : VerletComponent
 
 	private void UpdateModel()
 	{
-		if ( !_so.IsValid() || SimData?.CpuPoints is null )
+		if ( !_so.IsValid() )
 			return;
 
-		int numVertices = ClothResolution * ClothResolution;
-		bool vertexCountChanged = false;
-		if ( Vertices is null || Vertices.Length != numVertices )
+		if ( SimulateOnGPU )
 		{
-			vertexCountChanged = true;
-			Vertices = new SimpleVertex[numVertices];
+			UpdateModelGPU();
 		}
-
-		for ( int y = 0; y < ClothResolution; y++ )
-		{
-			for ( int x = 0; x < ClothResolution; x++ )
-			{
-				var i = y * ClothResolution + x;
-				var worldPos = SimData.CpuPoints[i].Position;
-				// worldPos += worldPos - SimData.CollisionBounds.Center;
-				var localPos = WorldTransform.PointToLocal( worldPos );
-				var uv = new Vector2( (float)x / ClothResolution, (float)y / ClothResolution );
-				var vtx = new SimpleVertex( localPos, Vector3.Up, Vector3.Right, uv );
-				Vertices[i] = vtx;
-			}
-		}
-
-		if ( Indices is null || vertexCountChanged )
-		{
-			UpdateIndices();
-		}
-
-		if ( vertexCountChanged || Mesh is null || Model is null || _so.Model is null )
-		{
-			Mesh = new Mesh( Material );
-			Mesh.CreateVertexBuffer( numVertices, SimpleVertex.Layout, default( Span<SimpleVertex> ) );
-			Mesh.CreateIndexBuffer( Indices.Length, Indices );
-			Model = Model.Builder.AddMesh( Mesh ).Create();
-			_so.Model = Model;
-		}
-		if ( Mesh.VertexCount != Vertices.Length )
-		{
-			Mesh.SetVertexBufferSize( Vertices.Length );
-		}
-		Mesh.LockVertexBuffer<SimpleVertex>( d => Vertices.CopyTo( d ) );
-		Mesh.Bounds = BBox.FromPoints( Vertices.Select( v => v.position ) );
 	}
 
-	private void UpdateIndices()
+	private void UpdateModelGPU()
 	{
-		int verticesPerLine = ClothResolution;
-		List<int> indices = [];
-		// The index buffer loop was copy/pasted from the water plane tesselation used in Sam's water sim on Testbed.
-		for ( int i = 0; i < ClothResolution - 1; i++ )
-		{
-			for ( int j = 0; j < ClothResolution - 1; j++ )
-			{
-				int start = i * verticesPerLine + j;
-				indices.Add( start );
-				indices.Add( start + 1 );
-				indices.Add( start + verticesPerLine );
+		if ( SimData?.ReadbackVertices?.IsValid() != true )
+			return;
 
-				indices.Add( start + verticesPerLine );
-				indices.Add( start + 1 );
-				indices.Add( start + verticesPerLine + 1 );
-			}
-		}
-		Indices = [.. indices];
+		_so.Vertices = SimData.ReadbackVertices;
+		_so.Bounds = BBox.FromPositionAndSize( (StartPosition + EndPosition) / 2f, 512f );
 	}
 	#endregion
 }

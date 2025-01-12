@@ -63,6 +63,7 @@ public class SimulationData
 
 	public GpuBuffer<VerletPoint> GpuPoints { get; set; }
 	public GpuBuffer<VerletVertex> ReadbackVertices { get; set; }
+	public GpuBuffer<int> ReadbackIndices { get; set; }
 
 	public void StorePointsToGpu()
 	{

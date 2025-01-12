@@ -876,6 +876,7 @@
       "Flags": 0,
       "Name": "Cloth",
       "Position": "48,0,128",
+      "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletCloth",
@@ -898,7 +899,7 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
-          "PointCount": 0,
+          "PointCount": 256,
           "Radius": 1,
           "SimulateOnGPU": true,
           "StartPosition": "48,0,128",
@@ -922,7 +923,6 @@
       "Flags": 0,
       "Name": "Rope",
       "Position": "128,208,496",
-      "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletRope",
@@ -944,11 +944,11 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
-          "PointCount": 130,
+          "PointCount": 0,
           "PointSpacing": 7.91,
           "RadiusFraction": 1,
           "RenderWidthScale": 1,
-          "SimulateOnGPU": false,
+          "SimulateOnGPU": true,
           "StartPosition": "128,208,496",
           "Stiffness": 0.92,
           "TimeStep": 0.01,

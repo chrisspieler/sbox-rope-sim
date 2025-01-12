@@ -44,13 +44,16 @@ CS
 	int Iterations < Attribute( "Iterations" ); >;
 	float SegmentLength < Attribute( "SegmentLength" ); Default( 1.0 ); >;
 	float DeltaTime < Attribute( "DeltaTime" ); >;
+	float3 Gravity < Attribute( "Gravity" ); Default3( 0, 0, -800.0 ); >;
 	float RopeWidth < Attribute( "RopeWidth" ); Default( 1.0 ); >;
 	float RopeRenderWidth < Attribute( "RopeRenderWidth" ); Default( 1.0 ); >;
 	float RopeTextureCoord < Attribute( "RopeTextureCoord" ); Default( 1.0 ); >;
 	float4 RopeTint < Attribute( "RopeTint"); Default4( 0.0, 0.0, 0.0, 1.0 ); >;
+	float4x4 MatWorldToLocal < Attribute( "MatWorldToLocal" ); >;
 
 	RWStructuredBuffer<Vertex> OutputVertices < Attribute( "OutputVertices" ); >;
 
+	DynamicCombo( D_SHAPE_TYPE, 0..1, Sys( All ) );
 
 	int Index2DTo1D( uint2 i )
 	{
@@ -82,13 +85,13 @@ CS
 		delta *= 1 - (0.95 * DeltaTime);
 		p.Position += delta;
 		// Gravity
-		p.Position += float3( 0, 0, -800 ) * ( DeltaTime * DeltaTime );
+		p.Position += Gravity * ( DeltaTime * DeltaTime );
 		p.LastPosition = temp;
 		Points[pIndex] = p;
 	}
 
 
-	void ApplyRopeConstraints( int pIndex )
+	void ApplyRopeSegmentConstraint( int pIndex )
 	{
 		VerletPoint pCurr = Points[pIndex];
 
@@ -127,9 +130,19 @@ CS
 		}
 	}
 
-	void ApplyConstraints( int pIndex )
+	void ApplyRopeConstraints( int pIndex )
 	{
-		ApplyRopeConstraints( pIndex );
+		ApplyRopeSegmentConstraint( pIndex );
+	}
+
+	void ApplyClothSegmentConstraint( int pIndex )
+	{
+
+	}
+
+	void ApplyClothConstraints( int pIndex )
+	{
+		ApplyClothSegmentConstraint( pIndex );
 	}
 
 	void ResolveCollisions( int pIndex )
@@ -137,7 +150,7 @@ CS
 		return;
 	}
 
-	void OutputVertex( int pIndex )
+	void OutputRopeVertex( int pIndex )
 	{
 		VerletPoint p = Points[pIndex];
 		float3 delta = p.Position - p.LastPosition;
@@ -159,7 +172,30 @@ CS
 		}
 	}
 
-	[numthreads( 1024, 1, 1 )]
+	void OutputClothVertex( uint2 pos, int pIndex )
+	{
+		VerletPoint p = Points[pIndex];
+		float3 vPositionWs = p.Position;
+		float3 delta = vPositionWs - p.LastPosition;
+		float2 uv = float2( (float)pos.x / NumColumns, (float)pos.y / NumColumns );
+		Vertex v;
+		v.Position = vPositionWs;
+		v.TexCoord0 = float4( uv.x, uv.y, 0, 0 );
+		v.Normal = float4( 0, 0, 1, 0 );
+		v.Tangent0 = float4( delta.xyz, 0 );
+		v.TexCoord1 = RopeTint;
+		v.Color0 = float4( 1, 1, 1, 1 );
+		OutputVertices[pIndex] = v;
+
+		// TODO: Output indices???
+		// int idx = pos.y * NumColumns + pos.x;
+	}
+
+	#if D_SHAPE_TYPE == 1
+		[numthreads( 32, 32, 1 )]
+	#else
+		[numthreads( 1024, 1, 1 )]
+	#endif
 	void MainCs( uint3 id : SV_DispatchThreadID )
 	{
 		int pIndex = Index2DTo1D( id.xy );
@@ -171,11 +207,20 @@ CS
 		{
 			for ( int i = 0; i < Iterations; i++ )
 			{
-				ApplyConstraints( pIndex );
+				#if D_SHAPE_TYPE == 0
+					ApplyRopeConstraints( pIndex );
+				#elif D_SHAPE_TYPE == 1
+					ApplyClothConstraints( pIndex );
+				#endif
+
 				ResolveCollisions( pIndex );
 			}
 		}
 
-		OutputVertex( pIndex );
+		#if D_SHAPE_TYPE == 0
+			OutputRopeVertex( pIndex );
+		#elif D_SHAPE_TYPE == 1
+			OutputClothVertex( id.xy, pIndex );
+		#endif
 	}
 }
