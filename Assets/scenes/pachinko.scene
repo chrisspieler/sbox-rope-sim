@@ -896,15 +896,15 @@
       "__guid": "30a5ac78-ac28-49b9-93a8-d773041257b8",
       "Flags": 0,
       "Name": "Cloth",
-      "Position": "48,0,256",
+      "Position": "48,32,224",
       "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletCloth",
           "__guid": "cce8db93-6d8d-4952-9e30-c30a29a05288",
           "Bounds": {
-            "Mins": "48.01813,-123.8994,250.9549",
-            "Maxs": "172.1826,-4.025098,255.4147"
+            "Mins": "48.01468,-91.89905,219.0656",
+            "Maxs": "172.1406,27.9743,223.4256"
           },
           "ClothResolution": 32,
           "DebugDrawPoints": false,
@@ -915,10 +915,10 @@
             "go": "195f251d-269f-49a7-95eb-d550dd694435",
             "prefab": null
           },
-          "FirstRopePointPosition": "48,0,256",
+          "FirstRopePointPosition": "48,32,224",
           "FixedEnd": true,
           "FixedStart": true,
-          "LastRopePointPosition": "48,-128,256",
+          "LastRopePointPosition": "48,-96,224",
           "Material": "materials/cloth_default.vmat",
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
@@ -953,19 +953,19 @@
       "__guid": "1e27d789-0980-4439-82d0-10cf86e4b85c",
       "Flags": 0,
       "Name": "Rope",
-      "Position": "128,208,496",
+      "Position": "240,208,688",
       "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletRope",
           "__guid": "d39c0e78-82c6-4036-ae57-a299e1f859b1",
           "Bounds": {
-            "Mins": "0,-798.4441,0",
-            "Maxs": "128,190.5942,491.0378"
+            "Mins": "0,-797.0882,0",
+            "Maxs": "240,189.2103,683.0336"
           },
           "Color": "0.01395,0.01395,0.01395,1",
           "DebugDrawPoints": false,
-          "EffectiveRadius": 3.8098,
+          "EffectiveRadius": 4.10005,
           "EnableCollision": false,
           "EnableRendering": true,
           "EndTarget": {
@@ -973,10 +973,10 @@
             "go": "7548821a-9269-4d2f-a353-1e0492740255",
             "prefab": null
           },
-          "FirstRopePointPosition": "128,208,496",
+          "FirstRopePointPosition": "240,208,688",
           "FixedEnd": true,
           "FixedStart": true,
-          "LastRopePointPosition": "128,-816,496",
+          "LastRopePointPosition": "240,-816,688",
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
@@ -984,7 +984,7 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
-          "PointSpacing": 17.72,
+          "PointSpacing": 19.07,
           "RadiusFraction": 0.43,
           "RenderWidthScale": 1,
           "SimulateOnGPU": true,

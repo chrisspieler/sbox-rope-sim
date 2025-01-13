@@ -104,7 +104,10 @@ public class SimulationData
 			Maxs = new Vector4( float.NegativeInfinity ),
 		};
 		readbackBuffer.SetData( [initialBounds] );
-		ReadbackBounds = new GpuDoubleBuffer<VerletBounds>( readbackBuffer );
+		ReadbackBounds = new GpuDoubleBuffer<VerletBounds>( readbackBuffer )
+		{
+			SwapInterval = 5
+		};
 	}
 
 	public void LoadPointsFromGpu()
