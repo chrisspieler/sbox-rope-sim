@@ -155,6 +155,10 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	protected override void OnEnabled() => CreateSimulation();
 	protected override void OnDisabled() => DestroySimulation();
 
+	[Property, ReadOnly, JsonIgnore]
+	public int SimulationIndex => SimData?.SimulationIndex ?? -1;
+
+
 	[Button]
 	public void ResetSimulation()
 	{

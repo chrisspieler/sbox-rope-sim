@@ -14,7 +14,7 @@ public class SimulationData
 		InitializeGpu();
 	}
 
-	
+	public int SimulationIndex { get; set; } = -1;
 	public Vector3 Gravity { get; set; } = Vector3.Down * 800f;
 	public Vector3? FixedFirstPosition { get; private set; }
 	public Vector3? FixedLastPosition { get; private set; }
@@ -106,6 +106,7 @@ public class SimulationData
 		readbackBuffer.SetData( [initialBounds] );
 		ReadbackBounds = new GpuDoubleBuffer<VerletBounds>( readbackBuffer )
 		{
+			EnableFrontCache = true,
 			SwapInterval = 5
 		};
 	}
@@ -197,7 +198,6 @@ public class SimulationData
 			};
 		}
 	}
-
 
 	private void SetPointPosition( int i, Vector3 position )
 	{

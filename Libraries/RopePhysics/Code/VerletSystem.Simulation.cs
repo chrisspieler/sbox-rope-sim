@@ -1,23 +1,60 @@
-﻿namespace Duccsoft;
+﻿using Sandbox.Rendering;
+namespace Duccsoft;
 
 public partial class VerletSystem
 {
-	private ComputeShader VerletComputeShader;
-
-	private void InitializeGpuCollisions()
-	{
-		VerletComputeShader ??= new ComputeShader( "verlet_cloth_cs" );
-	}
-
 	private enum VerletShapeType
 	{
 		Rope = 0,
 		Cloth = 1,
 	}
 
+	private ComputeShader VerletComputeShader;
+	private Texture GpuGlobalBoundsTexture;
+
+	private const int MAX_SIMULATION_INDEX = 32;
+
+	private void InitializeGpu()
+	{
+		VerletComputeShader ??= new ComputeShader( "verlet_cloth_cs" );
+		GpuSimulateSceneObject ??= new SceneCustomObject( Scene.SceneWorld )
+		{
+			RenderingEnabled = true,
+			RenderOverride = RenderGpuSimulate,
+		};
+		GpuGlobalBoundsTexture ??= Texture.Create( MAX_SIMULATION_INDEX * 2, 1, ImageFormat.RGB323232F )
+			.WithUAVBinding()
+			.Finish();
+	}
+
+	private void RenderGpuSimulate( SceneObject so )
+	{
+		foreach( var verlet in GpuSimulateQueue )
+		{
+			GpuSimulate( verlet );
+		}
+		GpuSimulateQueue.Clear();
+	}
+
+	private Dictionary<SimulationData, int> GpuSimIndices = [];
+	private int _nextIndex = 0;
+	private SceneCustomObject GpuSimulateSceneObject;
+	private List<VerletComponent> GpuSimulateQueue = [];
+
 	private void GpuSimulate( VerletComponent verlet )
 	{
 		var simData = verlet.SimData;
+		if ( simData is null )
+			return;
+
+		if ( !GpuSimIndices.TryGetValue( simData, out int simulationIndex ) )
+		{
+			GpuSimIndices[simData] = _nextIndex;
+			simData.SimulationIndex = _nextIndex;
+			_nextIndex++;
+			_nextIndex %= MAX_SIMULATION_INDEX;
+		}
+
 		if ( simData.CpuPointsAreDirty )
 		{
 			simData.StorePointsToGpu();
@@ -30,6 +67,8 @@ public partial class VerletSystem
 		// using var scope = PerfLog.Scope( $"GPU Simulate {xThreads}x{yThreads}, {simData.GpuPoints.ElementCount} of size {simData.GpuPoints.ElementSize}, sticks {simData.GpuSticks.ElementCount} of size {simData.GpuSticks.ElementSize}" );
 
 		VerletComputeShader.Attributes.SetComboEnum( "D_SHAPE_TYPE", shapeType );
+		VerletComputeShader.Attributes.Set( "SimulationIndex", simulationIndex );
+		VerletComputeShader.Attributes.Set( "BoundsWritebackTextureIndex", GpuGlobalBoundsTexture.Index );
 		VerletComputeShader.Attributes.Set( "Points", simData.GpuPoints );
 		VerletComputeShader.Attributes.Set( "StartPosition", verlet.FirstRopePointPosition );
 		VerletComputeShader.Attributes.Set( "EndPosition", verlet.LastRopePointPosition );
@@ -53,6 +92,8 @@ public partial class VerletSystem
 		VerletComputeShader.Attributes.Set( "OutputVertices", simData.ReadbackVertices );
 		VerletComputeShader.Attributes.Set( "BoundsWs", simData.ReadbackBounds.SwapToBack() );
 		VerletComputeShader.Dispatch( xThreads, yThreads, 1 );
+
+		simData.LoadBoundsFromGpu();
 	}
 
 	private void CpuSimulate( VerletComponent verlet )
@@ -75,6 +116,7 @@ public partial class VerletSystem
 		}
 
 		verlet.UpdateCpuVertexBuffer( verlet.SimData.CpuPoints );
+		verlet.SimData.RecalculateCpuPointBounds();
 	}
 
 	private static void ApplyForces( SimulationData simData, float deltaTime )

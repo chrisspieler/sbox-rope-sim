@@ -16,7 +16,7 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 		if ( Game.IsPlaying && Scene.IsEditor )
 			return;
 
-		InitializeGpuCollisions();
+		InitializeGpu();
 
 		var verletComponents = Scene.GetAllComponents<VerletComponent>();
 		foreach( var verlet in verletComponents )
@@ -42,13 +42,11 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 
 		if ( verlet.SimulateOnGPU )
 		{
-			GpuSimulate( verlet );
-			simData.LoadBoundsFromGpu();
+			GpuSimulateQueue.Add( verlet );
 		}
 		else
 		{
 			CpuSimulate( verlet );
-			simData.RecalculateCpuPointBounds();
 		}
 
 		verlet.PushDebugTime( timer.ElapsedMilliSeconds );
