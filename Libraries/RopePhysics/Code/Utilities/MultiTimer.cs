@@ -2,7 +2,7 @@
 
 namespace Duccsoft;
 
-internal interface ITimerStats
+public interface ITimerStats
 {
 	double TotalMilliseconds { get; }
 	double LastMilliseconds { get; }

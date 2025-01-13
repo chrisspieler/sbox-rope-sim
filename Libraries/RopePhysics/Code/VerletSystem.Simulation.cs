@@ -49,7 +49,9 @@ public partial class VerletSystem
 			VerletComputeShader.Attributes.Set( "RopeTextureCoord", 0f );
 			VerletComputeShader.Attributes.Set( "RopeTint", rope.Color );
 		}
+
 		VerletComputeShader.Attributes.Set( "OutputVertices", simData.ReadbackVertices );
+		VerletComputeShader.Attributes.Set( "BoundsWs", simData.ReadbackBounds.SwapToBack() );
 		VerletComputeShader.Dispatch( xThreads, yThreads, 1 );
 	}
 

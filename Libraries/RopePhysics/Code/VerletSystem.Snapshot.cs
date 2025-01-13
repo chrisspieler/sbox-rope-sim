@@ -18,7 +18,7 @@ public partial class VerletSystem
 		if ( simData is null || !simData.Physics.IsValid() || simData?.CpuPoints?.Length < 1 )
 			return new();
 
-		var collisionBounds = simData.CollisionBounds;
+		var collisionBounds = simData.Bounds;
 
 		// Find possible collisions in the scene.
 		var trs = simData.Physics.Trace
@@ -49,7 +49,7 @@ public partial class VerletSystem
 			}
 		}
 
-		simData.CollisionBounds = collisionBounds;
+		simData.Bounds = collisionBounds;
 		return snapshot;
 	}
 

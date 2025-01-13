@@ -26,6 +26,8 @@ public class VerletCloth : VerletComponent
 
 	protected override void DrawGizmos()
 	{
+		base.DrawGizmos();
+
 		using var scope = Gizmo.Scope( "Verlet Cloth" );
 
 		Gizmo.Transform = Scene.LocalTransform;

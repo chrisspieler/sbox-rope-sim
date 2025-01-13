@@ -54,6 +54,7 @@ CS
 	float4x4 MatWorldToLocal < Attribute( "MatWorldToLocal" ); >;
 
 	RWStructuredBuffer<Vertex> OutputVertices < Attribute( "OutputVertices" ); >;
+	RWStructuredBuffer<float4> BoundsWs < Attribute( "BoundsWs" ); >;
 
 	DynamicCombo( D_SHAPE_TYPE, 0..1, Sys( All ) );
 
@@ -213,6 +214,40 @@ CS
 		return;
 	}
 
+	void UpdateBounds( int pIndex )
+	{
+		VerletPoint p = Points[pIndex];
+		float4 positionWs = float4( p.Position.xyz, 0 );
+		float4 mins = BoundsWs[0];
+		if ( any( positionWs.xyz < mins.xyz ) )
+		{
+			if ( mins.x > positionWs.x )
+			{
+				mins.x = positionWs.x;
+			}
+			if ( mins.y > positionWs.y )
+			{
+				mins.y = positionWs.y;
+			}
+			if ( mins.z > positionWs.z )
+			{
+				mins.z = positionWs.z;
+			}
+			BoundsWs[0] = mins;
+		}
+		float4 maxs = BoundsWs[1];
+		if ( any( positionWs.xyz > maxs.xyz ) )
+		{
+			if ( maxs.x < positionWs.x )
+				maxs.x = positionWs.x;
+			if ( maxs.y < positionWs.y )
+				maxs.y = positionWs.y;
+			if ( maxs.z < positionWs.z )
+				maxs.z = positionWs.z;
+			BoundsWs[1] = maxs;
+		}
+	}
+
 	void OutputRopeVertex( int pIndex )
 	{
 		VerletPoint p = Points[pIndex];
@@ -287,6 +322,7 @@ CS
 				#endif
 				
 				ResolveCollisions( pIndex );
+				UpdateBounds( pIndex );
 				GroupMemoryBarrierWithGroupSync();
 			}
 		}
@@ -302,6 +338,8 @@ CS
 		int pIndex = Index2DTo1D( id.xy );
 
 		float totalTime = min( DeltaTime, MaxTimeStepPerUpdate );
+		BoundsWs[0] = 1e20;
+		BoundsWs[1] = -1e20;
 		for( int i = 0; i < 50; i++ )
 		{
 			float deltaTime = min( TimeStepSize, totalTime );

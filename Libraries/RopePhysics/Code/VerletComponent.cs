@@ -139,6 +139,7 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 			}
 		}
 	}
+	[Property] public BBox Bounds => SimData?.Bounds ?? default;
 
 	[Property, Range( 0.01f, 1f )]
 	public float Stiffness { get; set; } = 0.2f;
@@ -203,6 +204,45 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 		}
 	}
 	private CircularBuffer<double> _debugTimes = new CircularBuffer<double>( 25 );
+	[Property, ReadOnly, JsonIgnore] public string GpuReadbackTime
+	{
+		get
+		{
+			if ( SimData?.ReadbackBounds?.IsValid() != true )
+				return string.Empty;
+
+			return $"{SimData.ReadbackBounds.TimingStats.LastMilliseconds:F3}ms";
+		}
+	}
+
+	protected override void DrawGizmos()
+	{
+		if ( SimData is null )
+			return;
+
+		using var scope = Gizmo.Scope( "VerletComponent" );
+		Gizmo.Transform = Scene.LocalTransform;
+
+		var bounds = SimData.Bounds;
+		Gizmo.Hitbox.BBox( bounds );
+
+		if ( !Gizmo.IsSelected )
+		{
+			if ( Gizmo.IsHovered )
+			{
+				Gizmo.Draw.Color = Color.White.WithAlpha( 0.2f );
+				Gizmo.Draw.LineBBox( SimData.Bounds );
+			}
+			return;
+		}
+
+		if ( !Gizmo.IsSelected )
+			return;
+
+		var alpha = Gizmo.IsHovered ? 1f : 0.2f;
+		Gizmo.Draw.Color = Color.White.WithAlpha( 0.2f );
+		Gizmo.Draw.LineBBox( SimData.Bounds );
+	}
 
 	internal void PushDebugTime( double time )
 	{

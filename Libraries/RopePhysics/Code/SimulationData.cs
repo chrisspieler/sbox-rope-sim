@@ -70,15 +70,15 @@ public class SimulationData
 	/// </summary>
 	public float CollisionSearchRadius { get; set; } = 10f;
 	/// <summary>
-	/// The total area to search for collisions, encompassing the entire rpoe.
+	/// Worldspace bounds of the VerletPoints, used for culling and broad phase collision detection.
 	/// </summary>
-	public BBox CollisionBounds { get; set; }
+	public BBox Bounds { get; set; }
 	public CollisionSnapshot Collisions { get; set; } = new();
 
 	public GpuBuffer<VerletPoint> GpuPoints { get; set; }
 	public GpuBuffer<VerletVertex> ReadbackVertices { get; set; }
 	public GpuBuffer<int> ReadbackIndices { get; set; }
-
+	public GpuDoubleBuffer<VerletBounds> ReadbackBounds { get; set; }
 	public void StorePointsToGpu()
 	{
 		if ( GpuPoints is null )
@@ -97,6 +97,14 @@ public class SimulationData
 		GpuPoints.SetData( CpuPoints );
 		var vertexCount = PointGridDims.y > 1 ? CpuPoints.Length : CpuPoints.Length + 2;
 		ReadbackVertices = new GpuBuffer<VerletVertex>( vertexCount, GpuBuffer.UsageFlags.Vertex | GpuBuffer.UsageFlags.Structured );
+		var readbackBuffer = new GpuBuffer<VerletBounds>( 1, GpuBuffer.UsageFlags.Structured );
+		var initialBounds = new VerletBounds()
+		{
+			Mins = new Vector4( float.PositiveInfinity ),
+			Maxs = new Vector4( float.NegativeInfinity ),
+		};
+		readbackBuffer.SetData( [initialBounds] );
+		ReadbackBounds = new GpuDoubleBuffer<VerletBounds>( readbackBuffer );
 	}
 
 	public void LoadPointsFromGpu()
@@ -200,7 +208,17 @@ public class SimulationData
 		SetPointPosition( i, position );
 	}
 
-	public void RecalculatePointBounds()
+	public void LoadBoundsFromGpu()
+	{
+		if ( !ReadbackBounds.IsValid() )
+			return;
+
+		var bounds = new VerletBounds[1];
+		ReadbackBounds.ReadData( bounds );
+		Bounds = bounds[0];
+	}
+
+	public void RecalculateCpuPointBounds()
 	{
 		BBox collisionBounds = default;
 
@@ -218,6 +236,6 @@ public class SimulationData
 			}
 		}
 
-		CollisionBounds = collisionBounds;
+		Bounds = collisionBounds;
 	}
 }

@@ -43,14 +43,13 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 		if ( verlet.SimulateOnGPU )
 		{
 			GpuSimulate( verlet );
+			simData.LoadBoundsFromGpu();
 		}
 		else
 		{
 			CpuSimulate( verlet );
+			simData.RecalculateCpuPointBounds();
 		}
-
-
-		simData.RecalculatePointBounds();
 
 		verlet.PushDebugTime( timer.ElapsedMilliSeconds );
 	}

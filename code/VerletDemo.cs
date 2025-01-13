@@ -88,7 +88,7 @@ public class VerletDemo : Component
 
 		if ( VerletRope.DebugMode == 2 )
 		{
-			DebugOverlay.Box( Rope.CollisionBounds, color: Color.Green.WithAlpha( 0.2f ) );
+			DebugOverlay.Box( Rope.Bounds, color: Color.Green.WithAlpha( 0.2f ) );
 		}
 	}
 

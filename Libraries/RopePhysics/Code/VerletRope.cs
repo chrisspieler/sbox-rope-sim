@@ -51,6 +51,8 @@ public partial class VerletRope : VerletComponent
 	private bool _isDraggingMidpointGizmo;
 	protected override void DrawGizmos()
 	{
+		base.DrawGizmos();
+
 		using var scope = Gizmo.Scope( "RopePhysicsDebug" );
 
 		Gizmo.Transform = Scene.LocalTransform;
