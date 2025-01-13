@@ -38,6 +38,9 @@ public class MainMenuUI : Component
 	}
 	protected override void OnUpdate()
 	{
+		var titleText = new TextRendering.Scope( "Verlet Rope Demo", Color.White, ImGui.GetTextLineHeight() * 5f, "Poppins" );
+		Scene.Camera.Hud.DrawText( titleText, new Vector2( Screen.Width / 2, Screen.Height * 0.15f ) );
+		ImGui.SetNextWindowPos( Screen.Size * new Vector2( 0.4f, 1f ) * ImGuiStyle.UIScale );
 		if ( ImGui.Begin( "Main Menu - Rope Simulation Demo" ) )
 		{
 			PaintWindow();
@@ -47,7 +50,8 @@ public class MainMenuUI : Component
 
 	private void PaintWindow()
 	{
-		ImGui.Text( $"INSTRUCTIONS: Choose a scene below. Press ESC to return to this menu." );
+		ImGui.Text( $"INSTRUCTIONS: Choose a scene below." );
+		ImGui.Text( "Press ESC at any time to return to this menu." );
 		ImGui.NewLine();
 		if ( SelectedScene is null )
 			return;

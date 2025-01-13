@@ -71,6 +71,8 @@ public partial class VerletSystem
 			}
 			totalTime -= verlet.TimeStep;
 		}
+
+		verlet.UpdateCpuVertexBuffer( verlet.SimData.CpuPoints );
 	}
 
 	private static void ApplyForces( SimulationData simData, float deltaTime )

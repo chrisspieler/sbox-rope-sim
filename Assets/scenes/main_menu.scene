@@ -47,7 +47,178 @@
           "TargetEye": "None",
           "Viewport": "0,0,1,1",
           "ZFar": 10000,
-          "ZNear": 10
+          "ZNear": 1
+        }
+      ]
+    },
+    {
+      "__guid": "545d7fa2-de73-425b-a01e-66e1fffbeb57",
+      "Flags": 0,
+      "Name": "2D Skybox",
+      "Position": "-381.7424,-104.6268,141.2827",
+      "Tags": "skybox",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.SkyBox2D",
+          "__guid": "536c1e52-4d5d-447f-9d89-7a86b7564be8",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "SkyIndirectLighting": true,
+          "SkyMaterial": "materials/skybox/skybox_workshop.vmat",
+          "Tint": "1,1,1,1"
+        }
+      ]
+    },
+    {
+      "__guid": "7918d79a-da73-4ee4-afc2-1e56f8ebe814",
+      "Flags": 0,
+      "Name": "ducc",
+      "Position": "48,0,-5.866663",
+      "Rotation": "0,0,0.8936327,-0.4487992",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "b2fe4960-c726-4871-ba13-4bf6c5aa2053",
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
+          "Model": "models/duck_decoration/duck_decoration.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.Rotator",
+          "__guid": "bb57567d-b725-4a8e-b71a-9b522cd91052",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RotationPerSecond": "0,90,0"
+        },
+        {
+          "__type": "Sandbox.ModelCollider",
+          "__guid": "22237788-6829-401e-95f6-00603fb43794",
+          "Friction": null,
+          "IsTrigger": false,
+          "Model": "models/duck_decoration/duck_decoration.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "Static": false,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        },
+        {
+          "__type": "Duccsoft.MeshDistanceConfig",
+          "__guid": "9df7310c-c836-4a0a-b564-59a73389f300",
+          "BakeOnStart": true,
+          "Collider": {
+            "_type": "component",
+            "component_id": "22237788-6829-401e-95f6-00603fb43794",
+            "go": "7918d79a-da73-4ee4-afc2-1e56f8ebe814",
+            "component_type": "ModelCollider"
+          },
+          "MeshSource": "Collider",
+          "Model": "models/duck_decoration/duck_decoration.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "TextureExponent": 5,
+          "TextureResolution": 32
+        }
+      ]
+    },
+    {
+      "__guid": "dc632a00-154d-4f1c-b957-22c81f190122",
+      "Flags": 0,
+      "Name": "Sun",
+      "Rotation": "0.05516264,0.2769004,-0.1874266,0.9408266",
+      "Tags": "light_directional,light",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.DirectionalLight",
+          "__guid": "184a15a1-27cf-4bad-b454-7966be8bc6e9",
+          "FogMode": "Enabled",
+          "FogStrength": 1,
+          "LightColor": "0.91373,0.98039,1,1",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "Shadows": true,
+          "SkyColor": "0,0,0,0"
+        }
+      ]
+    },
+    {
+      "__guid": "ad433f3c-b0e3-499c-9114-a30ec805a008",
+      "Flags": 0,
+      "Name": "Rope",
+      "Position": "48,0,32",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Duccsoft.VerletRope",
+          "__guid": "a7c06f93-0168-4c32-ae15-838b8e7f849a",
+          "Color": "0,0,0,1",
+          "DebugDrawPoints": false,
+          "EffectiveRadius": 0.125,
+          "EnableCollision": true,
+          "EnableRendering": true,
+          "EndTarget": null,
+          "FirstRopePointPosition": "48,0,32",
+          "FixedEnd": false,
+          "FixedStart": true,
+          "LastRopePointPosition": "48,0,-20.22047",
+          "MaxTimeStepPerUpdate": 0.1,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "PointSpacing": 1,
+          "RadiusFraction": 0.25,
+          "RenderWidthScale": 1,
+          "SimulateOnGPU": false,
+          "StartTarget": null,
+          "Stiffness": 0.71,
+          "TimeStep": 0.01,
+          "Wireframe": false
         }
       ]
     }
@@ -78,6 +249,8 @@
   "ResourceVersion": 2,
   "Title": null,
   "Description": null,
-  "__references": [],
+  "__references": [
+    "duccsoft.duck_decoration#16326"
+  ],
   "__version": 2
 }

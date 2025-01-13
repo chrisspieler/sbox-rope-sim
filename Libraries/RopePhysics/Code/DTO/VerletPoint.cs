@@ -19,6 +19,19 @@ public struct VerletPoint
 		get => Flags.HasFlag( VerletPointFlags.Anchor );
 		set => Flags = Flags.WithFlag( VerletPointFlags.Anchor, value );
 	}
+
+	public readonly VerletVertex AsRopeVertex( VerletRope rope )
+	{
+		return new VerletVertex()
+		{
+			Position = new Vector4( Position, 0 ),
+			TexCoord0 = new Vector4( rope.EffectiveRadius * rope.RenderWidthScale, 1f, 0, 0 ),
+			Normal = new Vector4( 0, 0, 1, 0 ),
+			Tangent0 = new Vector4( Position - LastPosition, 0 ),
+			TexCoord1 = rope.Color,
+			Color0 = Vector4.One,
+		};
+	}
 }
 
 [Flags]

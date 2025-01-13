@@ -181,12 +181,16 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 		SimData = null;
 	}
 
-	protected virtual void DestroyRenderer() { }
 	protected abstract SimulationData CreateSimData();
+	#region Rendering
+	[Property] public bool DebugDrawPoints { get; set; } = false;
+
 	protected virtual void CreateRenderer() { }
+	protected virtual void DestroyRenderer() { }
 
 	protected virtual void UpdateRenderer() { }
-
+	public abstract void UpdateCpuVertexBuffer( VerletPoint[] points );
+	#endregion
 	[Property, ReadOnly, JsonIgnore] public string SimulationCpuTime
 	{
 		get

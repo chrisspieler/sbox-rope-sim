@@ -94,11 +94,7 @@ public partial class VerletRope : VerletComponent
 		if ( SimData is null || !Gizmo.IsSelected )
 			return;
 
-		if ( SimulateOnGPU )
-		{
-
-		}
-		else
+		if ( DebugDrawPoints )
 		{
 			Gizmo.Draw.Color = Color.Green;
 			foreach ( var point in SimData.CpuPoints )
@@ -191,22 +187,19 @@ public partial class VerletRope : VerletComponent
 
 	protected override void UpdateRenderer()
 	{
-		if ( !SimulateOnGPU )
-		{
-			DestroyRenderer();
-		}
-		else
-		{
-			EnsureRenderer();
-		}
+		EnsureRenderer();
 
 		if ( !_so.IsValid() )
 			return;
 
+		if ( SimulateOnGPU )
+		{
+			_so.Vertices = SimData.ReadbackVertices;
+		}
+
 		_so.RenderingEnabled = true;
 		_so.Transform = WorldTransform;
 		_so.Bounds = BBox.FromPositionAndSize( ( FirstRopePointPosition + LastRopePointPosition ) / 2f, 512f );
-		_so.Vertices = SimData.ReadbackVertices;
 		_so.Face = SceneRopeObject.FaceMode.Camera;
 		_so.StartCap = SceneRopeObject.CapStyle.Rounded;
 		_so.EndCap = SceneRopeObject.CapStyle.Rounded;
@@ -215,6 +208,31 @@ public partial class VerletRope : VerletComponent
 		_so.Wireframe = Wireframe;
 		_so.ColorTint = Color;
 		_so.Flags.CastShadows = true;
+	}
+
+	public override void UpdateCpuVertexBuffer( VerletPoint[] points )
+	{
+		if ( !_so.IsValid() )
+			return;
+
+		int vertexCount = points.Length + 2;
+		if ( !_so.Vertices.IsValid() || _so.Vertices.ElementCount != vertexCount )
+		{
+			_so.Vertices ??= new GpuBuffer<VerletVertex>( vertexCount, GpuBuffer.UsageFlags.Vertex );
+		}
+		var vertices = new VerletVertex[vertexCount];
+		vertices[0] = points[0].AsRopeVertex( this );
+		if ( points.Length > 2 )
+		{
+			for ( int i = 0; i < points.Length; i++ )
+			{
+				var p = points[i];
+				var vtx = p.AsRopeVertex( this );
+				vertices[i + 1] = vtx;
+			}
+		}
+		vertices[^1] = points[^1].AsRopeVertex( this );
+		_so.Vertices.SetData( vertices );
 	}
 	#endregion
 }

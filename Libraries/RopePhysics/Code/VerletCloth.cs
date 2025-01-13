@@ -7,7 +7,7 @@ public class VerletCloth : VerletComponent
 	[Property, Range(4, 64, 1), Change] public int ClothResolution { get; set; } = 16;
 	private void OnClothResolutionChanged( int oldValue, int newValue ) => ResetSimulation();
 	[Property, Range( 0.05f, 10f )] public float Radius { get; set; } = 1f;
-	[Property] public bool DebugDrawPoints { get; set; } = false;
+	
 
 	public Model Model { get; private set; }
 	private Mesh Mesh { get; set; }
@@ -92,6 +92,11 @@ public class VerletCloth : VerletComponent
 
 		_so.Vertices = SimData.ReadbackVertices;
 		_so.Bounds = BBox.FromPositionAndSize( (FirstRopePointPosition + LastRopePointPosition) / 2f, 512f );
+	}
+
+	public override void UpdateCpuVertexBuffer( VerletPoint[] points )
+	{
+
 	}
 	#endregion
 }
