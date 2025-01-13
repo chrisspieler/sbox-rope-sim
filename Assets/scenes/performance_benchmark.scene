@@ -1,0 +1,186 @@
+{
+  "__guid": "5d82b201-863d-4795-9698-0611e19382ef",
+  "GameObjects": [
+    {
+      "__guid": "8ce100b1-fefd-4883-8baf-6f1e35adb610",
+      "Flags": 0,
+      "Name": "2D Skybox",
+      "Tags": "skybox",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.SkyBox2D",
+          "__guid": "ad20cd1e-672b-4717-85e1-33408b0d2f28",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "SkyIndirectLighting": true,
+          "SkyMaterial": "materials/skybox/skybox_day_01.vmat",
+          "Tint": "1,1,1,1"
+        }
+      ]
+    },
+    {
+      "__guid": "d97bfac2-3b4f-454c-992e-c3fbb4d3931c",
+      "Flags": 0,
+      "Name": "Demo",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.DemoSceneInformation",
+          "__guid": "7f00b530-083e-4494-86c6-8ddf8a4138d0",
+          "DemoDescription": "See how many ropes your GPU can handle!",
+          "DemoName": "Performance Benchmark",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
+        }
+      ]
+    },
+    {
+      "__guid": "95533c6b-6976-46ec-a900-5f1cd58d5e57",
+      "Flags": 0,
+      "Name": "Camera",
+      "Position": "-300,0,100",
+      "Tags": "maincamera",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.CameraComponent",
+          "__guid": "875f6f1d-a4cd-4cae-ba4e-460f184fe181",
+          "BackgroundColor": "0.33333,0.46275,0.52157,1",
+          "ClearFlags": "All",
+          "FieldOfView": 60,
+          "IsMainCamera": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "Orthographic": false,
+          "OrthographicHeight": 1204,
+          "Priority": 1,
+          "RenderExcludeTags": "",
+          "RenderTags": "",
+          "TargetEye": "None",
+          "Viewport": "0,0,1,1",
+          "ZFar": 10000,
+          "ZNear": 10
+        }
+      ]
+    },
+    {
+      "__guid": "ed2f0f96-8565-4c6e-bbc0-d92ac50dd490",
+      "Flags": 0,
+      "Name": "Rope",
+      "Position": "0,0,128",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Duccsoft.VerletRope",
+          "__guid": "722b4519-d3cd-4d3f-92f5-26977ea1a773",
+          "Bounds": {
+            "Mins": "0,0,0",
+            "Maxs": "0,0,0"
+          },
+          "Color": "0,0,0,1",
+          "DebugDrawPoints": false,
+          "EffectiveRadius": 0.5,
+          "EnableCollision": false,
+          "EnableRendering": true,
+          "EndTarget": null,
+          "FirstRopePointPosition": "0,0,128",
+          "FixedEnd": false,
+          "FixedStart": true,
+          "LastRopePointPosition": "0,-128,128",
+          "MaxTimeStepPerUpdate": 0.1,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "PointSpacing": 4,
+          "RadiusFraction": 0.25,
+          "RenderWidthScale": 1,
+          "SimulateOnGPU": true,
+          "StartTarget": {
+            "_type": "gameobject",
+            "go": "ed2f0f96-8565-4c6e-bbc0-d92ac50dd490",
+            "prefab": null
+          },
+          "Stiffness": 0.9,
+          "TimeStep": 0.01,
+          "Wireframe": false
+        }
+      ]
+    },
+    {
+      "__guid": "2bd4bc94-8409-4fb1-b965-47bf6706a4c3",
+      "Flags": 0,
+      "Name": "Rope Array",
+      "Position": "-19.61293,-56.9296,135.218",
+      "Enabled": true,
+      "Children": [
+        {
+          "__guid": "fe8b17d1-c101-442e-bec1-e2b07bc6e432",
+          "Flags": 0,
+          "Name": "Rope Pivot",
+          "Enabled": true,
+          "Components": [
+            {
+              "__type": "Sandbox.Oscillator",
+              "__guid": "0556ebd7-3719-42b2-9332-067f11f8f3ff",
+              "Amplitude": "0,64,0",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "Period": "1,1,1"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "SceneProperties": {
+    "FixedUpdateFrequency": 50,
+    "MaxFixedUpdates": 5,
+    "NetworkFrequency": 30,
+    "NetworkInterpolation": true,
+    "PhysicsSubSteps": 1,
+    "ThreadedAnimation": true,
+    "TimeScale": 1,
+    "UseFixedUpdate": true,
+    "Metadata": {
+      "DemoName": "Performance Benchmark",
+      "DemoDescription": "See how many ropes your GPU can handle!"
+    },
+    "NavMesh": {
+      "Enabled": false,
+      "IncludeStaticBodies": true,
+      "IncludeKeyframedBodies": true,
+      "EditorAutoUpdate": true,
+      "AgentHeight": 64,
+      "AgentRadius": 16,
+      "AgentStepSize": 18,
+      "AgentMaxSlope": 40,
+      "ExcludedBodies": "",
+      "IncludedBodies": ""
+    }
+  },
+  "ResourceVersion": 2,
+  "Title": null,
+  "Description": null,
+  "__references": [],
+  "__version": 2
+}

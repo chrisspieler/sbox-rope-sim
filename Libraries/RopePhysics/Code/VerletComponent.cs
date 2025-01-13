@@ -152,7 +152,11 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	[Property] public bool EnableCollision { get; set; }
 	#endregion
 
-	protected override void OnEnabled() => CreateSimulation();
+	protected override void OnEnabled()
+	{
+		StartTarget ??= GameObject;
+		CreateSimulation();
+	}
 	protected override void OnDisabled() => DestroySimulation();
 
 	[Property, ReadOnly, JsonIgnore]

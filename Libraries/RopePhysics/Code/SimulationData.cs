@@ -52,7 +52,7 @@ public class SimulationData
 	public bool CpuPointsAreDirty { get; private set; }
 	public float SegmentLength { get; }
 	public Vector2Int PointGridDims { get; }
-
+	public Transform Transform { get; set; }
 	public int Iterations { get; set; } = 80;
 	public float Radius { get; set; } = 1f;
 
@@ -113,6 +113,8 @@ public class SimulationData
 			EnableFrontCache = true,
 			SwapInterval = swapInterval
 		};
+
+		Bounds = BBox.FromPositionAndSize( Transform.Position, 128f );
 	}
 
 	public void LoadPointsFromGpu()
