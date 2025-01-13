@@ -16,6 +16,6 @@ public class SceneClothObject : SceneCustomObject
 		if ( !Vertices.IsValid() || Vertices.ElementCount < 4 )
 			return;
 
-		Graphics.Draw( Vertices, ClothShader, startVertex: 0, vertexCount: 0, attributes: Attributes, primitiveType: Graphics.PrimitiveType.Triangles );
+		Graphics.Draw( Vertices, ClothShader, startVertex: 0, vertexCount: 0, attributes: Attributes, primitiveType: Graphics.PrimitiveType.LineStrip );
 	}
 }

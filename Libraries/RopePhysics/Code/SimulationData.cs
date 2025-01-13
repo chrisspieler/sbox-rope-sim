@@ -95,7 +95,8 @@ public class SimulationData
 		DestroyGpuData();
 		GpuPoints = new GpuBuffer<VerletPoint>( CpuPoints.Length );
 		GpuPoints.SetData( CpuPoints );
-		ReadbackVertices = new GpuBuffer<VerletVertex>( CpuPoints.Length + 2, GpuBuffer.UsageFlags.Vertex | GpuBuffer.UsageFlags.Structured );
+		var vertexCount = PointGridDims.y > 1 ? CpuPoints.Length : CpuPoints.Length + 2;
+		ReadbackVertices = new GpuBuffer<VerletVertex>( vertexCount, GpuBuffer.UsageFlags.Vertex | GpuBuffer.UsageFlags.Structured );
 	}
 
 	public void LoadPointsFromGpu()
@@ -112,12 +113,18 @@ public class SimulationData
 		
 		var vertices = new VerletVertex[ReadbackVertices.ElementCount];
 		ReadbackVertices.GetData( vertices );
-		for ( int i = 1; i < vertices.Length - 1; i++ )
+		int indexOffset = 0;
+		int indexStart = 0;
+		int indexMax = vertices.Length;
+		if ( PointGridDims.y == 1 )
 		{
-			if ( i == 0 )
-				continue;
-
-			var pIndex = i - 1;
+			indexOffset = -1;
+			indexStart = 1;
+			indexMax = vertices.Length - 1;
+		}
+		for ( int i = indexStart; i < indexMax; i++ )
+		{
+			var pIndex = i + indexOffset;
 
 			var vtx = vertices[i];
 			var p = CpuPoints[pIndex];

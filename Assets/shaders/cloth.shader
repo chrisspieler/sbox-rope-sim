@@ -39,6 +39,8 @@ VS
 		PS_INPUT o;
 		o.vPositionWs = i.pos;
 		o.vPositionPs = Position3WsToPs( i.pos );
+		o.tint = i.tint;
+		o.uv = i.uv;
 		return o;
 	}
 }
@@ -46,6 +48,8 @@ VS
 PS
 {
 	#include "common/pixel.hlsl"
+
+	RenderState( CullMode, NONE );
 	
 	float4 MainPs( PS_INPUT i ) : SV_Target0
 	{

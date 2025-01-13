@@ -55,6 +55,8 @@ CS
 
 	DynamicCombo( D_SHAPE_TYPE, 0..1, Sys( All ) );
 
+	
+
 	int Index2DTo1D( uint2 i )
 	{
 		return i.y * NumColumns + i.x;
@@ -66,16 +68,6 @@ CS
 
 		if ( p.IsAnchor() )
 		{
-			if ( pIndex == 0 )
-			{
-				p.Position = StartPosition;
-				p.LastPosition = StartPosition;
-			}
-			else if ( pIndex == NumPoints - 1 )
-			{
-				p.Position = EndPosition;
-				p.LastPosition = EndPosition;
-			}
 			Points[pIndex] = p;
 			return;
 		}
@@ -137,7 +129,79 @@ CS
 
 	void ApplyClothSegmentConstraint( int pIndex )
 	{
+		VerletPoint pCurr = Points[pIndex];
+		int x = pIndex % NumColumns;
+		int xSize = NumColumns;
+		int y = pIndex / NumColumns;
+		int ySize = NumColumns;
 
+		if ( x < xSize - 1 )
+		{
+			VerletPoint pNext = Points[pIndex + 1];
+
+			float3 delta = pCurr.Position - pNext.Position;
+			float distance = length( delta );
+			float distanceFactor = 0;
+			if ( distance > 0 )
+			{
+				distanceFactor = ( SegmentLength - distance ) / distance * 0.5;
+			}
+			float3 offset = delta * distanceFactor;
+
+			pCurr.Position += offset;
+			Points[pIndex] = pCurr;
+		}
+
+		if  ( x > 0 )
+		{
+			VerletPoint pPrev = Points[pIndex - 1];
+
+			float3 delta = pPrev.Position - pCurr.Position;
+			float distance = length( delta );
+			float distanceFactor = 0;
+			if ( distance > 0 )
+			{
+				distanceFactor = ( SegmentLength - distance ) / distance * 0.5;
+			}
+			float3 offset = delta * distanceFactor;
+
+			pCurr.Position -= offset;
+			Points[pIndex] = pCurr;
+		}
+
+		if ( y < ySize - 1 )
+		{
+			VerletPoint pNext = Points[pIndex + xSize];
+
+			float3 delta = pCurr.Position - pNext.Position;
+			float distance = length( delta );
+			float distanceFactor = 0;
+			if ( distance > 0 )
+			{
+				distanceFactor = ( SegmentLength - distance ) / distance * 0.5;
+			}
+			float3 offset = delta * distanceFactor;
+
+			pCurr.Position += offset;
+			Points[pIndex] = pCurr;
+		}
+
+		if ( y > 0 )
+		{
+			VerletPoint pPrev = Points[pIndex - xSize];
+
+			float3 delta = pPrev.Position - pCurr.Position;
+			float distance = length( delta );
+			float distanceFactor = 0;
+			if ( distance > 0 )
+			{
+				distanceFactor = ( SegmentLength - distance ) / distance * 0.5;
+			}
+			float3 offset = delta * distanceFactor;
+
+			pCurr.Position -= offset;
+			Points[pIndex] = pCurr;
+		}
 	}
 
 	void ApplyClothConstraints( int pIndex )
@@ -172,12 +236,29 @@ CS
 		}
 	}
 
-	void OutputClothVertex( uint2 pos, int pIndex )
+	// From: https://www.shadertoy.com/view/llGcDm
+	int Hilbert( int2 p, int level )
+	{
+		int d = 0;
+		for ( int k = 0; k < level; k++ )
+		{
+			int n = level-k-1;
+			int2 r = ( p >> n ) & 1;
+			d += ( ( 3 * r.x ) ^ r.y ) << ( 2 * n );
+			if ( r.y == 0 ) { if ( r.x == 1 ) { p = ( (int)1 << n ) - 1 - p; } p = p.yx; }
+		}
+		return d;
+	}
+
+	void OutputClothVertex( int pIndex )
 	{
 		VerletPoint p = Points[pIndex];
+		int x = pIndex % NumColumns;
+		int y = pIndex / NumColumns;
 		float3 vPositionWs = p.Position;
 		float3 delta = vPositionWs - p.LastPosition;
-		float2 uv = float2( (float)pos.x / NumColumns, (float)pos.y / NumColumns );
+		float2 uv = float2( (float)x / NumColumns, (float)y / NumColumns );
+
 		Vertex v;
 		v.Position = vPositionWs;
 		v.TexCoord0 = float4( uv.x, uv.y, 0, 0 );
@@ -185,10 +266,9 @@ CS
 		v.Tangent0 = float4( delta.xyz, 0 );
 		v.TexCoord1 = RopeTint;
 		v.Color0 = float4( 1, 1, 1, 1 );
-		OutputVertices[pIndex] = v;
-
-		// TODO: Output indices???
-		// int idx = pos.y * NumColumns + pos.x;
+		
+		int iOut = Hilbert( int2( x, y ), 8 );
+		OutputVertices[iOut] = v;
 	}
 
 	#if D_SHAPE_TYPE == 1
@@ -220,7 +300,7 @@ CS
 		#if D_SHAPE_TYPE == 0
 			OutputRopeVertex( pIndex );
 		#elif D_SHAPE_TYPE == 1
-			OutputClothVertex( id.xy, pIndex );
+			OutputClothVertex( pIndex );
 		#endif
 	}
 }
