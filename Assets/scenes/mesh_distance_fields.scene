@@ -2,6 +2,27 @@
   "__guid": "0cd61252-fdda-4617-8442-bc16c27fa5df",
   "GameObjects": [
     {
+      "__guid": "9d53698a-5cfe-4c45-8ee7-1db18d2dcfeb",
+      "Flags": 0,
+      "Name": "Demo",
+      "Position": "-122.3995,-13.27896,13.29791",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.DemoSceneInformation",
+          "__guid": "b1e200e2-c7b2-4d0f-acc0-4141d4bd5bca",
+          "DemoDescription": "Creates volume textures from colliders.",
+          "DemoName": "Mesh Distance Fields",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
+        }
+      ]
+    },
+    {
       "__guid": "d77570fb-a0f5-4759-9ad0-9004fb893986",
       "Flags": 0,
       "Name": "Camera",
@@ -133,7 +154,8 @@
           "__guid": "19ca5ef3-424c-405c-bd32-afa8ce3d91c0",
           "MeshContainer": {
             "_type": "gameobject",
-            "go": "5033acc0-1340-4e28-b4fe-0ae364eed887"
+            "go": "5033acc0-1340-4e28-b4fe-0ae364eed887",
+            "prefab": null
           },
           "ModelViewer": {
             "_type": "component",
@@ -16476,7 +16498,10 @@
     "ThreadedAnimation": true,
     "TimeScale": 1,
     "UseFixedUpdate": true,
-    "Metadata": {},
+    "Metadata": {
+      "DemoName": "Mesh Distance Fields",
+      "DemoDescription": "Creates volume textures from colliders."
+    },
     "NavMesh": {
       "Enabled": false,
       "IncludeStaticBodies": true,

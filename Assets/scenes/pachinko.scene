@@ -2,6 +2,27 @@
   "__guid": "6036d96f-d371-4dfd-b9e6-0a7b3b548ce2",
   "GameObjects": [
     {
+      "__guid": "f548bca3-cc08-4600-8dcd-6628d4b7dfb6",
+      "Flags": 0,
+      "Name": "Demo",
+      "Position": "-121.0146,-33.56377,19.37934",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.DemoSceneInformation",
+          "__guid": "dbd155a6-6cb5-42fd-ae74-5622efa9420c",
+          "DemoDescription": "Wrap rope around pins.",
+          "DemoName": "Pachinko",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
+        }
+      ]
+    },
+    {
       "__guid": "1055943f-bbd5-4ce0-bc9a-13a9eea816e4",
       "Flags": 0,
       "Name": "Camera",
@@ -881,13 +902,14 @@
         {
           "__type": "Duccsoft.VerletCloth",
           "__guid": "cce8db93-6d8d-4952-9e30-c30a29a05288",
-          "ClothResolution": 256,
+          "ClothResolution": 32,
           "DebugDrawPoints": false,
           "EnableCollision": true,
           "EnableRendering": true,
           "EndTarget": {
             "_type": "gameobject",
-            "go": "195f251d-269f-49a7-95eb-d550dd694435"
+            "go": "195f251d-269f-49a7-95eb-d550dd694435",
+            "prefab": null
           },
           "FirstRopePointPosition": "48,0,256",
           "FixedEnd": false,
@@ -905,7 +927,8 @@
           "SimulateOnGPU": true,
           "StartTarget": {
             "_type": "gameobject",
-            "go": "30a5ac78-ac28-49b9-93a8-d773041257b8"
+            "go": "30a5ac78-ac28-49b9-93a8-d773041257b8",
+            "prefab": null
           },
           "Stiffness": 1,
           "TimeStep": 0.01
@@ -938,7 +961,8 @@
           "EnableRendering": true,
           "EndTarget": {
             "_type": "gameobject",
-            "go": "7548821a-9269-4d2f-a353-1e0492740255"
+            "go": "7548821a-9269-4d2f-a353-1e0492740255",
+            "prefab": null
           },
           "FirstRopePointPosition": "128,208,496",
           "FixedEnd": true,
@@ -957,7 +981,8 @@
           "SimulateOnGPU": true,
           "StartTarget": {
             "_type": "gameobject",
-            "go": "1e27d789-0980-4439-82d0-10cf86e4b85c"
+            "go": "1e27d789-0980-4439-82d0-10cf86e4b85c",
+            "prefab": null
           },
           "Stiffness": 0.87,
           "TimeStep": 0.01,
@@ -984,7 +1009,10 @@
     "ThreadedAnimation": true,
     "TimeScale": 1,
     "UseFixedUpdate": true,
-    "Metadata": {},
+    "Metadata": {
+      "DemoName": "Pachinko",
+      "DemoDescription": "Wrap rope around pins."
+    },
     "NavMesh": {
       "Enabled": false,
       "IncludeStaticBodies": true,
