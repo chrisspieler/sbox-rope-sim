@@ -10,9 +10,6 @@ public partial class VerletSystem
 	}
 
 	private ComputeShader VerletComputeShader;
-	private Texture GpuGlobalBoundsTexture;
-
-	private const int MAX_SIMULATION_INDEX = 32;
 
 	private void InitializeGpu()
 	{
@@ -22,9 +19,6 @@ public partial class VerletSystem
 			RenderingEnabled = true,
 			RenderOverride = RenderGpuSimulate,
 		};
-		GpuGlobalBoundsTexture ??= Texture.Create( MAX_SIMULATION_INDEX * 2, 1, ImageFormat.RGB323232F )
-			.WithUAVBinding()
-			.Finish();
 	}
 
 	private void RenderGpuSimulate( SceneObject so )
@@ -36,24 +30,14 @@ public partial class VerletSystem
 		GpuSimulateQueue.Clear();
 	}
 
-	private Dictionary<SimulationData, int> GpuSimIndices = [];
-	private int _nextIndex = 0;
 	private SceneCustomObject GpuSimulateSceneObject;
-	private List<VerletComponent> GpuSimulateQueue = [];
+	private readonly HashSet<VerletComponent> GpuSimulateQueue = [];
 
 	private void GpuSimulate( VerletComponent verlet )
 	{
 		var simData = verlet.SimData;
 		if ( simData is null )
 			return;
-
-		if ( !GpuSimIndices.TryGetValue( simData, out int simulationIndex ) )
-		{
-			GpuSimIndices[simData] = _nextIndex;
-			simData.SimulationIndex = _nextIndex;
-			_nextIndex++;
-			_nextIndex %= MAX_SIMULATION_INDEX;
-		}
 
 		if ( simData.CpuPointsAreDirty )
 		{
@@ -67,8 +51,6 @@ public partial class VerletSystem
 		// using var scope = PerfLog.Scope( $"GPU Simulate {xThreads}x{yThreads}, {simData.GpuPoints.ElementCount} of size {simData.GpuPoints.ElementSize}, sticks {simData.GpuSticks.ElementCount} of size {simData.GpuSticks.ElementSize}" );
 
 		VerletComputeShader.Attributes.SetComboEnum( "D_SHAPE_TYPE", shapeType );
-		VerletComputeShader.Attributes.Set( "SimulationIndex", simulationIndex );
-		VerletComputeShader.Attributes.Set( "BoundsWritebackTextureIndex", GpuGlobalBoundsTexture.Index );
 		VerletComputeShader.Attributes.Set( "Points", simData.GpuPoints );
 		VerletComputeShader.Attributes.Set( "StartPosition", verlet.FirstRopePointPosition );
 		VerletComputeShader.Attributes.Set( "EndPosition", verlet.LastRopePointPosition );

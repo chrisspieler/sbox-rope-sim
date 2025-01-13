@@ -93,7 +93,7 @@ public class VerletCloth : VerletComponent
 			return;
 
 		_so.Vertices = SimData.ReadbackVertices;
-		_so.Bounds = BBox.FromPositionAndSize( (FirstRopePointPosition + LastRopePointPosition) / 2f, 512f );
+		_so.Bounds = SimData.Bounds;
 	}
 
 	public override void UpdateCpuVertexBuffer( VerletPoint[] points )

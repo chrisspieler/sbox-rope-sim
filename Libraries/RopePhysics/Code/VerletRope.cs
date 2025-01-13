@@ -201,7 +201,7 @@ public partial class VerletRope : VerletComponent
 
 		_so.RenderingEnabled = true;
 		_so.Transform = WorldTransform;
-		_so.Bounds = BBox.FromPositionAndSize( ( FirstRopePointPosition + LastRopePointPosition ) / 2f, 512f );
+		_so.Bounds = SimData.Bounds;
 		_so.Face = SceneRopeObject.FaceMode.Camera;
 		_so.StartCap = SceneRopeObject.CapStyle.Rounded;
 		_so.EndCap = SceneRopeObject.CapStyle.Rounded;

@@ -1,6 +1,4 @@
-﻿using static Sandbox.VertexLayout;
-
-namespace Duccsoft;
+﻿namespace Duccsoft;
 
 public class SimulationData
 {
@@ -90,6 +88,8 @@ public class SimulationData
 		CpuPointsAreDirty = false;
 	}
 
+	private static int SwapOffset = 0;
+
 	public void InitializeGpu()
 	{
 		DestroyGpuData();
@@ -104,10 +104,14 @@ public class SimulationData
 			Maxs = new Vector4( float.NegativeInfinity ),
 		};
 		readbackBuffer.SetData( [initialBounds] );
-		ReadbackBounds = new GpuDoubleBuffer<VerletBounds>( readbackBuffer )
+
+		var swapOffset = SwapOffset;
+		SwapOffset++;
+		var swapInterval = 5;
+		ReadbackBounds = new GpuDoubleBuffer<VerletBounds>( readbackBuffer, swapOffset % swapInterval )
 		{
 			EnableFrontCache = true,
-			SwapInterval = 5
+			SwapInterval = swapInterval
 		};
 	}
 

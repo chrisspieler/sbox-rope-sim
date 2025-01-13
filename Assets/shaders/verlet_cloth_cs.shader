@@ -36,9 +36,7 @@ CS
 		float Length;
 		int Padding;
 	};
-
-	int SimulationIndex < Attribute( "SimulationIndex" ); >;
-	int BoundsWritebackTextureIndex < Attribute( "BoundsWritebackTextureIndex" ); >;
+	
 	RWStructuredBuffer<VerletPoint> Points < Attribute( "Points" ); >;
 	float3 StartPosition < Attribute( "StartPosition" ); >;
 	float3 EndPosition < Attribute( "EndPosition" ); >;
@@ -222,11 +220,6 @@ CS
 		VerletPoint p = Points[pIndex];
 		float4 positionWs = float4( p.Position.xyz, 0 );
 
-		// RWTexture2D<float4> boundsTex = Bindless::GetRWTexture2D( BoundsWritebackTextureIndex );
-		// uint2 iMins = uint2( SimulationIndex * 2, 0 );
-		// uint2 iMaxs = uint2( SimulationIndex * 2 + 1, 0 );
-		// float4 mins = boundsTex[iMins];
-
 		float4 mins = BoundsWs[0];
 		float4 maxs = BoundsWs[1];
 		if ( any( positionWs.xyz < mins.xyz ) )
@@ -255,8 +248,6 @@ CS
 		}
 		BoundsWs[0] = mins;
 		BoundsWs[1] = maxs;
-		// boundsTex[iMins] = mins;
-		// boundsTex[iMaxs] = maxs;
 	}
 
 	void OutputRopeVertex( int pIndex )

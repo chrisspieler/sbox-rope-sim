@@ -903,8 +903,8 @@
           "__type": "Duccsoft.VerletCloth",
           "__guid": "cce8db93-6d8d-4952-9e30-c30a29a05288",
           "Bounds": {
-            "Mins": "50.91751,-105.3589,54.84044",
-            "Maxs": "164.4554,-91.02389,220.0194"
+            "Mins": "51.9699,-98.40257,46.52295",
+            "Maxs": "173.9258,-79.89697,217.974"
           },
           "ClothResolution": 256,
           "DebugDrawPoints": false,
@@ -960,12 +960,12 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "d39c0e78-82c6-4036-ae57-a299e1f859b1",
           "Bounds": {
-            "Mins": "0,-793.1485,0",
-            "Maxs": "240,204.2678,686.2783"
+            "Mins": "0,-799.6168,0",
+            "Maxs": "240,202.652,685.7671"
           },
           "Color": "0.01395,0.01395,0.01395,1",
           "DebugDrawPoints": false,
-          "EffectiveRadius": 0.8643,
+          "EffectiveRadius": 1.22765,
           "EnableCollision": false,
           "EnableRendering": true,
           "EndTarget": {
@@ -984,7 +984,7 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
-          "PointSpacing": 4.02,
+          "PointSpacing": 5.71,
           "RadiusFraction": 0.43,
           "RenderWidthScale": 1,
           "SimulateOnGPU": true,

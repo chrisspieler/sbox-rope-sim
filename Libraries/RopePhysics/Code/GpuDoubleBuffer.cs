@@ -3,11 +3,12 @@
 public class GpuDoubleBuffer<T> : IDisposable, IValid
 	where T : unmanaged
 {
-	public GpuDoubleBuffer( GpuBuffer<T> gpuBuffer )
+	public GpuDoubleBuffer( GpuBuffer<T> gpuBuffer, int swapOffset = 0 )
 	{
 		BackBuffer = gpuBuffer;
 		FrontBuffer = new GpuBuffer<T>( gpuBuffer.ElementCount, gpuBuffer.Usage );
 		Timer = new();
+		WritesSinceSwap = swapOffset.Clamp( 0, SwapInterval );
 	}
 
 	public ITimerStats TimingStats => Timer;
