@@ -40,26 +40,15 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 			simData.Collisions.ShouldCaptureSnapshot = false;
 		}
 
-		if ( verlet.SimulateOnGPU && simData.CpuPointsAreDirty )
+		if ( verlet.SimulateOnGPU )
 		{
-			simData.StorePointsToGpu();
+			GpuSimulate( verlet );
+		}
+		else
+		{
+			CpuSimulate( verlet );
 		}
 
-		float totalTime = Time.Delta;
-		totalTime = MathF.Min( totalTime, verlet.MaxTimeStepPerUpdate );
-		while ( totalTime >= 0 )
-		{
-			var deltaTime = MathF.Min( verlet.TimeStep, totalTime );
-			if ( verlet.SimulateOnGPU )
-			{
-				GpuSimulate( verlet, deltaTime );
-			}
-			else
-			{
-				CpuSimulate( verlet, deltaTime );
-			}
-			totalTime -= verlet.TimeStep;
-		}
 
 		simData.RecalculatePointBounds();
 

@@ -44,6 +44,8 @@ CS
 	int Iterations < Attribute( "Iterations" ); >;
 	float SegmentLength < Attribute( "SegmentLength" ); Default( 1.0 ); >;
 	float DeltaTime < Attribute( "DeltaTime" ); >;
+	float TimeStepSize < Attribute( "TimeStepSize"); Default( 0.01 ); >;
+	float MaxTimeStepPerUpdate < Attribute( "MaxTimeStepPerUpdate" ); Default( 0.1 ); >;
 	float3 Gravity < Attribute( "Gravity" ); Default3( 0, 0, -800.0 ); >;
 	float RopeWidth < Attribute( "RopeWidth" ); Default( 1.0 ); >;
 	float RopeRenderWidth < Attribute( "RopeRenderWidth" ); Default( 1.0 ); >;
@@ -55,14 +57,12 @@ CS
 
 	DynamicCombo( D_SHAPE_TYPE, 0..1, Sys( All ) );
 
-	
-
 	int Index2DTo1D( uint2 i )
 	{
 		return i.y * NumColumns + i.x;
 	}
 
-	void ApplyForces( int pIndex )
+	void ApplyForces( int pIndex, float deltaTime )
 	{
 		VerletPoint p = Points[pIndex];
 
@@ -74,14 +74,13 @@ CS
 
 		float3 temp = p.Position;
 		float3 delta = p.Position - p.LastPosition;
-		delta *= 1 - (0.95 * DeltaTime);
+		delta *= 1 - (0.95 * deltaTime);
 		p.Position += delta;
 		// Gravity
-		p.Position += Gravity * ( DeltaTime * DeltaTime );
+		p.Position += Gravity * ( deltaTime * deltaTime );
 		p.LastPosition = temp;
 		Points[pIndex] = p;
 	}
-
 
 	void ApplyRopeSegmentConstraint( int pIndex )
 	{
@@ -271,17 +270,11 @@ CS
 		OutputVertices[iOut] = v;
 	}
 
-	#if D_SHAPE_TYPE == 1
-		[numthreads( 32, 32, 1 )]
-	#else
-		[numthreads( 1024, 1, 1 )]
-	#endif
-	void MainCs( uint3 id : SV_DispatchThreadID )
+	void Simulate( int pIndex, float deltaTime )
 	{
-		int pIndex = Index2DTo1D( id.xy );
 		VerletPoint p = Points[pIndex];
 
-		ApplyForces( pIndex );
+		ApplyForces( pIndex, deltaTime );
 
 		if ( !p.IsAnchor() )
 		{
@@ -292,9 +285,31 @@ CS
 				#elif D_SHAPE_TYPE == 1
 					ApplyClothConstraints( pIndex );
 				#endif
-
+				
 				ResolveCollisions( pIndex );
+				GroupMemoryBarrierWithGroupSync();
 			}
+		}
+	}
+
+	#if D_SHAPE_TYPE == 1
+		[numthreads( 32, 32, 1 )]
+	#else
+		[numthreads( 1024, 1, 1 )]
+	#endif
+	void MainCs( uint3 id : SV_DispatchThreadID )
+	{
+		int pIndex = Index2DTo1D( id.xy );
+
+		float totalTime = min( DeltaTime, MaxTimeStepPerUpdate );
+		for( int i = 0; i < 50; i++ )
+		{
+			float deltaTime = min( TimeStepSize, totalTime );
+			Simulate( pIndex, deltaTime );
+			totalTime -= TimeStepSize;
+
+			if ( totalTime < 0 )
+				break;
 		}
 
 		#if D_SHAPE_TYPE == 0

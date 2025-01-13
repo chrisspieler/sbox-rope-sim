@@ -823,6 +823,7 @@
       "Flags": 0,
       "Name": "Cube",
       "Position": "96,0.000031773,32",
+      "Enabled": true,
       "Components": [
         {
           "__type": "Sandbox.ModelRenderer",
@@ -874,13 +875,13 @@
       "__guid": "30a5ac78-ac28-49b9-93a8-d773041257b8",
       "Flags": 0,
       "Name": "Cloth",
-      "Position": "48,0,128",
+      "Position": "48,0,256",
       "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletCloth",
           "__guid": "cce8db93-6d8d-4952-9e30-c30a29a05288",
-          "ClothResolution": 32,
+          "ClothResolution": 256,
           "DebugDrawPoints": false,
           "EnableCollision": true,
           "EnableRendering": true,
@@ -888,10 +889,10 @@
             "_type": "gameobject",
             "go": "195f251d-269f-49a7-95eb-d550dd694435"
           },
-          "FirstRopePointPosition": "48,0,128",
-          "FixedEnd": true,
-          "FixedStart": false,
-          "LastRopePointPosition": "48,-128,128",
+          "FirstRopePointPosition": "48,0,256",
+          "FixedEnd": false,
+          "FixedStart": true,
+          "LastRopePointPosition": "48,-128,256",
           "Material": "materials/cloth_default.vmat",
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
@@ -906,7 +907,7 @@
             "_type": "gameobject",
             "go": "30a5ac78-ac28-49b9-93a8-d773041257b8"
           },
-          "Stiffness": 0.97,
+          "Stiffness": 1,
           "TimeStep": 0.01
         }
       ],
@@ -932,7 +933,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "d39c0e78-82c6-4036-ae57-a299e1f859b1",
           "Color": "0.01395,0.01395,0.01395,1",
-          "EffectiveRadius": 3.955,
+          "EffectiveRadius": 1,
           "EnableCollision": false,
           "EnableRendering": true,
           "EndTarget": {
@@ -950,15 +951,15 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
-          "PointSpacing": 7.91,
-          "RadiusFraction": 1,
+          "PointSpacing": 8,
+          "RadiusFraction": 0.25,
           "RenderWidthScale": 1,
           "SimulateOnGPU": true,
           "StartTarget": {
             "_type": "gameobject",
             "go": "1e27d789-0980-4439-82d0-10cf86e4b85c"
           },
-          "Stiffness": 0.18,
+          "Stiffness": 0.87,
           "TimeStep": 0.01,
           "Wireframe": false
         }

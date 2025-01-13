@@ -15,9 +15,13 @@ public partial class VerletSystem
 		Cloth = 1,
 	}
 
-	private void GpuSimulate( VerletComponent verlet, float deltaTime )
+	private void GpuSimulate( VerletComponent verlet )
 	{
 		var simData = verlet.SimData;
+		if ( simData.CpuPointsAreDirty )
+		{
+			simData.StorePointsToGpu();
+		}
 
 		var xThreads = verlet.SimData.PointGridDims.x;
 		var yThreads = verlet.SimData.PointGridDims.y;
@@ -33,7 +37,9 @@ public partial class VerletSystem
 		VerletComputeShader.Attributes.Set( "NumColumns", simData.PointGridDims.y );
 		VerletComputeShader.Attributes.Set( "SegmentLength", simData.SegmentLength );
 		VerletComputeShader.Attributes.Set( "Iterations", simData.Iterations );
-		VerletComputeShader.Attributes.Set( "DeltaTime", deltaTime );
+		VerletComputeShader.Attributes.Set( "DeltaTime", Time.Delta );
+		VerletComputeShader.Attributes.Set( "TimeStepSize", verlet.TimeStep );
+		VerletComputeShader.Attributes.Set( "MaxTimeStepPerUpdate", verlet.MaxTimeStepPerUpdate );
 		VerletComputeShader.Attributes.Set( "Gravity", simData.Gravity );
 		// TODO: Allow subtypes of VerletComponent to set these.
 		if ( verlet is VerletRope rope )
@@ -47,16 +53,23 @@ public partial class VerletSystem
 		VerletComputeShader.Dispatch( xThreads, yThreads, 1 );
 	}
 
-	private void CpuSimulate( VerletComponent verlet, float deltaTime )
+	private void CpuSimulate( VerletComponent verlet )
 	{
-		ApplyForces( verlet.SimData, deltaTime );
-		for ( int i = 0; i < verlet.SimData.Iterations; i++ )
+		float totalTime = Time.Delta;
+		totalTime = MathF.Min( totalTime, verlet.MaxTimeStepPerUpdate );
+		while ( totalTime >= 0 )
 		{
-			ApplyConstraints( verlet.SimData );
-			if ( verlet.EnableCollision )
+			var deltaTime = MathF.Min( verlet.TimeStep, totalTime );
+			ApplyForces( verlet.SimData, deltaTime );
+			for ( int i = 0; i < verlet.SimData.Iterations; i++ )
 			{
-				ResolveCollisions( verlet.SimData );
+				ApplyConstraints( verlet.SimData );
+				if ( verlet.EnableCollision )
+				{
+					ResolveCollisions( verlet.SimData );
+				}
 			}
+			totalTime -= verlet.TimeStep;
 		}
 	}
 
