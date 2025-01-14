@@ -11,7 +11,7 @@ public class SimulationData
 	}
 
 	public int SimulationIndex { get; set; } = -1;
-	public TimeSince? LastTick { get; internal set; }
+	public RealTimeSince? LastTick { get; internal set; }
 	public Vector3 Gravity { get; set; } = Vector3.Down * 800f;
 	public Vector3? FixedFirstPosition { get; private set; }
 	public Vector3? FixedLastPosition { get; private set; }
