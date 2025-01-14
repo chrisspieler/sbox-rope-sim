@@ -173,6 +173,8 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	private void CreateSimulation()
 	{
 		SimData = CreateSimData();
+		SimData.Transform = WorldTransform;
+		SimData.LastTransform = WorldTransform;
 		SimData.AnchorToStart( FixedStart ? StartPosition : null );
 		SimData.AnchorToEnd( FixedEnd ? EndPosition : null );
 		CreateRenderer();
