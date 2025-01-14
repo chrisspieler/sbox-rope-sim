@@ -16553,7 +16553,7 @@
             "Mins": "-5,-5,-69",
             "Maxs": "5,5,69"
           },
-          "Color": "1,1,1,1",
+          "Color": "0.33333,0.33333,0.33333,1",
           "DebugDrawPoints": false,
           "EffectiveRadius": 0.5,
           "EnableCollision": true,
@@ -16609,10 +16609,10 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "797487fd-4e65-4a93-a1af-9e5f3fa37c3b",
           "Bounds": {
-            "Mins": "-5,-69,-18.47927",
-            "Maxs": "5,69,29"
+            "Mins": "-5,-53,-6.363144",
+            "Maxs": "5,53,29"
           },
-          "Color": "1,1,1,1",
+          "Color": "0.33488,0.33488,0.33488,1",
           "DebugDrawPoints": false,
           "EffectiveRadius": 0.5,
           "EnableCollision": true,

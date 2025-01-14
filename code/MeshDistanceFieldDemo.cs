@@ -114,7 +114,7 @@ public class MeshDistanceFieldDemo : Component
 		var tx = SelectedMeshGameObject.WorldTransform;
 		var worldCenter = tx.PointToWorld( Mdf.Bounds.Center );
 		
-		camera.WorldPosition = tx.Position + new Vector3( Mdf.Bounds.Size.x * -4f, 0f, Mdf.Bounds.Size.z * 1.5f );
+		camera.WorldPosition = tx.Position + new Vector3( Mdf.Bounds.Size.x * -3f, 0f, Mdf.Bounds.Size.z * 1.5f );
 		_cameraAngles = Rotation.LookAt( Vector3.Direction( camera.WorldPosition, worldCenter ) );
 	}
 
@@ -157,6 +157,8 @@ public class MeshDistanceFieldDemo : Component
 	{
 		var system = MeshDistanceSystem.Current;
 
+		ImGui.Text( "Use RMB and WASD to move the camera!" );
+		ImGui.NewLine();
 		ImGui.Text( $"MDF Count: {system.MdfCount}" ); ImGui.SameLine();
 		ImGui.Text( $"Total Data Size: {system.MdfTotalDataSize.FormatBytes()}" );
 		ImGui.Text( $"Selected GameObject: {SelectedMeshGameObject.Name}" );

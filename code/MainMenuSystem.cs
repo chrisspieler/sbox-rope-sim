@@ -19,6 +19,7 @@ namespace Sandbox
 
 			if ( Input.EscapePressed )
 			{
+				Input.EscapePressed = false;
 				Scene.LoadFromFile( $"scenes/main_menu.scene" );
 			}
 		}

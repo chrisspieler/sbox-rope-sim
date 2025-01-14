@@ -80,7 +80,6 @@ public class SceneRopeObject : SceneCustomObject
 		if ( !Vertices.IsValid() || Vertices.ElementCount < 2 )
 			return;
 
-		Bounds = BBox.FromPositionAndSize( Transform.Position, 10f );
 		Graphics.Draw( Vertices, LineShader, startVertex: 0, vertexCount: 0, attributes: Attributes, primitiveType: Graphics.PrimitiveType.LineStripWithAdjacency );
 	}
 }
