@@ -20,6 +20,12 @@ public struct VerletPoint
 		set => Flags = Flags.WithFlag( VerletPointFlags.Anchor, value );
 	}
 
+	public bool IsRopeLocal
+	{
+		get => Flags.HasFlag( VerletPointFlags.RopeLocal );
+		set => Flags = Flags.WithFlag( VerletPointFlags.RopeLocal, value );
+	}
+
 	public readonly VerletVertex AsRopeVertex( VerletRope rope )
 	{
 		return new VerletVertex()
@@ -37,6 +43,7 @@ public struct VerletPoint
 [Flags]
 public enum VerletPointFlags : int
 {
-	None	= 0,
-	Anchor	= 1 << 0
+	None			= 0,
+	Anchor			= 1 << 0,
+	RopeLocal		= 1 << 1,
 }

@@ -18,13 +18,8 @@ public static class RopeGenerator
 
 		for ( int i = 0; i < pointCount; i++ )
 		{
-			VerletPointFlags flags = VerletPointFlags.None;
-			if ( i == 0 || i == pointCount - 1 )
-			{
-				flags = VerletPointFlags.Anchor;
-			}
 			Vector3 pos = ray.Project( segmentLength * i );
-			VerletPoint p = new( pos, pos, flags );
+			VerletPoint p = new( pos, pos );
 			points[i] = p;
 		}
 		return points;

@@ -53,6 +53,7 @@ public class SimulationData
 	public float SegmentLength { get; }
 	public Vector2Int PointGridDims { get; }
 	public Transform Transform { get; set; }
+	public Transform LastTransform { get; set; }
 	public int Iterations { get; set; } = 80;
 	public float Radius { get; set; } = 1f;
 
@@ -178,7 +179,7 @@ public class SimulationData
 		if ( firstPos == FixedFirstPosition )
 			return;
 
-		AnchorToNth( firstPos, 0 );
+		AnchorToNth( firstPos, 0, true, false );
 
 		FixedFirstPosition = firstPos;
 		CpuPointsAreDirty = true;
@@ -189,13 +190,13 @@ public class SimulationData
 		if ( pos == FixedLastPosition )
 			return;
 
-		AnchorToNth( pos, PointGridDims.x - 1 );
+		AnchorToNth( pos, PointGridDims.x - 1, false, true );
 
 		FixedLastPosition = pos;
 		CpuPointsAreDirty = true;
 	}
 
-	private void AnchorToNth( Vector3? startPos, int n )
+	private void AnchorToNth( Vector3? startPos, int n, bool startLocal, bool endLocal )
 	{
 		Ray yRay = new( startPos ?? Vector3.Zero, FixedColumnCrossDirection );
 		for ( int y = 0; y < PointGridDims.y; y++ )
@@ -203,8 +204,22 @@ public class SimulationData
 			int i = y * PointGridDims.x + n;
 			if ( startPos is null )
 			{
-				CpuPoints[i] = CpuPoints[i] with { IsAnchor = false };
+				CpuPoints[i] = CpuPoints[i] with 
+				{ 
+					IsAnchor = false, 
+					IsRopeLocal = false, 
+				};
 				continue;
+			}
+
+			bool isRopeLocal = false;
+			if ( startLocal && n == 0 )
+			{
+				isRopeLocal = true;
+			}
+			if ( endLocal && n == PointGridDims.x - 1 )
+			{ 
+				isRopeLocal = true;
 			}
 
 			Vector3 anchorPos = yRay.Project( y * SegmentLength );
@@ -213,6 +228,7 @@ public class SimulationData
 				Position = anchorPos,
 				LastPosition = anchorPos,
 				IsAnchor = true,
+				IsRopeLocal = isRopeLocal,
 			};
 		}
 	}

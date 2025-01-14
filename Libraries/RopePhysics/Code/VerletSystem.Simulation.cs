@@ -87,6 +87,7 @@ public partial class VerletSystem
 	{
 		float totalTime = Time.Delta;
 		totalTime = MathF.Min( totalTime, verlet.MaxTimeStepPerUpdate );
+		ApplyTransform( verlet );
 		while ( totalTime >= 0 )
 		{
 			var deltaTime = MathF.Min( verlet.TimeStep, totalTime );
@@ -106,10 +107,27 @@ public partial class VerletSystem
 		verlet.SimData.RecalculateCpuPointBounds();
 	}
 
+	private static void ApplyTransform( VerletComponent verlet )
+	{
+		var simData = verlet.SimData;
+		var points = simData.CpuPoints;
+		for ( int i = 0; i < points.Length ; i++ )
+		{
+			VerletPoint p = points[i];
+			if ( !p.IsRopeLocal )
+				continue;
+
+			var translation = simData.Transform.Position - simData.LastTransform.Position;
+			p.Position += translation;
+			points[i] = p;
+		}
+	}
+
 	private static void ApplyForces( SimulationData simData, float deltaTime )
 	{
 		var gravity = simData.Gravity;
 		var points = simData.CpuPoints;
+		
 
 		for ( int y = 0; y < simData.PointGridDims.y; y++ )
 		{

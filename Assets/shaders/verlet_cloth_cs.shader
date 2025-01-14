@@ -37,23 +37,27 @@ CS
 		int Padding;
 	};
 	
+	// Layout
 	RWStructuredBuffer<VerletPoint> Points < Attribute( "Points" ); >;
-	float3 StartPosition < Attribute( "StartPosition" ); >;
-	float3 EndPosition < Attribute( "EndPosition" ); >;
 	int NumPoints < Attribute( "NumPoints" ); >;
 	int NumColumns < Attribute( "NumColumns" ); >;
-	int Iterations < Attribute( "Iterations" ); >;
 	float SegmentLength < Attribute( "SegmentLength" ); Default( 1.0 ); >;
-	float DeltaTime < Attribute( "DeltaTime" ); >;
-	float TimeStepSize < Attribute( "TimeStepSize"); Default( 0.01 ); >;
-	float MaxTimeStepPerUpdate < Attribute( "MaxTimeStepPerUpdate" ); Default( 0.1 ); >;
+	// Simulation
+	int Iterations < Attribute( "Iterations" ); >;
+	// Forces
 	float3 Gravity < Attribute( "Gravity" ); Default3( 0, 0, -800.0 ); >;
+	// Rope rendering
 	float RopeWidth < Attribute( "RopeWidth" ); Default( 1.0 ); >;
 	float RopeRenderWidth < Attribute( "RopeRenderWidth" ); Default( 1.0 ); >;
 	float RopeTextureCoord < Attribute( "RopeTextureCoord" ); Default( 1.0 ); >;
 	float4 RopeTint < Attribute( "RopeTint"); Default4( 0.0, 0.0, 0.0, 1.0 ); >;
-	float4x4 MatWorldToLocal < Attribute( "MatWorldToLocal" ); >;
+	// Delta
+	float DeltaTime < Attribute( "DeltaTime" ); >;
+	float TimeStepSize < Attribute( "TimeStepSize"); Default( 0.01 ); >;
+	float MaxTimeStepPerUpdate < Attribute( "MaxTimeStepPerUpdate" ); Default( 0.1 ); >;
+	float3 Translation < Attribute( "Translation" ); >;
 
+	// Output
 	RWStructuredBuffer<Vertex> OutputVertices < Attribute( "OutputVertices" ); >;
 	RWStructuredBuffer<float4> BoundsWs < Attribute( "BoundsWs" ); >;
 
@@ -62,6 +66,13 @@ CS
 	int Index2DTo1D( uint2 i )
 	{
 		return i.y * NumColumns + i.x;
+	}
+
+	void ApplyTransform( int pIndex )
+	{
+		VerletPoint p = Points[pIndex];
+		p.Position += Translation;
+		Points[pIndex] = p;
 	}
 
 	void ApplyForces( int pIndex, float deltaTime )
@@ -320,6 +331,7 @@ CS
 	{
 		VerletPoint p = Points[pIndex];
 
+		ApplyTransform( pIndex );
 		ApplyForces( pIndex, deltaTime );
 
 		if ( !p.IsAnchor() )
