@@ -47,7 +47,9 @@ public partial class VerletRope : VerletComponent
 		var ropeLineColor = Color.Blue;
 		using ( Gizmo.Scope( "Midpoint Handle" ) )
 		{
-			BBox midpointHandle = BBox.FromPositionAndSize( (FirstRopePointPosition + LastRopePointPosition) / 2f, 8f );
+			Vector3 midpointPos = (FirstRopePointPosition + LastRopePointPosition) / 2f;
+			BBox midpointHandle = BBox.FromPositionAndSize( midpointPos, 8f );
+			Gizmo.Hitbox.DepthBias -= 0.5f;
 			Gizmo.Hitbox.BBox( midpointHandle );
 			var drag = Gizmo.GetMouseDrag( midpointHandle.Center, Gizmo.CameraTransform.Backward );
 			var wasDraggingMidpointGizmo = _isDraggingMidpointGizmo;

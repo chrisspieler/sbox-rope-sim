@@ -116,15 +116,15 @@
       "__guid": "00e0f83b-1afc-4391-9343-67a8a997571b",
       "Flags": 0,
       "Name": "Rope",
-      "Position": "0.00002391121,-32,96",
+      "Position": "0.00006772821,48,96",
       "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletRope",
           "__guid": "83c4aade-c14f-4ba6-8a21-a1ffacc216af",
           "Bounds": {
-            "Mins": "-4.999952,-69,71.23808",
-            "Maxs": "5.000056,-58.27188,197"
+            "Mins": "-4.999932,-23.63861,91",
+            "Maxs": "5.000135,53,197"
           },
           "Color": "0,0,0,1",
           "DebugDrawPoints": false,
@@ -135,11 +135,11 @@
             "_type": "gameobject",
             "go": "fc00f137-e29d-46af-9626-7eea99407937"
           },
-          "FirstRopePointPosition": "0.00002391121,-32,96",
-          "FixedEnd": false,
+          "FirstRopePointPosition": "0.00006772821,48,96",
+          "FixedEnd": true,
           "FixedStart": true,
           "Iterations": 20,
-          "LastRopePointPosition": "0.00002391121,-146.6386,96",
+          "LastRopePointPosition": "0.00006772821,-66.63861,96",
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
@@ -173,22 +173,22 @@
       "__guid": "539a31bc-b852-494a-bda0-152512c7d9a6",
       "Flags": 0,
       "Name": "Cloth",
-      "Position": "-80.00002,112,176",
+      "Position": "-80.00002,-48,208",
       "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletCloth",
           "__guid": "027c0069-f345-4f0a-b516-d66f8f43a181",
           "Bounds": {
-            "Mins": "-84.00002,-16.00895,110.7485",
-            "Maxs": "47.99998,116,180"
+            "Mins": "-84.00002,-176.127,144.2282",
+            "Maxs": "47.99998,-44,212"
           },
           "ClothResolution": 32,
           "DebugDrawPoints": false,
           "EnableCollision": true,
           "EnableRendering": true,
           "EndTarget": null,
-          "FirstRopePointPosition": "-80.00002,112,176",
+          "FirstRopePointPosition": "-80.00002,-48,208",
           "FixedEnd": true,
           "FixedStart": true,
           "Iterations": 20,
