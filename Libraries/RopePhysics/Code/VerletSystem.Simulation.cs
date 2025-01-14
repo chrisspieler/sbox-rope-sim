@@ -1,5 +1,4 @@
 ﻿using Sandbox.Diagnostics;
-using Sandbox.Utility;
 
 namespace Duccsoft;
 
@@ -43,6 +42,7 @@ public partial class VerletSystem
 			return;
 
 		simData.Transform = verlet.WorldTransform;
+		simData.LastTick ??= Time.Delta;
 
 		if ( simData.CpuPointsAreDirty )
 		{
@@ -53,21 +53,33 @@ public partial class VerletSystem
 		var yThreads = verlet.SimData.PointGridDims.y;
 		var shapeType = yThreads > 1 ? VerletShapeType.Cloth : VerletShapeType.Rope;
 
-		// using var scope = PerfLog.Scope( $"GPU Simulate {xThreads}x{yThreads}, {simData.GpuPoints.ElementCount} of size {simData.GpuPoints.ElementSize}, sticks {simData.GpuSticks.ElementCount} of size {simData.GpuSticks.ElementSize}" );
+		int numPointUpdates = simData.PendingPointUpdates;
+		simData.GpuPointUpdates ??= new GpuBuffer<VerletPointUpdate>( 1024, GpuBuffer.UsageFlags.Structured );
+		if ( simData.PendingPointUpdates > 0 )
+		{
+			VerletPointUpdate[] updateQueue = simData.PointUpdateQueue.Values.ToArray();
+			simData.GpuPointUpdates.SetData( updateQueue );
+		}
+
+		using var scope = PerfLog.Scope( $"GPU Simulate {xThreads}x{yThreads}, {simData.GpuPoints.ElementCount} of size {simData.GpuPoints.ElementSize}, updates {simData.GpuPointUpdates.ElementCount} of size {simData.GpuPointUpdates.ElementSize}" );
+		VerletComputeShader.Attributes.Clear();
 
 		// Choose rope or cloth
 		VerletComputeShader.Attributes.SetComboEnum( "D_SHAPE_TYPE", shapeType );
 		// Layout
-		VerletComputeShader.Attributes.Set( "Points", simData.GpuPoints );
 		VerletComputeShader.Attributes.Set( "NumPoints", simData.CpuPoints.Length );
 		VerletComputeShader.Attributes.Set( "NumColumns", simData.PointGridDims.y );
 		VerletComputeShader.Attributes.Set( "SegmentLength", simData.SegmentLength );
+		VerletComputeShader.Attributes.Set( "Points", simData.GpuPoints );
+		// Updates
+		VerletComputeShader.Attributes.Set( "NumPointUpdates", numPointUpdates );
+		VerletComputeShader.Attributes.Set( "PointUpdates", simData.GpuPointUpdates );
 		// Simulation
 		VerletComputeShader.Attributes.Set( "Iterations", simData.Iterations );
 		// Forces
 		VerletComputeShader.Attributes.Set( "Gravity", simData.Gravity );
 		// Delta
-		VerletComputeShader.Attributes.Set( "DeltaTime", Time.Delta );
+		VerletComputeShader.Attributes.Set( "DeltaTime", simData.LastTick.Value.Relative );
 		VerletComputeShader.Attributes.Set( "TimeStepSize", verlet.TimeStep );
 		VerletComputeShader.Attributes.Set( "MaxTimeStepPerUpdate", verlet.MaxTimeStepPerUpdate );
 		VerletComputeShader.Attributes.Set( "Translation", simData.Translation );
@@ -86,8 +98,10 @@ public partial class VerletSystem
 		VerletComputeShader.Dispatch( xThreads, yThreads, 1 );
 
 		var timer = FastTimer.StartNew();
+		simData.ClearPendingPointUpdates();
 		simData.LoadBoundsFromGpu();
 		simData.LastTransform = simData.Transform;
+		simData.LastTick = 0;
 		PerSimGpuReadbackTimes.Add( timer.ElapsedMilliSeconds );
 	}
 
@@ -95,6 +109,8 @@ public partial class VerletSystem
 	{
 		SimulationData simData = verlet.SimData;
 		simData.Transform = verlet.WorldTransform;
+		// If we're simulating on the CPU, we aren't going to need to transfer any points to the GPU.
+		simData.ClearPendingPointUpdates();
 
 		ApplyTransform( verlet );
 

@@ -43,8 +43,16 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	{
 		SimData?.AnchorToEnd( FixedEnd ? EndPosition : null );
 	}
-	[Property] public GameObject StartTarget { get; set; }
-	[Property] public GameObject EndTarget { get; set; }
+	[Property, Change] public GameObject StartTarget { get; set; }
+	private void OnStartTargetChanged( GameObject oldValue, GameObject newValue )
+	{
+		Log.Info( nameof( OnStartTargetChanged ) );
+	}
+	[Property, Change] public GameObject EndTarget { get; set; }
+	private void OnEndTargetChanged( GameObject oldValue, GameObject newValue )
+	{
+		Log.Info( nameof( OnEndTargetChanged ) );
+	}
 	[Property, ReadOnly, JsonIgnore] 
 	public Vector3 StartPosition => StartTarget?.WorldPosition ?? WorldPosition;
 	[Property, ReadOnly, JsonIgnore]
@@ -57,6 +65,30 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 
 			return EndTarget?.WorldPosition ?? WorldPosition + Vector3.Right * 128f;
 		}
+	}
+
+	private Vector3 _lastStartPosition;
+	private Vector3 _lastEndPosition;
+
+	private void UpdateAnchors()
+	{
+		Vector3 startTranslation = StartPosition - _lastStartPosition;
+		Vector3 endTranslation = EndPosition - _lastEndPosition;
+		Vector3 ropeTranslation = SimData.Translation;
+		if ( FixedStart && MathF.Abs( ropeTranslation.DistanceSquared( startTranslation ) ) > 0.001f )
+		{
+			Log.Info( StartPosition );
+			SimData.SetPointPosition( Vector2Int.Zero, StartPosition );
+		}
+
+		if ( FixedEnd && MathF.Abs( ropeTranslation.DistanceSquared( endTranslation ) ) > 0.001f )
+		{
+			Log.Info( EndPosition );
+			SimData.SetPointPosition( new Vector2Int( SimData.PointGridDims.x - 1, 0 ), EndPosition );
+		}
+
+		_lastStartPosition = StartPosition;
+		_lastEndPosition = EndPosition;
 	}
 	#endregion
 
@@ -76,6 +108,11 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	#endregion
 
 	#region Simulation
+
+	protected override void OnUpdate()
+	{
+		UpdateAnchors();
+	}
 
 	[ConCmd( "verlet_gpu_sim" )]
 	public static void SimulateAllOnGpu( bool simulateOnGpu )
@@ -156,6 +193,7 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	}
 	protected override void OnDisabled() => DestroySimulation();
 
+	#region Simulation
 
 	[Button]
 	public void ResetSimulation()
@@ -187,6 +225,10 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	}
 
 	protected abstract SimulationData CreateSimData();
+
+	public void SetPointPosition( Vector2Int pointCoord, Vector3 worldPos ) 
+		=> SimData?.SetPointPosition( pointCoord, worldPos );
+#endregion
 	#region Rendering
 	[Property] public bool DebugDrawPoints { get; set; } = false;
 
@@ -206,6 +248,7 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 		}
 	}
 	private CircularBuffer<double> _debugTimes = new CircularBuffer<double>( 25 );
+	[Property, ReadOnly, JsonIgnore] public int GpuPendingUpdates => SimData?.PendingPointUpdates ?? 0;
 	[Property, ReadOnly, JsonIgnore] public string GpuReadbackTime
 	{
 		get

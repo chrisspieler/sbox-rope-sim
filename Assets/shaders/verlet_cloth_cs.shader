@@ -26,8 +26,20 @@ CS
 		float3 LastPosition;
 		int Padding;
 
-		bool IsAnchor() { return ( Flags & 1 << 0 ) == 1; }
+		bool IsAnchor() { return ( Flags & 1 ) == 1; }
 		bool IsRopeLocal() { return ( Flags & 2 ) == 2; }
+	};
+
+	struct VerletPointUpdate
+	{
+		float3 Position;
+		int Index;
+		int UpdateFlags;
+		int PointFlags;
+		int2 Padding;
+		
+		bool ShouldUpdatePosition() { return ( UpdateFlags & 1 ) == 1; }
+		bool ShouldUpdateFlags() { return ( UpdateFlags & 2 ) == 2; }
 	};
 
 	struct VerletStickConstraint
@@ -39,10 +51,13 @@ CS
 	};
 	
 	// Layout
-	RWStructuredBuffer<VerletPoint> Points < Attribute( "Points" ); >;
 	int NumPoints < Attribute( "NumPoints" ); >;
 	int NumColumns < Attribute( "NumColumns" ); >;
 	float SegmentLength < Attribute( "SegmentLength" ); Default( 1.0 ); >;
+	RWStructuredBuffer<VerletPoint> Points < Attribute( "Points" ); >;
+	// Updates
+	int NumPointUpdates < Attribute( "NumPointUpdates" ); Default( 0 ); >;
+	RWStructuredBuffer<VerletPointUpdate> PointUpdates < Attribute ( "PointUpdates" ); >;
 	// Simulation
 	int Iterations < Attribute( "Iterations" ); >;
 	// Forces
@@ -57,7 +72,6 @@ CS
 	float TimeStepSize < Attribute( "TimeStepSize"); Default( 0.01 ); >;
 	float MaxTimeStepPerUpdate < Attribute( "MaxTimeStepPerUpdate" ); Default( 0.1 ); >;
 	float3 Translation < Attribute( "Translation" ); >;
-
 	// Output
 	RWStructuredBuffer<Vertex> OutputVertices < Attribute( "OutputVertices" ); >;
 	RWStructuredBuffer<float4> BoundsWs < Attribute( "BoundsWs" ); >;
@@ -67,6 +81,23 @@ CS
 	int Index2DTo1D( uint2 i )
 	{
 		return i.y * NumColumns + i.x;
+	}
+
+	void ApplyUpdates( int DTid )
+	{
+		VerletPointUpdate update = PointUpdates[DTid];
+		int pIndex = update.Index;
+		VerletPoint p = Points[pIndex];
+		if ( update.ShouldUpdatePosition() )
+		{
+			p.Position = update.Position;
+			p.LastPosition = update.Position;
+		}
+		if ( update.ShouldUpdateFlags() )
+		{
+			p.Flags = update.PointFlags;
+		}
+		Points[pIndex] = p;
 	}
 
 	void ApplyTransform( int pIndex, VerletPoint p )
@@ -89,7 +120,6 @@ CS
 		float3 delta = p.Position - p.LastPosition;
 		delta *= 1 - (0.95 * deltaTime);
 		p.Position += delta;
-		// Gravity
 		p.Position += Gravity * ( deltaTime * deltaTime );
 		p.LastPosition = temp;
 		Points[pIndex] = p;
@@ -332,20 +362,20 @@ CS
 		VerletPoint p = Points[pIndex];
 
 		ApplyForces( pIndex, deltaTime );
-
-		if ( !p.IsAnchor() )
+		
+		if ( p.IsAnchor() )
+		return;
+		
+		for ( int i = 0; i < Iterations; i++ )
 		{
-			for ( int i = 0; i < Iterations; i++ )
-			{
-				#if D_SHAPE_TYPE == 0
-					ApplyRopeConstraints( pIndex );
-				#elif D_SHAPE_TYPE == 1
-					ApplyClothConstraints( pIndex );
-				#endif
-				
-				GroupMemoryBarrierWithGroupSync();
-				ResolveCollisions( pIndex );
-			}
+			#if D_SHAPE_TYPE == 0
+				ApplyRopeConstraints( pIndex );
+			#elif D_SHAPE_TYPE == 1
+				ApplyClothConstraints( pIndex );
+			#endif
+			
+			GroupMemoryBarrierWithGroupSync();		
+			ResolveCollisions( pIndex );
 		}
 	}
 
@@ -357,13 +387,19 @@ CS
 	void MainCs( uint3 id : SV_DispatchThreadID )
 	{
 		int pIndex = Index2DTo1D( id.xy );
+
+		// TODO: Apply updates only from thread group 0,0
+		if ( pIndex < NumPointUpdates )
+		{
+			ApplyUpdates( pIndex );
+		}
+		GroupMemoryBarrierWithGroupSync();
 		
 		VerletPoint p = Points[pIndex];
 		if ( p.IsRopeLocal() )
 		{
 			ApplyTransform( pIndex, p );
 		}
-		
 		GroupMemoryBarrierWithGroupSync();
 
 		float totalTime = min( DeltaTime, MaxTimeStepPerUpdate );

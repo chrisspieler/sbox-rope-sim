@@ -130,6 +130,7 @@ public partial class VerletRope : VerletComponent
 	protected override void OnUpdate()
 	{
 		base.OnUpdate();
+
 		UpdateSimulation();
 	}
 
