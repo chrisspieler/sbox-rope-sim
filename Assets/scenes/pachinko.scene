@@ -11,6 +11,7 @@
         {
           "__type": "Sandbox.DemoSceneInformation",
           "__guid": "dbd155a6-6cb5-42fd-ae74-5622efa9420c",
+          "__enabled": false,
           "DemoDescription": "Wrap rope around pins.",
           "DemoName": "Pachinko",
           "OnComponentDestroy": null,
@@ -903,8 +904,8 @@
           "__type": "Duccsoft.VerletCloth",
           "__guid": "cce8db93-6d8d-4952-9e30-c30a29a05288",
           "Bounds": {
-            "Mins": "44,-95.89345,215.1068",
-            "Maxs": "176.4507,36,228"
+            "Mins": "44,-95.89362,215.0822",
+            "Maxs": "176.2502,36,228"
           },
           "ClothResolution": 32,
           "DebugDrawPoints": false,
@@ -960,7 +961,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "d39c0e78-82c6-4036-ae57-a299e1f859b1",
           "Bounds": {
-            "Mins": "236,-820,611.1473",
+            "Mins": "236,-820,606.9734",
             "Maxs": "244,212,692"
           },
           "Color": "0.01395,0.01395,0.01395,1",
@@ -1018,10 +1019,7 @@
     "ThreadedAnimation": true,
     "TimeScale": 1,
     "UseFixedUpdate": true,
-    "Metadata": {
-      "DemoName": "Pachinko",
-      "DemoDescription": "Wrap rope around pins."
-    },
+    "Metadata": {},
     "NavMesh": {
       "Enabled": false,
       "IncludeStaticBodies": true,

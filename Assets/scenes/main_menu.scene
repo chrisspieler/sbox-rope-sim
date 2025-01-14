@@ -195,7 +195,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "a7c06f93-0168-4c32-ae15-838b8e7f849a",
           "Bounds": {
-            "Mins": "43,-5,-24.96347",
+            "Mins": "43,-5.068716,-25.18725",
             "Maxs": "53,5,37"
           },
           "Color": "0,0,0,1",
@@ -207,7 +207,7 @@
           "FirstRopePointPosition": "48,0,32",
           "FixedEnd": false,
           "FixedStart": true,
-          "LastRopePointPosition": "48,0.0000001952693,-19.96347",
+          "LastRopePointPosition": "48,-0.06871603,-20.18725",
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
@@ -219,7 +219,11 @@
           "RadiusFraction": 0.25,
           "RenderWidthScale": 1,
           "SimulateOnGPU": false,
-          "StartTarget": null,
+          "StartTarget": {
+            "_type": "gameobject",
+            "go": "ad433f3c-b0e3-499c-9114-a30ec805a008",
+            "prefab": null
+          },
           "Stiffness": 0.71,
           "TimeStep": 0.01,
           "Wireframe": false

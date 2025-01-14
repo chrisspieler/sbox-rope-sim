@@ -18,7 +18,8 @@
           "OnComponentEnabled": null,
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
-          "OnComponentUpdate": null
+          "OnComponentUpdate": null,
+          "ThumbnailPath": "thumbnails/mesh_distance_fields.png"
         }
       ]
     },
@@ -16500,7 +16501,8 @@
     "UseFixedUpdate": true,
     "Metadata": {
       "DemoName": "Mesh Distance Fields",
-      "DemoDescription": "Creates volume textures from colliders."
+      "DemoDescription": "Creates volume textures from colliders.",
+      "ThumbnailPath": "thumbnails/mesh_distance_fields.png"
     },
     "NavMesh": {
       "Enabled": false,

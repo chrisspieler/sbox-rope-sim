@@ -1,10 +1,11 @@
 ﻿using Duccsoft.ImGui;
+using System.Net.Mail;
 
 namespace Sandbox;
 
 public class MainMenuUI : Component
 {
-	private record SceneMetadata( SceneFile Scene, string Name, string Description );
+	private record SceneMetadata( SceneFile Scene, string Name, string Description, Texture Thumbnail );
 	private List<SceneMetadata> Metadata { get; set; } = [];
 	private int SelectedSceneIndex
 	{
@@ -28,7 +29,17 @@ public class MainMenuUI : Component
 				continue;
 
 			var demoDescription = scene.GetMetadata( nameof( DemoSceneInformation.DemoDescription ) );
-			SceneMetadata metadata = new( scene, demoName, demoDescription );
+			var demoThumbnailPath = scene.GetMetadata( nameof( DemoSceneInformation.ThumbnailPath ) );
+			Texture demoThumbnail = null;
+			if ( !string.IsNullOrWhiteSpace( demoThumbnailPath ) )
+			{
+				demoThumbnail = Texture.Load( FileSystem.Mounted, demoThumbnailPath );
+			}
+			else
+			{
+				Log.Info( $"null thumnail for: {demoName}" );
+			}
+			SceneMetadata metadata = new( scene, demoName, demoDescription, demoThumbnail );
 			Metadata.Add( metadata );
 		}
 		if ( Metadata.Count > 0 )
@@ -56,16 +67,23 @@ public class MainMenuUI : Component
 		if ( SelectedScene is null )
 			return;
 
-		if ( Metadata.Count > 1 && ImGui.Button( "<" ) )
+		var sceneText = Metadata.Count == 1 ? "scene" : "scenes";
+		ImGui.Text( $"{Metadata.Count} test {sceneText} available so far!" );
+		if ( ImGui.Button( " < " ) )
 		{
 			SelectedSceneIndex--;
 		}
 		ImGui.SameLine();
 		ImGui.Text( SelectedScene.Name ); 
 		ImGui.SameLine();
-		if ( Metadata.Count > 1 && ImGui.Button( ">") )
+		if ( ImGui.Button( " > " ) )
 		{
 			SelectedSceneIndex++;
+		}
+		if ( SelectedScene.Thumbnail is not null )
+		{
+			Log.Info( "image" );
+			ImGui.Image( SelectedScene.Thumbnail, 512 * ImGuiStyle.UIScale, Color.White, ImGui.GetColorU32( ImGuiCol.Border ) );
 		}
 		ImGui.Text( SelectedScene.Description );
 		if ( ImGui.Button( "Play Scene" ) )

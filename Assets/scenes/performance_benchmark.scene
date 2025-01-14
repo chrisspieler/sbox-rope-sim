@@ -87,8 +87,8 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "722b4519-d3cd-4d3f-92f5-26977ea1a773",
           "Bounds": {
-            "Mins": "-29.34848,-17.34418,20.07007",
-            "Maxs": "4,4,132"
+            "Mins": "-4,-4,16.599",
+            "Maxs": "4.811515,4.427215,132"
           },
           "Color": "0,0,0,1",
           "DebugDrawPoints": false,
