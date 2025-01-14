@@ -42,6 +42,7 @@ public class MeshDistanceFieldDemo : Component
 	[Property] public MdfModelViewer ModelViewer { get; set; }
 	[Property] public bool ShouldRotate { get; set; } = false;
 	[Property] public float RotationSpeed { get; set; } = 0f;
+	[Property] public Freecam Freecam { get; set; }
 
 	public GameObject SelectedMeshGameObject => MeshContainer?.Children[SelectedMeshIndex];
 	public MeshDistanceField Mdf { get; private set; }
@@ -50,17 +51,16 @@ public class MeshDistanceFieldDemo : Component
 	protected override void OnStart()
 	{
 		OnSelectedGameObjectChanged();
+		Freecam = Scene.GetAllComponents<Freecam>().FirstOrDefault()
+			?? Components.Create<Freecam>();
 	}
 
 	protected override void OnUpdate()
 	{
 		UpdateWaitForMesh();
 		UpdateRotation();
-		UpdateCamera();
 		UpdateUI();
 	}
-
-	private Angles _cameraAngles;
 
 	private void UpdateWaitForMesh()
 	{
@@ -115,32 +115,7 @@ public class MeshDistanceFieldDemo : Component
 		var worldCenter = tx.PointToWorld( Mdf.Bounds.Center );
 		
 		camera.WorldPosition = tx.Position + new Vector3( Mdf.Bounds.Size.x * -3f, 0f, Mdf.Bounds.Size.z * 1.5f );
-		_cameraAngles = Rotation.LookAt( Vector3.Direction( camera.WorldPosition, worldCenter ) );
-	}
-
-	private float FreecamSpeed => 75f;
-
-	private void UpdateCamera()
-	{
-		if ( Input.Down( "attack2" ) )
-		{
-			// For some reason, Input.AnalogMove doesn't work. A problem with ImGui?
-			var mouseDelta = new Angles( Mouse.Delta.y, -Mouse.Delta.x, 0f );
-			_cameraAngles += mouseDelta * Time.Delta * Preferences.Sensitivity;
-		}
-
-		var camera = Scene.Camera;
-		if ( !camera.IsValid() )
-			return;
-
-		var speed = FreecamSpeed;
-		if ( Input.Down( "duck" ) )
-			speed *= 0.5f;
-		else if ( Input.Down( "run" ) )
-			speed *= 2.5f;
-
-		camera.WorldPosition += Input.AnalogMove * _cameraAngles * speed * Time.Delta;
-		camera.WorldRotation = _cameraAngles;
+		Freecam.CameraAngles = Rotation.LookAt( Vector3.Direction( camera.WorldPosition, worldCenter ) );
 	}
 
 	private void UpdateUI()

@@ -57,6 +57,20 @@
             "prefab": null
           },
           "Simulations": []
+        },
+        {
+          "__type": "Sandbox.Freecam",
+          "__guid": "a39a0d27-339a-4d9f-bb09-74da1f45389b",
+          "CameraAngles": "0,0,0",
+          "FreecamDuckFactor": 0.5,
+          "FreecamRunFactor": 2.5,
+          "FreecamSpeed": 75,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
         }
       ]
     },
