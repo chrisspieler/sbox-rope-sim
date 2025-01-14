@@ -232,6 +232,10 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 			{
 				Gizmo.Draw.Color = Color.White.WithAlpha( 0.2f );
 				Gizmo.Draw.LineBBox( SimData.Bounds );
+				if ( Gizmo.Pressed.This )
+				{
+					Gizmo.Select();
+				}
 			}
 			return;
 		}
