@@ -116,15 +116,15 @@
       "__guid": "00e0f83b-1afc-4391-9343-67a8a997571b",
       "Flags": 0,
       "Name": "Rope",
-      "Position": "0.00002391121,16,144",
+      "Position": "0.00002391121,-32,96",
       "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletRope",
           "__guid": "83c4aade-c14f-4ba6-8a21-a1ffacc216af",
           "Bounds": {
-            "Mins": "-4.999977,-120.3016,-4.15161",
-            "Maxs": "5.000024,-110.2904,121.7371"
+            "Mins": "-4.999952,-69,71.23808",
+            "Maxs": "5.000056,-58.27188,197"
           },
           "Color": "0,0,0,1",
           "DebugDrawPoints": false,
@@ -135,11 +135,11 @@
             "_type": "gameobject",
             "go": "fc00f137-e29d-46af-9626-7eea99407937"
           },
-          "FirstRopePointPosition": "0.00002349059,-115.2955,0.8483902",
-          "FixedEnd": true,
-          "FixedStart": false,
+          "FirstRopePointPosition": "0.00002391121,-32,96",
+          "FixedEnd": false,
+          "FixedStart": true,
           "Iterations": 20,
-          "LastRopePointPosition": "0.00002391121,-98.63861,144",
+          "LastRopePointPosition": "0.00002391121,-146.6386,96",
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
@@ -173,26 +173,26 @@
       "__guid": "539a31bc-b852-494a-bda0-152512c7d9a6",
       "Flags": 0,
       "Name": "Cloth",
-      "Position": "-30.64149,48,128",
+      "Position": "-80.00002,112,176",
       "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletCloth",
           "__guid": "027c0069-f345-4f0a-b516-d66f8f43a181",
           "Bounds": {
-            "Mins": "-43.90557,-80.15791,110.1502",
-            "Maxs": "97.35851,52,132"
+            "Mins": "-84.00002,-16.00895,110.7485",
+            "Maxs": "47.99998,116,180"
           },
           "ClothResolution": 32,
           "DebugDrawPoints": false,
-          "EnableCollision": false,
+          "EnableCollision": true,
           "EnableRendering": true,
           "EndTarget": null,
-          "FirstRopePointPosition": "-30.64149,48,128",
+          "FirstRopePointPosition": "-80.00002,112,176",
           "FixedEnd": true,
           "FixedStart": true,
           "Iterations": 20,
-          "LastRopePointPosition": "93.35857,-208,112",
+          "LastRopePointPosition": "44,-96,128",
           "Material": null,
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
