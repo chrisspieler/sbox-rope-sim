@@ -47,10 +47,7 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 		}
 
 		var timer = FastTimer.StartNew();
-
 		var simData = verlet.SimData;
-
-		simData.Transform = verlet.WorldTransform;
 
 		if ( simData.Collisions == null || simData.Collisions.ShouldCaptureSnapshot )
 		{
@@ -66,8 +63,6 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 		{
 			CpuSimulate( verlet );
 		}
-
-		simData.LastTransform = simData.Transform;
 
 		elapsedMilliseconds = timer.ElapsedMilliSeconds;
 		verlet.PushDebugTime( elapsedMilliseconds );

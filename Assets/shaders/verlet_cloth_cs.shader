@@ -26,7 +26,8 @@ CS
 		float3 LastPosition;
 		int Padding;
 
-		bool IsAnchor() { return ( Flags & 1 ) == 1; }
+		bool IsAnchor() { return ( Flags & 1 << 0 ) == 1; }
+		bool IsRopeLocal() { return ( Flags & 2 ) == 2; }
 	};
 
 	struct VerletStickConstraint
@@ -68,9 +69,8 @@ CS
 		return i.y * NumColumns + i.x;
 	}
 
-	void ApplyTransform( int pIndex )
+	void ApplyTransform( int pIndex, VerletPoint p )
 	{
-		VerletPoint p = Points[pIndex];
 		p.Position += Translation;
 		Points[pIndex] = p;
 	}
@@ -331,7 +331,6 @@ CS
 	{
 		VerletPoint p = Points[pIndex];
 
-		ApplyTransform( pIndex );
 		ApplyForces( pIndex, deltaTime );
 
 		if ( !p.IsAnchor() )
@@ -358,6 +357,14 @@ CS
 	void MainCs( uint3 id : SV_DispatchThreadID )
 	{
 		int pIndex = Index2DTo1D( id.xy );
+		
+		VerletPoint p = Points[pIndex];
+		if ( p.IsRopeLocal() )
+		{
+			ApplyTransform( pIndex, p );
+		}
+		
+		GroupMemoryBarrierWithGroupSync();
 
 		float totalTime = min( DeltaTime, MaxTimeStepPerUpdate );
 		for( int i = 0; i < 50; i++ )

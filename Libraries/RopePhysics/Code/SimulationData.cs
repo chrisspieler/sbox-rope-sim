@@ -54,6 +54,10 @@ public class SimulationData
 	public Vector2Int PointGridDims { get; }
 	public Transform Transform { get; set; }
 	public Transform LastTransform { get; set; }
+	/// <summary>
+	/// Based on Transform and LastTransform, how much has the entire sim shifted since the last update?
+	/// </summary>
+	public Vector3 Translation => Transform.Position - LastTransform.Position;
 	public int Iterations { get; set; } = 80;
 	public float Radius { get; set; } = 1f;
 
