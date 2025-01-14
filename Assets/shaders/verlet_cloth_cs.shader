@@ -215,39 +215,48 @@ CS
 		return;
 	}
 
+	groupshared float3 g_vMins[1024];
+	groupshared float3 g_vMaxs[1024];
+
+	// Perform parallel reduction to find bounds, but it's very unreliable if the rope has more points than threads.
 	void UpdateBounds( int pIndex )
 	{
-		VerletPoint p = Points[pIndex];
-		float4 positionWs = float4( p.Position.xyz, 0 );
+		if ( pIndex >= NumPoints )
+		{
+			g_vMins[pIndex] = 1e20;
+			g_vMaxs[pIndex] = -1e20;
+		}
+		else 
+		{
+			VerletPoint p = Points[pIndex];
+			g_vMins[pIndex] = p.Position;
+			g_vMaxs[pIndex] = p.Position;
+		}
+		
+		GroupMemoryBarrierWithGroupSync();
 
-		float4 mins = BoundsWs[0];
-		float4 maxs = BoundsWs[1];
-		if ( any( positionWs.xyz < mins.xyz ) )
+		for ( int stride = 512; stride > 1; stride /= 2 )
 		{
-			if ( mins.x > positionWs.x )
-			{
-				mins.x = positionWs.x;
-			}
-			if ( mins.y > positionWs.y )
-			{
-				mins.y = positionWs.y;
-			}
-			if ( mins.z > positionWs.z )
-			{
-				mins.z = positionWs.z;
-			}
+			if ( pIndex >= stride )
+				return;
+			
+			float3 mn1 = g_vMins[pIndex];
+			float3 mn2 = g_vMins[pIndex + stride];	
+			g_vMins[pIndex] = min( mn1, mn2 );
+
+			float3 mx1 = g_vMaxs[pIndex];
+			float3 mx2 = g_vMaxs[pIndex + stride];
+			g_vMaxs[pIndex] = max( mx1, mx2 );
+			GroupMemoryBarrierWithGroupSync();
 		}
-		if ( any( positionWs.xyz > maxs.xyz ) )
+
+		if ( pIndex == 0 )
 		{
-			if ( maxs.x < positionWs.x )
-				maxs.x = positionWs.x;
-			if ( maxs.y < positionWs.y )
-				maxs.y = positionWs.y;
-			if ( maxs.z < positionWs.z )
-				maxs.z = positionWs.z;
+			float3 mins = g_vMins[0] - 4;
+			float3 maxs = g_vMaxs[0] + 4;
+			BoundsWs[0] = float4( mins.xyz, 1 );
+			BoundsWs[1] = float4( maxs.xyz, 1 );
 		}
-		BoundsWs[0] = mins;
-		BoundsWs[1] = maxs;
 	}
 
 	void OutputRopeVertex( int pIndex )
@@ -323,9 +332,8 @@ CS
 					ApplyClothConstraints( pIndex );
 				#endif
 				
-				ResolveCollisions( pIndex );
-				UpdateBounds( pIndex );
 				GroupMemoryBarrierWithGroupSync();
+				ResolveCollisions( pIndex );
 			}
 		}
 	}
@@ -340,8 +348,6 @@ CS
 		int pIndex = Index2DTo1D( id.xy );
 
 		float totalTime = min( DeltaTime, MaxTimeStepPerUpdate );
-		BoundsWs[0] = 1e20;
-		BoundsWs[1] = -1e20;
 		for( int i = 0; i < 50; i++ )
 		{
 			float deltaTime = min( TimeStepSize, totalTime );
@@ -351,6 +357,8 @@ CS
 			if ( totalTime < 0 )
 				break;
 		}
+
+		UpdateBounds( pIndex );
 
 		#if D_SHAPE_TYPE == 0
 			OutputRopeVertex( pIndex );

@@ -87,19 +87,23 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "722b4519-d3cd-4d3f-92f5-26977ea1a773",
           "Bounds": {
-            "Mins": "0,0,0",
-            "Maxs": "0,0,0"
+            "Mins": "-29.34848,-17.34418,20.07007",
+            "Maxs": "4,4,132"
           },
           "Color": "0,0,0,1",
           "DebugDrawPoints": false,
           "EffectiveRadius": 0.5,
           "EnableCollision": false,
           "EnableRendering": true,
-          "EndTarget": null,
+          "EndTarget": {
+            "_type": "gameobject",
+            "go": "d4c4c678-9fe2-46fd-8678-497209e4a7e8",
+            "prefab": null
+          },
           "FirstRopePointPosition": "0,0,128",
           "FixedEnd": false,
           "FixedStart": true,
-          "LastRopePointPosition": "0,-128,128",
+          "LastRopePointPosition": "-95.8667,-50.46668,128",
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
@@ -116,9 +120,18 @@
             "go": "ed2f0f96-8565-4c6e-bbc0-d92ac50dd490",
             "prefab": null
           },
-          "Stiffness": 0.9,
+          "Stiffness": 1,
           "TimeStep": 0.01,
           "Wireframe": false
+        }
+      ],
+      "Children": [
+        {
+          "__guid": "d4c4c678-9fe2-46fd-8678-497209e4a7e8",
+          "Flags": 0,
+          "Name": "Object",
+          "Position": "-95.8667,-50.46668,0",
+          "Enabled": true
         }
       ]
     },

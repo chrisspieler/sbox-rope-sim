@@ -1,5 +1,4 @@
-﻿using Sandbox.Rendering;
-namespace Duccsoft;
+﻿namespace Duccsoft;
 
 public partial class VerletSystem
 {
