@@ -3,17 +3,37 @@
 public class GpuDoubleBuffer<T> : IDisposable, IValid
 	where T : unmanaged
 {
-	public GpuDoubleBuffer( GpuBuffer<T> gpuBuffer, int swapOffset = 0 )
+	public GpuDoubleBuffer( GpuBuffer<T> gpuBuffer, int swapOffset )
 	{
 		BackBuffer = gpuBuffer;
 		FrontBuffer = new GpuBuffer<T>( gpuBuffer.ElementCount, gpuBuffer.Usage );
 		Timer = new();
+		SwapOffset = swapOffset;
 		WritesSinceSwap = swapOffset.Clamp( 0, SwapInterval );
 	}
 
 	public ITimerStats TimingStats => Timer;
 	public bool EnableFrontCache { get; set; } = true;
-	public int SwapInterval { get; set; } = 1;
+	public int SwapOffset 
+	{
+		get => _swapOffset;
+		set
+		{
+			_swapOffset = value;
+			WritesSinceSwap = SwapOffset % SwapInterval;
+		}
+	}
+	private int _swapOffset;
+	public int SwapInterval 
+	{
+		get => _swapInterval;
+		set
+		{
+			_swapInterval = value;
+			WritesSinceSwap = SwapOffset % SwapInterval;
+		}
+	}
+	private int _swapInterval = 1;
 	private GpuBuffer<T> FrontBuffer { get; set; }
 	private GpuBuffer<T> BackBuffer { get; set; }
 	private MultiTimer Timer { get; }

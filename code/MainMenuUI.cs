@@ -1,5 +1,4 @@
 ﻿using Duccsoft.ImGui;
-using System.Net.Mail;
 
 namespace Sandbox;
 
@@ -82,7 +81,6 @@ public class MainMenuUI : Component
 		}
 		if ( SelectedScene.Thumbnail is not null )
 		{
-			Log.Info( "image" );
 			ImGui.Image( SelectedScene.Thumbnail, 512 * ImGuiStyle.UIScale, Color.White, ImGui.GetColorU32( ImGuiCol.Border ) );
 		}
 		ImGui.Text( SelectedScene.Description );

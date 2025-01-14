@@ -31,19 +31,7 @@ public partial class VerletRope : VerletComponent
 	private void UpdateSimulation()
 	{
 		SimData.Radius = EffectiveRadius;
-		SimData.Iterations = CalculateIterationCount();
-	}
-
-	private int CalculateIterationCount()
-	{
-		var numPoints = SimData.CpuPoints.Length;
-		var min = POINT_COUNT_MIN;
-		var max = POINT_COUNT_MAX;
-
-		var minStiffness = MathX.Remap( numPoints, min, max, 0f, 0.025f );
-		var stiffness = (Stiffness * 1f).Clamp( minStiffness, 1f );
-		var maxIterations = numPoints.Remap( min, max, 1, max );
-		return (int)stiffness.Remap( 0.0f, 1f, 1, maxIterations );
+		SimData.Iterations = Iterations;
 	}
 	#endregion
 
@@ -126,7 +114,7 @@ public partial class VerletRope : VerletComponent
 		other.MaxTimeStepPerUpdate = MaxTimeStepPerUpdate;
 		other.PointSpacing = PointSpacing;
 		other.RadiusFraction = RadiusFraction;
-		other.Stiffness = Stiffness;
+		other.Iterations = Iterations;
 		// Collision
 		other.EnableCollision = EnableCollision;
 		// Rendering
@@ -141,7 +129,6 @@ public partial class VerletRope : VerletComponent
 	{
 		base.OnUpdate();
 		UpdateSimulation();
-		UpdateRenderer();
 	}
 
 	protected override SimulationData CreateSimData()
@@ -187,7 +174,12 @@ public partial class VerletRope : VerletComponent
 		_so = null;
 	}
 
-	protected override void UpdateRenderer()
+	protected override void OnPreRender()
+	{
+		UpdateRenderer();
+	}
+
+	private void UpdateRenderer()
 	{
 		EnsureRenderer();
 
@@ -224,6 +216,7 @@ public partial class VerletRope : VerletComponent
 		}
 		var vertices = new VerletVertex[vertexCount];
 		vertices[0] = points[0].AsRopeVertex( this );
+		BBox bounds = BBox.FromPositionAndSize( points[0].Position, 4f );
 		if ( points.Length > 2 )
 		{
 			for ( int i = 0; i < points.Length; i++ )
@@ -231,8 +224,10 @@ public partial class VerletRope : VerletComponent
 				var p = points[i];
 				var vtx = p.AsRopeVertex( this );
 				vertices[i + 1] = vtx;
+				bounds = bounds.AddPoint( p.Position );
 			}
 		}
+		SimData.Bounds = bounds;
 		vertices[^1] = points[^1].AsRopeVertex( this );
 		_so.Vertices.SetData( vertices );
 	}

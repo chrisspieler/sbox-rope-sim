@@ -141,11 +141,8 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	}
 	[Property] public BBox Bounds => SimData?.Bounds ?? default;
 
-	[Property, Range( 0.01f, 1f )]
-	public float Stiffness { get; set; } = 0.2f;
-
-	[Property, ReadOnly, JsonIgnore]
-	public float IterationCount => SimData?.Iterations ?? 0;
+	[Property, Range( 4, 80, 1 )]
+	public int Iterations { get; set; } = 20;
 	#endregion
 
 	#region Collision
@@ -158,9 +155,6 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 		CreateSimulation();
 	}
 	protected override void OnDisabled() => DestroySimulation();
-
-	[Property, ReadOnly, JsonIgnore]
-	public int SimulationIndex => SimData?.SimulationIndex ?? -1;
 
 
 	[Button]
@@ -196,8 +190,6 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 
 	protected virtual void CreateRenderer() { }
 	protected virtual void DestroyRenderer() { }
-
-	protected virtual void UpdateRenderer() { }
 	public abstract void UpdateCpuVertexBuffer( VerletPoint[] points );
 	#endregion
 	[Property, ReadOnly, JsonIgnore] public string SimulationCpuTime

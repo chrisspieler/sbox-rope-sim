@@ -1,4 +1,5 @@
 ﻿using Sandbox.Diagnostics;
+using Sandbox.Utility;
 
 namespace Duccsoft;
 
@@ -10,25 +11,40 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 		Listen( Stage.FinishFixedUpdate, 0, SetShouldCaptureSnapshot, "Verlet Set ShouldCaptureSnapshot" );
 	}
 
+	public double AverageTotalSimulationCPUTime => SimulationFrameTimes.Average();
+	private readonly CircularBuffer<double> SimulationFrameTimes = new CircularBuffer<double>( 30 );
+	public double AverageTotalGpuReadbackTime => GpuReadbackFrameTimes.Average();
+	private readonly CircularBuffer<double> GpuReadbackFrameTimes = new CircularBuffer<double>( 30 );
+	public double LastFrameTotalGpuReadbackTime => PerSimGpuReadbackTimes.Sum();
+
 	private void TickPhysics()
 	{
+		GpuReadbackFrameTimes.PushBack( LastFrameTotalGpuReadbackTime );
+		PerSimGpuReadbackTimes.Clear();
+
 		// When playing a different scene in the editor, don't simulate this scene.
 		if ( Game.IsPlaying && Scene.IsEditor )
 			return;
 
 		InitializeGpu();
 
+		double totalMilliseconds = 0;
 		var verletComponents = Scene.GetAllComponents<VerletComponent>();
 		foreach( var verlet in verletComponents )
 		{
-			TickSingle( verlet );
+			TickSingle( verlet, out double elapsedMilliseconds );
+			totalMilliseconds += elapsedMilliseconds;
 		}
+		SimulationFrameTimes.PushBack( totalMilliseconds );
 	}
 
-	private void TickSingle( VerletComponent verlet )
+	private void TickSingle( VerletComponent verlet, out double elapsedMilliseconds )
 	{
 		if ( !verlet.IsValid() || verlet.SimData is null )
+		{
+			elapsedMilliseconds = 0;
 			return;
+		}
 
 		var timer = FastTimer.StartNew();
 
@@ -49,6 +65,7 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 			CpuSimulate( verlet );
 		}
 
-		verlet.PushDebugTime( timer.ElapsedMilliSeconds );
+		elapsedMilliseconds = timer.ElapsedMilliSeconds;
+		verlet.PushDebugTime( elapsedMilliseconds );
 	}
 }

@@ -88,7 +88,20 @@ public class SimulationData
 		CpuPointsAreDirty = false;
 	}
 
-	private static int SwapOffset = 0;
+	private static int GpuReadbackOffset = 0;
+	public int GpuReadbackInterval
+	{
+		get => _gpuReadbackInterval;
+		set
+		{
+			_gpuReadbackInterval = value;
+			if ( ReadbackBounds.IsValid() )
+			{
+				ReadbackBounds.SwapInterval = value;
+			}
+		}
+	}
+	private int _gpuReadbackInterval = 20;
 
 	public void InitializeGpu()
 	{
@@ -105,13 +118,12 @@ public class SimulationData
 		};
 		readbackBuffer.SetData( [initialBounds] );
 
-		var swapOffset = SwapOffset;
-		SwapOffset++;
-		var swapInterval = 5;
-		ReadbackBounds = new GpuDoubleBuffer<VerletBounds>( readbackBuffer, swapOffset % swapInterval )
+		var swapOffset = GpuReadbackOffset;
+		GpuReadbackOffset++;
+		ReadbackBounds = new GpuDoubleBuffer<VerletBounds>( readbackBuffer, swapOffset )
 		{
 			EnableFrontCache = true,
-			SwapInterval = swapInterval
+			SwapInterval = GpuReadbackInterval,
 		};
 
 		Bounds = BBox.FromPositionAndSize( Transform.Position, 128f );

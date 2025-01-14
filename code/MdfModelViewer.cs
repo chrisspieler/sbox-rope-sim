@@ -189,8 +189,6 @@ public class MdfModelViewer : Component
 		if ( ShouldDrawOctree )
 		{
 			ImGui.Text( $"mouseover voxel: {HighlightedVoxel / Mdf.OctreeLeafDims}" );
-			ImGui.Text( $"mouse to voxel distance: {MouseToVoxelDistance}" );
-			ImGui.Text( $"mouseover signed distance: {MouseSignedDistance}" );
 		}
 	}
 

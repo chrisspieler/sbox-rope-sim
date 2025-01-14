@@ -1,4 +1,7 @@
-﻿namespace Duccsoft;
+﻿using Sandbox.Diagnostics;
+using Sandbox.Utility;
+
+namespace Duccsoft;
 
 public partial class VerletSystem
 {
@@ -31,6 +34,7 @@ public partial class VerletSystem
 
 	private SceneCustomObject GpuSimulateSceneObject;
 	private readonly HashSet<VerletComponent> GpuSimulateQueue = [];
+	private List<double> PerSimGpuReadbackTimes = [];
 
 	private void GpuSimulate( VerletComponent verlet )
 	{
@@ -74,7 +78,9 @@ public partial class VerletSystem
 		VerletComputeShader.Attributes.Set( "BoundsWs", simData.ReadbackBounds.SwapToBack() );
 		VerletComputeShader.Dispatch( xThreads, yThreads, 1 );
 
+		var timer = FastTimer.StartNew();
 		simData.LoadBoundsFromGpu();
+		PerSimGpuReadbackTimes.Add( timer.ElapsedMilliSeconds );
 	}
 
 	private void CpuSimulate( VerletComponent verlet )

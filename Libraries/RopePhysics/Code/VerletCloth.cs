@@ -21,7 +21,7 @@ public class VerletCloth : VerletComponent
 
 		UpdateModel();
 		SimData.Radius = Radius;
-		SimData.Iterations = (int)Stiffness.Remap( 0f, 1f, 1, 80 );
+		SimData.Iterations = Iterations;
 	}
 
 	protected override void DrawGizmos()

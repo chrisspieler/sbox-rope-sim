@@ -39,7 +39,24 @@
           "OnComponentEnabled": null,
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
-          "OnComponentUpdate": null
+          "OnComponentUpdate": null,
+          "ThumbnailPath": "thumbnails/performance_benchmark.png"
+        },
+        {
+          "__type": "Sandbox.BenchmarkUI",
+          "__guid": "0675b7b5-e8d3-4e69-95b3-9343684072fd",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RopeContainer": {
+            "_type": "gameobject",
+            "go": "fe8b17d1-c101-442e-bec1-e2b07bc6e432",
+            "prefab": null
+          },
+          "Simulations": []
         }
       ]
     },
@@ -77,69 +94,10 @@
       ]
     },
     {
-      "__guid": "ed2f0f96-8565-4c6e-bbc0-d92ac50dd490",
-      "Flags": 0,
-      "Name": "Rope",
-      "Position": "0,0,128",
-      "Enabled": true,
-      "Components": [
-        {
-          "__type": "Duccsoft.VerletRope",
-          "__guid": "722b4519-d3cd-4d3f-92f5-26977ea1a773",
-          "Bounds": {
-            "Mins": "-4,-4,16.599",
-            "Maxs": "4.811515,4.427215,132"
-          },
-          "Color": "0,0,0,1",
-          "DebugDrawPoints": false,
-          "EffectiveRadius": 0.5,
-          "EnableCollision": false,
-          "EnableRendering": true,
-          "EndTarget": {
-            "_type": "gameobject",
-            "go": "d4c4c678-9fe2-46fd-8678-497209e4a7e8",
-            "prefab": null
-          },
-          "FirstRopePointPosition": "0,0,128",
-          "FixedEnd": false,
-          "FixedStart": true,
-          "LastRopePointPosition": "-95.8667,-50.46668,128",
-          "MaxTimeStepPerUpdate": 0.1,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "PointSpacing": 4,
-          "RadiusFraction": 0.25,
-          "RenderWidthScale": 1,
-          "SimulateOnGPU": true,
-          "StartTarget": {
-            "_type": "gameobject",
-            "go": "ed2f0f96-8565-4c6e-bbc0-d92ac50dd490",
-            "prefab": null
-          },
-          "Stiffness": 1,
-          "TimeStep": 0.01,
-          "Wireframe": false
-        }
-      ],
-      "Children": [
-        {
-          "__guid": "d4c4c678-9fe2-46fd-8678-497209e4a7e8",
-          "Flags": 0,
-          "Name": "Object",
-          "Position": "-95.8667,-50.46668,0",
-          "Enabled": true
-        }
-      ]
-    },
-    {
       "__guid": "2bd4bc94-8409-4fb1-b965-47bf6706a4c3",
       "Flags": 0,
       "Name": "Rope Array",
-      "Position": "-19.61293,-56.9296,135.218",
+      "Position": "-19.61293,144,135.218",
       "Enabled": true,
       "Children": [
         {
@@ -176,7 +134,8 @@
     "UseFixedUpdate": true,
     "Metadata": {
       "DemoName": "Performance Benchmark",
-      "DemoDescription": "See how many ropes your GPU can handle!"
+      "DemoDescription": "See how many ropes your GPU can handle!",
+      "ThumbnailPath": "thumbnails/performance_benchmark.png"
     },
     "NavMesh": {
       "Enabled": false,
