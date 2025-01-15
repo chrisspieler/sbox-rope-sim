@@ -117,17 +117,17 @@
       "Flags": 0,
       "Name": "Rope",
       "Position": "-36.789,4.956551,90.82528",
-      "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletRope",
           "__guid": "83c4aade-c14f-4ba6-8a21-a1ffacc216af",
           "Bounds": {
-            "Mins": "-69.05811,0.9565511,-2.030528",
-            "Maxs": "-32.789,31.78803,94.82528"
+            "Mins": "0,0,0",
+            "Maxs": "0,0,0"
           },
           "Color": "0,0,0,1",
           "DebugDrawPoints": false,
+          "DefaultLength": 128,
           "EffectiveRadius": 0.5,
           "EnableCollision": true,
           "EnableRendering": true,
@@ -173,27 +173,27 @@
       "__guid": "539a31bc-b852-494a-bda0-152512c7d9a6",
       "Flags": 0,
       "Name": "Cloth",
-      "Position": "-15.99999,-48,144",
+      "Position": "-80.00005,64,96",
       "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletCloth",
           "__guid": "027c0069-f345-4f0a-b516-d66f8f43a181",
-          "__enabled": false,
           "Bounds": {
-            "Mins": "0,0,0",
-            "Maxs": "0,0,0"
+            "Mins": "-84.00005,-64.03568,78.71488",
+            "Maxs": "47.99995,68,107.7821"
           },
           "ClothResolution": 32,
           "DebugDrawPoints": false,
+          "DefaultLength": 128,
           "EnableCollision": false,
           "EnableRendering": true,
           "EndTarget": null,
-          "FirstRopePointPosition": "-15.99999,-48,144",
+          "FirstRopePointPosition": "-80.00005,64,96",
           "FixedEnd": true,
           "FixedStart": true,
-          "Iterations": 20,
-          "LastRopePointPosition": "-15.99999,-48,94",
+          "Iterations": 80,
+          "LastRopePointPosition": "43.99995,-64,96",
           "Material": null,
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,

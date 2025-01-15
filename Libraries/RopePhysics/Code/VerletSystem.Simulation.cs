@@ -101,6 +101,7 @@ public partial class VerletSystem
 		}
 		// Output
 		VerletComputeShader.Attributes.Set( "OutputVertices", simData.ReadbackVertices );
+		VerletComputeShader.Attributes.Set( "OutputIndices", simData.ReadbackIndices );
 		VerletComputeShader.Attributes.Set( "BoundsWs", simData.ReadbackBounds.SwapToBack() );
 
 		VerletComputeShader.Dispatch( xThreads, yThreads, 1 );

@@ -93,6 +93,7 @@ public class VerletCloth : VerletComponent
 			return;
 
 		_so.Vertices = SimData.ReadbackVertices;
+		_so.Indices = SimData.ReadbackIndices;
 		_so.Bounds = SimData.Bounds;
 	}
 

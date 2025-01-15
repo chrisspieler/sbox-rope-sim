@@ -75,6 +75,7 @@ CS
 	float3 Translation < Attribute( "Translation" ); >;
 	// Output
 	RWStructuredBuffer<Vertex> OutputVertices < Attribute( "OutputVertices" ); >;
+	RWStructuredBuffer<uint> OutputIndices < Attribute( "OutputIndices" ); >;
 	RWStructuredBuffer<float4> BoundsWs < Attribute( "BoundsWs" ); >;
 
 	struct SphereCollider
@@ -358,20 +359,6 @@ CS
 		}
 	}
 
-	// From: https://www.shadertoy.com/view/llGcDm
-	int Hilbert( int2 p, int level )
-	{
-		int d = 0;
-		for ( int k = 0; k < level; k++ )
-		{
-			int n = level-k-1;
-			int2 r = ( p >> n ) & 1;
-			d += ( ( 3 * r.x ) ^ r.y ) << ( 2 * n );
-			if ( r.y == 0 ) { if ( r.x == 1 ) { p = ( (int)1 << n ) - 1 - p; } p = p.yx; }
-		}
-		return d;
-	}
-
 	void OutputClothVertex( int pIndex )
 	{
 		VerletPoint p = Points[pIndex];
@@ -389,8 +376,16 @@ CS
 		v.TexCoord1 = RopeTint;
 		v.Color0 = float4( 1, 1, 1, 1 );
 		
-		int iOut = Hilbert( int2( x, y ), 8 );
-		OutputVertices[iOut] = v;
+		OutputVertices[pIndex] = v;
+
+		uint baseIndex = pIndex;
+		OutputIndices[pIndex * 6] = baseIndex;
+		OutputIndices[pIndex * 6 + 1] = baseIndex + 1;
+		OutputIndices[pIndex * 6 + 2] = baseIndex + NumColumns;
+ 
+		OutputIndices[pIndex * 6 + 3] = baseIndex + NumColumns;
+		OutputIndices[pIndex * 6 + 4] = baseIndex + 1;
+		OutputIndices[pIndex * 6 + 5] = baseIndex + NumColumns + 1;
 	}
 
 	void Simulate( int pIndex, float deltaTime )

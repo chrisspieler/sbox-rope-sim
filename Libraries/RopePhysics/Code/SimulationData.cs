@@ -85,7 +85,7 @@ public class SimulationData
 
 	// Gpu outputs
 	internal GpuBuffer<VerletVertex> ReadbackVertices { get; set; }
-	internal GpuBuffer<int> ReadbackIndices { get; set; }
+	internal GpuBuffer<uint> ReadbackIndices { get; set; }
 	internal GpuDoubleBuffer<VerletBounds> ReadbackBounds { get; set; }
 
 
@@ -144,6 +144,8 @@ public class SimulationData
 			Maxs = new Vector4( float.NegativeInfinity ),
 		};
 		readbackBuffer.SetData( [initialBounds] );
+		var numIndices = 6 * (PointGridDims.x - 1) * (PointGridDims.y - 1);
+		ReadbackIndices = new GpuBuffer<uint>( numIndices, GpuBuffer.UsageFlags.Index | GpuBuffer.UsageFlags.Structured );
 
 		var swapOffset = GpuReadbackOffset;
 		GpuReadbackOffset++;
