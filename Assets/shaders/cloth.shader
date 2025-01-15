@@ -28,8 +28,9 @@ struct PS_INPUT
 {
 	float4 vPositionPs : SV_Position;
     float3 vPositionWs: TEXCOORD1;
-	float4 tint : TEXCOORD9;
-	float4 uv : TEXCOORD3;
+	float4 Normal : NORMAL;
+	float4 Tint : TEXCOORD9;
+	float4 UV : TEXCOORD3;
 };
 
 VS
@@ -39,8 +40,9 @@ VS
 		PS_INPUT o;
 		o.vPositionWs = i.pos;
 		o.vPositionPs = Position3WsToPs( i.pos );
-		o.tint = i.tint;
-		o.uv = i.uv;
+		o.Normal = i.normal;
+		o.Tint = i.tint;
+		o.UV = i.uv;
 		return o;
 	}
 }
@@ -49,13 +51,21 @@ PS
 {
 	#include "common/pixel.hlsl"
 
+	DynamicCombo( D_WIREFRAME, 0..1, Sys( All ) );
+
 	RenderState( CullMode, NONE );
+	#if D_WIREFRAME
+	RenderState( FillMode, WIREFRAME );
+	#endif
 	
 	float4 MainPs( PS_INPUT i ) : SV_Target0
 	{
-		// Material m = Material::From( i );
+		Material m = Material::Init();
+		m.Albedo = float3( 0, i.UV.x, i.UV.y );
+		m.Normal = i.Normal.xyz;
+		m.Normal = float3( 0, 0, 1 );
+		m.Roughness = 0;
 		/* m.Metalness = 1.0f; // Forces the object to be metalic */
-		// return ShadingModelStandard::Shade( i, m );
-		return float4( 0, i.uv.x, i.uv.y, 1 );
+		return ShadingModelStandard::Shade( m );
 	}
 }

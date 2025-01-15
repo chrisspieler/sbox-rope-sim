@@ -7,6 +7,12 @@ public class SceneClothObject : SceneCustomObject
 	public GpuBuffer<VerletVertex> Vertices { get; set; }
 	public GpuBuffer<uint> Indices { get; set; }
 
+	public bool EnableWireframe
+	{
+		get => Attributes.GetComboBool( "D_WIREFRAME" );
+		set => Attributes.SetCombo( "D_WIREFRAME", value );
+	}
+
 	public SceneClothObject( SceneWorld sceneWorld ) : base( sceneWorld )
 	{
 		RenderOverride = Render;

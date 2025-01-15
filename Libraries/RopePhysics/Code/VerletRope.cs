@@ -30,6 +30,9 @@ public partial class VerletRope : VerletComponent
 
 	private void UpdateSimulation()
 	{
+		if ( SimData is null )
+			return;
+
 		SimData.Radius = EffectiveRadius;
 		SimData.Iterations = Iterations;
 	}
@@ -184,7 +187,7 @@ public partial class VerletRope : VerletComponent
 	{
 		EnsureRenderer();
 
-		if ( !_so.IsValid() )
+		if ( !_so.IsValid() || SimData is null )
 			return;
 
 		if ( SimulateOnGPU )

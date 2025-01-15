@@ -74,6 +74,9 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 
 	private void UpdateAnchors()
 	{
+		if ( SimData is null )
+			return;
+
 		Vector3 startTranslation = StartPosition - _lastStartPosition;
 		Vector3 endTranslation = EndPosition - _lastEndPosition;
 		Vector3 ropeTranslation = SimData.Translation;

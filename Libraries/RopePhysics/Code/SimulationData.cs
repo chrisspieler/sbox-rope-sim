@@ -144,7 +144,10 @@ public class SimulationData
 			Maxs = new Vector4( float.NegativeInfinity ),
 		};
 		readbackBuffer.SetData( [initialBounds] );
-		var numIndices = 6 * (PointGridDims.x - 1) * (PointGridDims.y - 1);
+		int numQuads = (PointGridDims.x - 1) * (PointGridDims.y - 1);
+		// Two tris per quad, three indices per tri.
+		var numIndices = 6 * ( numQuads + PointGridDims.x - 1 );
+		numIndices = Math.Max( 6, numIndices );
 		ReadbackIndices = new GpuBuffer<uint>( numIndices, GpuBuffer.UsageFlags.Index | GpuBuffer.UsageFlags.Structured );
 
 		var swapOffset = GpuReadbackOffset;

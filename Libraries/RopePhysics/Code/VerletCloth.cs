@@ -54,6 +54,7 @@ public class VerletCloth : VerletComponent
 	}
 	#region Rendering
 	[Property] public Material Material { get; set; }
+	[Property] public bool Wireframe { get; set; } = false;
 	private SceneClothObject _so;
 	protected override void CreateRenderer()
 	{
@@ -70,10 +71,11 @@ public class VerletCloth : VerletComponent
 
 	protected override void OnPreRender()
 	{
-		if ( _so.IsValid() )
-		{
-			_so.Transform = WorldTransform;
-		}
+		if ( !_so.IsValid() )
+			return;
+
+		_so.Transform = WorldTransform;
+		_so.EnableWireframe = Wireframe;
 	}
 
 	private void UpdateModel()
