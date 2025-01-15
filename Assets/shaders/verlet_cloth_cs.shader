@@ -49,6 +49,7 @@ CS
 		float Length;
 		int Padding;
 	};
+
 	
 	// Layout
 	int NumPoints < Attribute( "NumPoints" ); >;
@@ -76,8 +77,34 @@ CS
 	RWStructuredBuffer<Vertex> OutputVertices < Attribute( "OutputVertices" ); >;
 	RWStructuredBuffer<float4> BoundsWs < Attribute( "BoundsWs" ); >;
 
-	DynamicCombo( D_SHAPE_TYPE, 0..1, Sys( All ) );
+	struct SphereCollider
+	{
+		float3 Center;
+		float Radius;
+		float4x4 LocalToWorld;
+		float4x4 WorldToLocal;
 
+		void ResolveCollision( int pIndex )
+		{
+			VerletPoint p = Points[pIndex];
+			float3 pPositionOs = mul( WorldToLocal, float4( p.Position.xyz, 1 ) ).xyz;
+			float dist = distance( pPositionOs, Center );
+			if ( dist - Radius > RopeWidth )
+				return;
+
+			float3 dir = normalize( pPositionOs - Center );
+			float3 hitPositionOs = Center + dir * ( RopeWidth + Radius );
+			float3 hitPositionWs = mul( LocalToWorld, float4( hitPositionOs.xyz, 1 ) ).xyz;
+			p.Position = hitPositionWs;
+			Points[pIndex] = p;
+		}
+	};
+
+	// Colliders
+	int NumSphereColliders < Attribute( "NumSphereColliders" ); >;
+	RWStructuredBuffer<SphereCollider> SphereColliders < Attribute( "SphereColliders" ); >;
+
+	DynamicCombo( D_SHAPE_TYPE, 0..1, Sys( All ) );
 	int Index2DTo1D( uint2 i )
 	{
 		return i.y * NumColumns + i.x;
@@ -251,9 +278,18 @@ CS
 		ApplyClothSegmentConstraint( pIndex );
 	}
 
+	void ResolveSphereCollisions( int pIndex )
+	{
+		for( int i = 0; i < NumSphereColliders; i++ )
+		{
+			SphereCollider sphere = SphereColliders[i];
+			sphere.ResolveCollision( pIndex );
+		}
+	}
+
 	void ResolveCollisions( int pIndex )
 	{
-		return;
+		ResolveSphereCollisions( pIndex );
 	}
 
 	groupshared float3 g_vMins[1024];

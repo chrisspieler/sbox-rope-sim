@@ -110,7 +110,6 @@ public class SimulationData
 			return;
 		}
 		PointUpdateQueue.Clear();
-		Log.Info( "setting GPU points " );
 		GpuPoints.SetData( CpuPoints );
 		CpuPointsAreDirty = false;
 	}
@@ -132,7 +131,6 @@ public class SimulationData
 
 	public void InitializeGpu()
 	{
-		Log.Info( "initializing GPU" );
 		PointUpdateQueue.Clear();
 		DestroyGpuData();
 		GpuPoints = new GpuBuffer<VerletPoint>( CpuPoints.Length );

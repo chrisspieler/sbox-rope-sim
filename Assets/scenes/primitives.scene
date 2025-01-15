@@ -5,7 +5,7 @@
       "__guid": "3417e1a6-cfa8-43c2-9362-133642d632f9",
       "Flags": 0,
       "Name": "Cube",
-      "Position": "0,0.8455849,-25",
+      "Position": "0,0.8455849,-64",
       "Scale": "10,10,1",
       "Enabled": true,
       "Components": [
@@ -116,15 +116,15 @@
       "__guid": "00e0f83b-1afc-4391-9343-67a8a997571b",
       "Flags": 0,
       "Name": "Rope",
-      "Position": "0.00002325275,-96,96",
+      "Position": "-36.789,4.956551,90.82528",
       "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletRope",
           "__guid": "83c4aade-c14f-4ba6-8a21-a1ffacc216af",
           "Bounds": {
-            "Mins": "-3.999977,-100,91.72002",
-            "Maxs": "4.000061,-44,100"
+            "Mins": "-40.789,0.9565511,-6.613613",
+            "Maxs": "-11.36744,23.35561,94.82528"
           },
           "Color": "0,0,0,1",
           "DebugDrawPoints": false,
@@ -135,12 +135,12 @@
             "_type": "gameobject",
             "go": "fc00f137-e29d-46af-9626-7eea99407937"
           },
-          "FirstRopePointPosition": "0.00002325275,-96,96",
-          "FixedEnd": true,
+          "FirstRopePointPosition": "-36.789,4.956551,90.82528",
+          "FixedEnd": false,
           "FixedStart": true,
-          "Iterations": 30,
-          "LastRopePointPosition": "0.00006098136,-48,96",
-          "MaxTimeStepPerUpdate": 4.433334,
+          "Iterations": 76,
+          "LastRopePointPosition": "-36.78896,100.9566,90.82528",
+          "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -155,7 +155,7 @@
             "_type": "gameobject",
             "go": "00e0f83b-1afc-4391-9343-67a8a997571b"
           },
-          "TimeStep": 0.14333318,
+          "TimeStep": 0.01,
           "Wireframe": false
         }
       ],
@@ -164,7 +164,7 @@
           "__guid": "fc00f137-e29d-46af-9626-7eea99407937",
           "Flags": 0,
           "Name": "End Point",
-          "Position": "0.00003772861,48,0",
+          "Position": "0.00003772861,96,0",
           "Enabled": true
         }
       ]
@@ -218,6 +218,59 @@
           "Name": "End Point",
           "Position": "0,-64,0",
           "Enabled": true
+        }
+      ]
+    },
+    {
+      "__guid": "cbc2c3fa-7900-493e-8369-406f54a36fc2",
+      "Flags": 0,
+      "Name": "Sphere",
+      "Position": "-53.62135,0,0",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "c24e959f-8efc-44c5-8c7a-4aaa03c5ed99",
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
+          "Model": "models/dev/sphere.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.SphereCollider",
+          "__guid": "17379869-ee4f-444d-aada-1f4ffdc772f1",
+          "Center": "0,0,0",
+          "Friction": null,
+          "IsTrigger": false,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "Radius": 32,
+          "Static": false,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
         }
       ]
     }

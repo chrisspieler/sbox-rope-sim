@@ -91,6 +91,15 @@ public partial class VerletSystem
 			VerletComputeShader.Attributes.Set( "RopeTextureCoord", 0f );
 			VerletComputeShader.Attributes.Set( "RopeTint", rope.Color );
 		}
+		// Colliders
+		var sphereColliders = simData.Collisions.SphereColliders.Values.Select( c => c.AsGpu() ).ToArray();
+		VerletComputeShader.Attributes.Set( "NumSphereColliders", sphereColliders.Length );
+		if ( sphereColliders.Length > 0 )
+		{
+			var gpuSphereColliders = new GpuBuffer<GpuSphereCollisionInfo>( sphereColliders.Length, GpuBuffer.UsageFlags.Structured );
+			gpuSphereColliders.SetData( sphereColliders );
+			VerletComputeShader.Attributes.Set( "SphereColliders", gpuSphereColliders );
+		}
 		// Output
 		VerletComputeShader.Attributes.Set( "OutputVertices", simData.ReadbackVertices );
 		VerletComputeShader.Attributes.Set( "BoundsWs", simData.ReadbackBounds.SwapToBack() );
