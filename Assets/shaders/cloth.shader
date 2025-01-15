@@ -63,9 +63,8 @@ PS
 		Material m = Material::Init();
 		m.Albedo = float3( 0, i.UV.x, i.UV.y );
 		m.Normal = i.Normal.xyz;
-		m.Normal = float3( 0, 0, 1 );
-		m.Roughness = 0;
-		/* m.Metalness = 1.0f; // Forces the object to be metalic */
+		m.WorldPosition = i.vPositionWs;
+		m.Roughness = 0.4;
 		return ShadingModelStandard::Shade( m );
 	}
 }

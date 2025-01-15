@@ -173,15 +173,14 @@
       "__guid": "539a31bc-b852-494a-bda0-152512c7d9a6",
       "Flags": 0,
       "Name": "Cloth",
-      "Position": "-80.00008,48,96",
-      "Enabled": true,
+      "Position": "-79.99986,48,80",
       "Components": [
         {
           "__type": "Duccsoft.VerletCloth",
           "__guid": "027c0069-f345-4f0a-b516-d66f8f43a181",
           "Bounds": {
-            "Mins": "-84.00008,-80.23993,47.61898",
-            "Maxs": "47.99992,52,100"
+            "Mins": "0,0,0",
+            "Maxs": "0,0,0"
           },
           "ClothResolution": 32,
           "DebugDrawPoints": false,
@@ -189,11 +188,11 @@
           "EnableCollision": true,
           "EnableRendering": true,
           "EndTarget": null,
-          "FirstRopePointPosition": "-80.00008,48,96",
+          "FirstRopePointPosition": "-79.99986,48,80",
           "FixedEnd": true,
           "FixedStart": true,
-          "Iterations": 42,
-          "LastRopePointPosition": "43.99992,-80,96",
+          "Iterations": 80,
+          "LastRopePointPosition": "-79.99986,48,-48",
           "Material": null,
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
@@ -272,6 +271,41 @@
           "Static": false,
           "Surface": null,
           "SurfaceVelocity": "0,0,0"
+        }
+      ]
+    },
+    {
+      "__guid": "0c38c27f-a49e-4a19-8478-6ecab09c65a0",
+      "Flags": 0,
+      "Name": "Envmap Probe",
+      "Position": "0,0,128",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.EnvmapProbe",
+          "__guid": "c5a4986f-69ed-45bb-aa54-65d037af4e93",
+          "Bounds": {
+            "Mins": "-1000,-1000,-1000",
+            "Maxs": "1000,1000,1000"
+          },
+          "DelayBetweenUpdates": 0.1,
+          "Feathering": 0.02,
+          "FrameInterval": 5,
+          "MaxDistance": 512,
+          "MultiBounce": false,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "Projection": "Box",
+          "RenderDynamically": true,
+          "Texture": "textures/cubemaps/default2.vtex",
+          "TintColor": "1,1,1,1",
+          "UpdateStrategy": "OnEnabled",
+          "ZFar": 4096,
+          "ZNear": 16
         }
       ]
     }

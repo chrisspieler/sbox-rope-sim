@@ -64,8 +64,8 @@ CS
 	// Forces
 	float3 Gravity < Attribute( "Gravity" ); Default3( 0, 0, -800.0 ); >;
 	// Rope rendering
-	float RopeWidth < Attribute( "RopeWidth" ); Default( 1.0 ); >;
-	float RopeRenderWidth < Attribute( "RopeRenderWidth" ); Default( 1.0 ); >;
+	float RopeWidth < Attribute( "RopeWidth" ); Default( 2.0 ); >;
+	float RopeRenderWidth < Attribute( "RopeRenderWidth" ); Default( 2.0 ); >;
 	float RopeTextureCoord < Attribute( "RopeTextureCoord" ); Default( 1.0 ); >;
 	float4 RopeTint < Attribute( "RopeTint"); Default4( 0.0, 0.0, 0.0, 1.0 ); >;
 	// Delta
@@ -366,6 +366,8 @@ CS
 		return normalize( cross( u, v ) );
 	}
 
+	groupshared float3 TriNormals[2048];
+
 	void OutputClothVertex( int pIndex )
 	{
 		VerletPoint p = Points[pIndex];
@@ -438,8 +440,49 @@ CS
 			tNor1 = CalculateTriNormal( v3, v4, v5 );
 		}
 
-		v.Normal = float4( normalize( tNor0 + tNor1 ).xyz, 1 );
+		float3 nor = float3( 0, 0, 1);
+		if ( pIndex >= 1024 )
+		{
+			v.Normal = float4( normalize( tNor0 + tNor1 ).xyz, 1 );
+			OutputVertices[pIndex] = v;
+			return;
+		}
+
+		GroupMemoryBarrierWithGroupSync();
+
+		TriNormals[pIndex * 2] = tNor0;
+		TriNormals[pIndex * 2 + 1] = tNor1;
+		
+		GroupMemoryBarrierWithGroupSync();
+
+		if ( x > 0 && y > 0 )
+		{
+			// NW
+			nor += TriNormals[pIndex * 2 - 2 - ( NumColumns * 2 ) + 1];
+		}
+		if ( x > 0 && y < NumColumns - 1 )
+		{
+			// NNE
+			nor += TriNormals[pIndex * 2 - 2];
+			// ENE
+			nor += TriNormals[pIndex * 2 - 2 + 1];
+		}
+		if ( x < NumColumns - 1 && y < NumColumns - 1 )
+		{
+			// SE
+			nor += TriNormals[pIndex * 2];
+		}
+		if ( x > 0 )
+		{
+			// SSW 
+			nor += TriNormals[pIndex * 2 - ( NumColumns * 2 ) + 1 ];
+			nor += TriNormals[pIndex * 2 - ( NumColumns * 2 )];
+		}
+
+		v.Normal = float4( normalize( nor ).xyz, 0 );
 		OutputVertices[pIndex] = v;
+
+		GroupMemoryBarrierWithGroupSync();
 	}
 
 	void Simulate( int pIndex, float deltaTime )
