@@ -373,6 +373,7 @@ CS
 		VerletPoint p = Points[pIndex];
 		int x = pIndex % NumColumns;
 		int y = pIndex / NumColumns;
+
 		float3 vPositionWs = p.Position;
 		float3 delta = vPositionWs - p.LastPosition;
 		float2 uv = float2( (float)x / NumColumns, (float)y / NumColumns );
@@ -440,8 +441,8 @@ CS
 			tNor1 = CalculateTriNormal( v3, v4, v5 );
 		}
 
-		float3 nor = float3( 0, 0, 1);
-		if ( pIndex >= 1024 )
+		float3 nor = 0;
+		if ( pIndex >= 1023 )
 		{
 			v.Normal = float4( normalize( tNor0 + tNor1 ).xyz, 1 );
 			OutputVertices[pIndex] = v;
@@ -454,29 +455,37 @@ CS
 		TriNormals[pIndex * 2 + 1] = tNor1;
 		
 		GroupMemoryBarrierWithGroupSync();
+		int iSelfTri = pIndex * 2;
+		int offsetNW = 0;
+		int offsetNNE = -1;
+		int offsetENE = -2;
+		int offsetSE = -(NumColumns * 2) - 1;
+		int offsetSSW = -(NumColumns * 2);
+		int offsetWSW = -(NumColumns * 2) + 1;
 
-		if ( x > 0 && y > 0 )
+		if ( x < NumColumns - 1 && y < NumColumns - 1 )
 		{
 			// NW
-			nor += TriNormals[pIndex * 2 - 2 - ( NumColumns * 2 ) + 1];
+			nor += TriNormals[iSelfTri + offsetNW];
 		}
 		if ( x > 0 && y < NumColumns - 1 )
 		{
 			// NNE
-			nor += TriNormals[pIndex * 2 - 2];
+			nor += TriNormals[iSelfTri + offsetNNE];
 			// ENE
-			nor += TriNormals[pIndex * 2 - 2 + 1];
+			nor += TriNormals[iSelfTri + offsetENE];
 		}
-		if ( x < NumColumns - 1 && y < NumColumns - 1 )
+		if ( x > 0 && y > 0 )
 		{
 			// SE
-			nor += TriNormals[pIndex * 2];
+			nor += TriNormals[iSelfTri + offsetSE];
 		}
-		if ( x > 0 )
+		if ( x < NumColumns - 1 && y > 0 )
 		{
 			// SSW 
-			nor += TriNormals[pIndex * 2 - ( NumColumns * 2 ) + 1 ];
-			nor += TriNormals[pIndex * 2 - ( NumColumns * 2 )];
+			nor += TriNormals[iSelfTri + offsetSSW];
+			// WSW
+			nor += TriNormals[iSelfTri + offsetWSW];
 		}
 
 		v.Normal = float4( normalize( nor ).xyz, 0 );
@@ -540,6 +549,8 @@ CS
 			if ( totalTime < 0 )
 				break;
 		}
+
+		GroupMemoryBarrierWithGroupSync();
 
 		UpdateBounds( pIndex );
 

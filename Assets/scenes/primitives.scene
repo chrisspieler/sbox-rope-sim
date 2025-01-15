@@ -116,14 +116,15 @@
       "__guid": "00e0f83b-1afc-4391-9343-67a8a997571b",
       "Flags": 0,
       "Name": "Rope",
-      "Position": "-36.789,4.956551,90.82528",
+      "Position": "-44.9053,49.8214,90.82498",
+      "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletRope",
           "__guid": "83c4aade-c14f-4ba6-8a21-a1ffacc216af",
           "Bounds": {
-            "Mins": "0,0,0",
-            "Maxs": "0,0,0"
+            "Mins": "-68.56551,40.50788,-7.875968",
+            "Maxs": "-40.9053,53.8214,94.82498"
           },
           "Color": "0,0,0,1",
           "DebugDrawPoints": false,
@@ -135,11 +136,11 @@
             "_type": "gameobject",
             "go": "fc00f137-e29d-46af-9626-7eea99407937"
           },
-          "FirstRopePointPosition": "-36.789,4.956551,90.82528",
+          "FirstRopePointPosition": "-44.9053,49.8214,90.82498",
           "FixedEnd": false,
           "FixedStart": true,
           "Iterations": 76,
-          "LastRopePointPosition": "-36.78896,100.9566,90.82528",
+          "LastRopePointPosition": "-44.90527,145.8214,90.82498",
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
@@ -173,14 +174,15 @@
       "__guid": "539a31bc-b852-494a-bda0-152512c7d9a6",
       "Flags": 0,
       "Name": "Cloth",
-      "Position": "-79.99986,48,80",
+      "Position": "-96,0,128",
+      "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletCloth",
           "__guid": "027c0069-f345-4f0a-b516-d66f8f43a181",
           "Bounds": {
-            "Mins": "0,0,0",
-            "Maxs": "0,0,0"
+            "Mins": "-100,-37.23694,-24.99927",
+            "Maxs": "32,4,132"
           },
           "ClothResolution": 32,
           "DebugDrawPoints": false,
@@ -188,11 +190,11 @@
           "EnableCollision": true,
           "EnableRendering": true,
           "EndTarget": null,
-          "FirstRopePointPosition": "-79.99986,48,80",
-          "FixedEnd": true,
+          "FirstRopePointPosition": "-96,0,128",
+          "FixedEnd": false,
           "FixedStart": true,
           "Iterations": 80,
-          "LastRopePointPosition": "-79.99986,48,-48",
+          "LastRopePointPosition": "28,-124,128",
           "Material": null,
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
@@ -201,7 +203,7 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
-          "Radius": 1,
+          "Radius": 6.39,
           "SimulateOnGPU": true,
           "StartTarget": {
             "_type": "gameobject",
@@ -225,7 +227,7 @@
       "__guid": "cbc2c3fa-7900-493e-8369-406f54a36fc2",
       "Flags": 0,
       "Name": "Sphere",
-      "Position": "-32,-0.00004259142,32",
+      "Position": "-32,0,32",
       "Enabled": true,
       "Components": [
         {

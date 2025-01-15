@@ -64,7 +64,7 @@ PS
 		m.Albedo = float3( 0, i.UV.x, i.UV.y );
 		m.Normal = i.Normal.xyz;
 		m.WorldPosition = i.vPositionWs;
-		m.Roughness = 0.4;
+		m.Roughness = 0.1;
 		return ShadingModelStandard::Shade( m );
 	}
 }
