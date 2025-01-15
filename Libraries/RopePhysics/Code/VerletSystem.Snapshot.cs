@@ -27,7 +27,8 @@ public partial class VerletSystem
 			.WithAnyTags(simData.CollisionInclude)
 			.RunAll();
 
-		CollisionSnapshot snapshot = new();
+		simData.Collisions ??= new CollisionSnapshot();
+		CollisionSnapshot snapshot = simData.Collisions;
 		var points = simData.CpuPoints;
 
 		var mdfs = MeshDistanceSystem.FindInBox(collisionBounds);

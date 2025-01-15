@@ -8,6 +8,8 @@ public partial class VerletSystem
 		ResolveBoxCollisions( simData );
 		ResolveCapsuleCollisions( simData );
 		ResolveMeshCollisions( simData );
+
+		simData.Collisions.Clear();
 	}
 
 	private static void ResolveSphereCollisions( SimulationData simData )

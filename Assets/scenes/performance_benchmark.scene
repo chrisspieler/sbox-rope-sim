@@ -18,7 +18,7 @@
           "OnComponentStart": null,
           "OnComponentUpdate": null,
           "SkyIndirectLighting": true,
-          "SkyMaterial": "materials/skybox/skybox_day_01.vmat",
+          "SkyMaterial": "materials/skybox/skybox_dark_01.vmat",
           "Tint": "1,1,1,1"
         }
       ]
@@ -53,8 +53,7 @@
           "OnComponentUpdate": null,
           "RopeContainer": {
             "_type": "gameobject",
-            "go": "fe8b17d1-c101-442e-bec1-e2b07bc6e432",
-            "prefab": null
+            "go": "fe8b17d1-c101-442e-bec1-e2b07bc6e432"
           },
           "Simulations": []
         },

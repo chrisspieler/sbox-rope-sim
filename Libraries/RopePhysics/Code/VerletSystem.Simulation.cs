@@ -92,13 +92,12 @@ public partial class VerletSystem
 			VerletComputeShader.Attributes.Set( "RopeTint", rope.Color );
 		}
 		// Colliders
-		var sphereColliders = simData.Collisions.SphereColliders.Values.Select( c => c.AsGpu() ).ToArray();
+		var sphereColliders = simData.Collisions.SphereColliders.Values.Take( 16 ).Select( c => c.AsGpu() ).ToArray();
 		VerletComputeShader.Attributes.Set( "NumSphereColliders", sphereColliders.Length );
 		if ( sphereColliders.Length > 0 )
 		{
-			var gpuSphereColliders = new GpuBuffer<GpuSphereCollisionInfo>( sphereColliders.Length, GpuBuffer.UsageFlags.Structured );
-			gpuSphereColliders.SetData( sphereColliders );
-			VerletComputeShader.Attributes.Set( "SphereColliders", gpuSphereColliders );
+			simData.Collisions.GpuSphereColliders.SetData( sphereColliders, 0 );
+			VerletComputeShader.Attributes.Set( "SphereColliders", simData.Collisions.GpuSphereColliders );
 		}
 		// Output
 		VerletComputeShader.Attributes.Set( "OutputVertices", simData.ReadbackVertices );
@@ -108,6 +107,7 @@ public partial class VerletSystem
 
 		var timer = FastTimer.StartNew();
 		simData.ClearPendingPointUpdates();
+		simData.Collisions.Clear();
 		simData.LoadBoundsFromGpu();
 		simData.LastTransform = simData.Transform;
 		simData.LastTick = 0;
