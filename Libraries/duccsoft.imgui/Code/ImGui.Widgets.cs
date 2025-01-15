@@ -39,8 +39,9 @@ public static partial class ImGui
 	{
 		var components = new float[1] { value };
 		var slider = new Slider<float>( CurrentWindow, label, ref components, min, max, format );
+		var hasChanged = components[0] != value;
 		value = components[0];
-		return slider.IsActive;
+		return hasChanged;
 	}
 
 	public static bool SliderFloat2( string label, ref Vector2 value, float min, float max, string format = "F3", ImGuiSliderFlags flags = 0 )

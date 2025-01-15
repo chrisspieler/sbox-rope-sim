@@ -9,8 +9,14 @@ public class BenchmarkUI : Component
 	[Property] public List<VerletComponent> Simulations { get; set; } = [];
 	[Property] public GameObject RopeContainer { get; set; }
 
-	private int GpuReadbackInterval = 5;
+	private int GpuReadbackInterval = 30;
+
+	private float RopeSpacing = 4f;
+
+	private float RopeLength = 96f;
+	private float PointSpacing = 4f;
 	private int Iterations = 20;
+	
 	private readonly CircularBuffer<float> DeltaTimes = new( 60 );
 
 	protected override void OnEnabled()
@@ -38,9 +44,9 @@ public class BenchmarkUI : Component
 		var swapInterval = GpuReadbackInterval;
 		if ( ImGui.SliderInt( "GPU Readback Interval", ref swapInterval, 1,60 ) )
 		{
-			SetAllSwapInterval( swapInterval );
+			GpuReadbackInterval = swapInterval;
+			ResetAllSims();
 		}
-		GpuReadbackInterval = swapInterval;
 		ImGui.Text( $"Rope Count: {Simulations.Count}" ); ImGui.SameLine();
 		if ( ImGui.Button( " - ") )
 		{
@@ -61,14 +67,46 @@ public class BenchmarkUI : Component
 		{
 			AddRope( 25 );
 		}
-		
+		ImGui.Text( $"Points per rope: {Simulations.FirstOrDefault()?.PointCount ?? 0}" );
+
+		ImGui.Text( "Length:" ); ImGui.SameLine();
+		float ropeLength = RopeLength;
+		if ( ImGui.SliderFloat( "Rope Length", ref ropeLength, 10f, 500f ) )
+		{
+			RopeLength = ropeLength;
+			foreach( var verlet in Simulations )
+			{
+				verlet.DefaultLength = RopeLength;
+			}
+			ResetAllSims();
+		}
+
+		ImGui.Text( "Point Spacing:" ); ImGui.SameLine();
+		float ropeSpacing = PointSpacing;
+		if ( ImGui.SliderFloat( "Point Spacing", ref ropeSpacing, 0.5f, 25f ) )
+		{
+			PointSpacing = ropeSpacing;
+			foreach ( var verlet in Simulations )
+			{
+				if ( verlet is not VerletRope rope )
+					continue;
+
+				rope.RadiusFraction = 1f / PointSpacing;
+				rope.PointSpacing = PointSpacing;
+			}
+			ResetAllSims();
+		}
+
 		ImGui.Text( "Iterations:" ); ImGui.SameLine();
 		int iterations = Iterations;
 		if ( ImGui.SliderInt( "Iterations", ref iterations, 1, 255 ) )
 		{
-			SetAllIterationCount( iterations );
+			foreach( var verlet in Simulations )
+			{
+				verlet.Iterations = iterations;
+			}
+			Iterations = iterations;
 		}
-		Iterations = iterations;
 
 		ImGui.Text( "For each:" );
 		ImGui.SameLine();
@@ -87,17 +125,21 @@ public class BenchmarkUI : Component
 	{
 		for ( int i = 0; i < count; i++ )
 		{
+			VerletRope rope;
 			if ( Simulations.Count > 0 )
 			{
-				var last = Simulations[^1];
-				var pos = last.WorldPosition + Vector3.Right * 4f;
-				var rope = CreateRope( pos );
-				rope.SimData.GpuReadbackInterval = GpuReadbackInterval;
+				var x = Simulations.Count % 10 * RopeSpacing;
+				var y = Simulations.Count / 10 * RopeSpacing;
+				var pos = RopeContainer.WorldPosition + new Vector3( x, y, 0 );
+				rope = CreateRope( pos );
 			}
 			else
 			{
-				CreateRope( RopeContainer.WorldPosition );
+				rope = CreateRope( RopeContainer.WorldPosition );
 			}
+			rope.SimData.GpuReadbackInterval = GpuReadbackInterval;
+			rope.DefaultLength = RopeLength;
+			rope.PointSpacing = PointSpacing;
 		}
 	}
 
@@ -118,36 +160,10 @@ public class BenchmarkUI : Component
 		}
 	}
 
-	private void SetAllSwapInterval( int swapInterval )
-	{
-		foreach ( var verlet in Simulations )
-		{
-			verlet.SimData.GpuReadbackInterval = swapInterval;
-		}
-	}
-
-	private void SetAllIterationCount( int iterations )
-	{
-		foreach( var verlet in Simulations )
-		{
-			verlet.Iterations = iterations;
-		}
-	}
-
-	private void SetAllResolution( float resolution )
-	{
-		foreach( var verlet in Simulations )
-		{
-			if ( verlet is not VerletRope rope )
-				continue;
-
-			rope.PointSpacing = resolution;
-		}
-	}
-
 	private VerletRope CreateRope( Vector3 position )
 	{
 		var ropeGo = new GameObject( true, "Verlet Rope" );
+		ropeGo.Parent = RopeContainer;
 		ropeGo.WorldPosition = position;
 		var verlet = ropeGo.AddComponent<VerletRope>();
 		Simulations.Add( verlet );

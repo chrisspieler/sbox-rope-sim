@@ -30,7 +30,7 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 			{
 				return EndTarget.WorldPosition;
 			}
-			return SimData?.LastPosition ?? WorldPosition + Vector3.Down * 50f;
+			return SimData?.LastPosition ?? WorldPosition + Vector3.Down * DefaultLength;
 		}
 	}
 	[Property, Change] public bool FixedStart { get; set; } = true;
@@ -46,15 +46,17 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	[Property, Change] public GameObject StartTarget { get; set; }
 	private void OnStartTargetChanged( GameObject oldValue, GameObject newValue )
 	{
-		Log.Info( nameof( OnStartTargetChanged ) );
+
 	}
 	[Property, Change] public GameObject EndTarget { get; set; }
 	private void OnEndTargetChanged( GameObject oldValue, GameObject newValue )
 	{
-		Log.Info( nameof( OnEndTargetChanged ) );
+
 	}
 	[Property, ReadOnly, JsonIgnore] 
 	public Vector3 StartPosition => StartTarget?.WorldPosition ?? WorldPosition;
+	[Property, Range( 1f, 1000f)]
+	public float DefaultLength { get; set; } = 128f;
 	[Property, ReadOnly, JsonIgnore]
 	public Vector3 EndPosition
 	{
@@ -63,7 +65,7 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 			if ( EndTarget.IsValid() )
 				return EndTarget.WorldPosition;
 
-			return EndTarget?.WorldPosition ?? WorldPosition + Vector3.Right * 128f;
+			return EndTarget?.WorldPosition ?? WorldPosition + Vector3.Right * DefaultLength;
 		}
 	}
 
@@ -77,13 +79,11 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 		Vector3 ropeTranslation = SimData.Translation;
 		if ( FixedStart && MathF.Abs( ropeTranslation.DistanceSquared( startTranslation ) ) > 0.001f )
 		{
-			Log.Info( StartPosition );
 			SimData.SetPointPosition( Vector2Int.Zero, StartPosition );
 		}
 
 		if ( FixedEnd && MathF.Abs( ropeTranslation.DistanceSquared( endTranslation ) ) > 0.001f )
 		{
-			Log.Info( EndPosition );
 			SimData.SetPointPosition( new Vector2Int( SimData.PointGridDims.x - 1, 0 ), EndPosition );
 		}
 

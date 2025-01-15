@@ -110,7 +110,7 @@
       "__guid": "2bd4bc94-8409-4fb1-b965-47bf6706a4c3",
       "Flags": 0,
       "Name": "Rope Array",
-      "Position": "-19.61293,144,135.218",
+      "Position": "0,0,128",
       "Enabled": true,
       "Children": [
         {
@@ -122,16 +122,69 @@
             {
               "__type": "Sandbox.Oscillator",
               "__guid": "0556ebd7-3719-42b2-9332-067f11f8f3ff",
-              "Amplitude": "0,64,0",
+              "Amplitude": "32,32,0",
               "OnComponentDestroy": null,
               "OnComponentDisabled": null,
               "OnComponentEnabled": null,
               "OnComponentFixedUpdate": null,
               "OnComponentStart": null,
               "OnComponentUpdate": null,
-              "Period": "1,1,1"
+              "Period": "2,4,1"
             }
           ]
+        }
+      ]
+    },
+    {
+      "__guid": "379abbe9-9fb1-443c-b041-e8b3e7a58639",
+      "Flags": 0,
+      "Name": "Sphere",
+      "Position": "0,0,72",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "d2c39a7e-e082-43c3-947c-9c010ce3d070",
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
+          "Model": "models/dev/sphere.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.SphereCollider",
+          "__guid": "a6633e0b-e7fd-4b8f-b483-b2d6d72217f1",
+          "Center": "0,0,0",
+          "Friction": null,
+          "IsTrigger": false,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "Radius": 32,
+          "Static": false,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
         }
       ]
     }

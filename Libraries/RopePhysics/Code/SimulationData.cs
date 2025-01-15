@@ -127,7 +127,7 @@ public class SimulationData
 			}
 		}
 	}
-	private int _gpuReadbackInterval = 20;
+	private int _gpuReadbackInterval = 30;
 
 	public void InitializeGpu()
 	{
