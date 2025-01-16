@@ -26,10 +26,10 @@ public struct MeshCollisionInfo
 
 public struct GpuMeshCollisionInfo
 {
+	public Vector3 MinsWs;
+	public int SdfTextureIndex;
+	public Vector3 MaxsWs;
+	public int TextureSize;
 	public Matrix LocalToWorld;
 	public Matrix WorldToLocal;
-	public int SdfTextureIndex;
-	public Vector3 MinsWs;
-	public int TextureSize;
-	public Vector3 MaxsWs;
 }

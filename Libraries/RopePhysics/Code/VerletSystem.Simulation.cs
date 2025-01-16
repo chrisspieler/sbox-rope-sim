@@ -117,18 +117,12 @@ public partial class VerletSystem
 		VerletComputeShader.Attributes.Set( "NumMeshColliders", meshColliders.Length );
 		if ( meshColliders.Length > 0 )
 		{
-			System.Text.StringBuilder sb = new();
-			foreach( var collider in meshColliders )
-			{
-				sb.Append( collider.SdfTextureIndex + " " );
-			}
-			Log.Info( sb.ToString() );
 			simData.Collisions.GpuMeshColliders.SetData( meshColliders, 0 );
 			VerletComputeShader.Attributes.Set( "MeshColliders", simData.Collisions.GpuMeshColliders );
 		}
 		// Output
 		VerletComputeShader.Attributes.Set( "OutputVertices", simData.ReadbackVertices );
-		VerletComputeShader.Attributes.Set( "OutputIndices", simData.ReadbackIndices );
+		// VerletComputeShader.Attributes.Set( "OutputIndices", simData.ReadbackIndices );
 		VerletComputeShader.Attributes.Set( "BoundsWs", simData.ReadbackBounds.SwapToBack() );
 
 		VerletComputeShader.Dispatch( xThreads, yThreads, 1 );

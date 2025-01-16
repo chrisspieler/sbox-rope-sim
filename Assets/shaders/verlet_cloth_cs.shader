@@ -75,7 +75,7 @@ CS
 	float3 Translation < Attribute( "Translation" ); >;
 	// Output
 	RWStructuredBuffer<Vertex> OutputVertices < Attribute( "OutputVertices" ); >;
-	RWStructuredBuffer<uint> OutputIndices < Attribute( "OutputIndices" ); >;
+	// RWStructuredBuffer<uint> OutputIndices < Attribute( "OutputIndices" ); >;
 	RWStructuredBuffer<float4> BoundsWs < Attribute( "BoundsWs" ); >;
 
 	struct SphereCollider
@@ -181,59 +181,25 @@ CS
 		}
 	};
 
-	struct MeshDistanceField
+	#include "shared/signed_distance_field.hlsl"
+
+	void ResolveSdfCollision( SignedDistanceField sdf, int pIndex )
 	{
-		Texture3D Texture;
-		int TextureSize;
-		float4x4 LocalToWorld;
-		float4x4 WorldToLocal;
+		Texture3D sdTex = Bindless::GetTexture3D( sdf.SdfTextureIndex );
+		VerletPoint p = Points[pIndex];
+		if ( any( p.Position < sdf.MinsWs ) || any( p.Position > sdf.MaxsWs ) )
+			return;
 
-		float GetSignedDistance( uint3 texel )
-		{
-			return 0;
-			// float4 texData = Texture.Load( int4( texel.xyz, 0 ) );
-			// return texData.r;
-		}
+		float3 pPositionOs = mul( sdf.WorldToLocal, float4( p.Position.xyz, 1 ) ).xyz;
+		float sd = 0;
+		float3 gradient = sdf.GetGradient( sdTex, 0, sd );
+		if ( sd > RopeWidth )
+			return;
 
-		float3 GetGradient( uint3 texel, out float signedDistance )
-		{
-			signedDistance = GetSignedDistance( texel );
-			float ddx = 0;
-			float ddy = 0;
-			float ddz = 1;
-			return normalize( float3( ddx, ddy, ddz ) );
-		}
-
-		void ResolveCollision( int pIndex )
-		{
-			VerletPoint p = Points[pIndex];
-			float3 pPositionOs = mul( WorldToLocal, float4( p.Position.xyz, 1 ) ).xyz;
-			float sd = 0;
-			float3 gradient = GetGradient( 0, sd );
-			pPositionOs += float3( 0, 0, sd );
-			p.Position = mul( LocalToWorld, float4( pPositionOs.xyz, 1 ) ).xyz;
-			Points[pIndex] = p;
-		}
-	};
-
-	struct MeshCollider
-	{
-		float4x4 LocalToWorld;
-		float4x4 WorldToLocal;
-		int SdfTextureIndex;
-		float3 MinsWs;
-		int TextureSize;
-		float3 MaxsWs;
-
-		MeshDistanceField GetMeshDistanceField()
-		{
-			MeshDistanceField mdf;
-			// mdf.Texture = Bindless::GetTexture3D( SdfTextureIndex );
-			mdf.TextureSize = TextureSize;
-			return mdf;
-		}
-	};
-
+		pPositionOs += gradient * ( -sd + RopeWidth );
+		p.Position = mul( sdf.LocalToWorld, float4( pPositionOs.xyz, 1 ) ).xyz;
+		Points[pIndex] = p;
+	}
 
 	// Colliders
 	int NumSphereColliders < Attribute( "NumSphereColliders" ); >;
@@ -243,7 +209,7 @@ CS
 	int NumCapsuleColliders < Attribute( "NumCapsuleColliders" ); >;
 	RWStructuredBuffer<CapsuleCollider> CapsuleColliders < Attribute( "CapsuleColliders" ); >;
 	int NumMeshColliders < Attribute( "NumMeshColliders" ); >;
-	RWStructuredBuffer<MeshCollider> MeshColliders < Attribute( "MeshColliders" ); >;
+	RWStructuredBuffer<SignedDistanceField> MeshColliders < Attribute( "MeshColliders" ); >;
 
 	DynamicCombo( D_SHAPE_TYPE, 0..1, Sys( All ) );
 	int Index2DTo1D( uint2 i )
@@ -450,8 +416,8 @@ CS
 	{
 		for( int i = 0; i < NumMeshColliders; i++ )
 		{
-			MeshCollider collider = MeshColliders[i];
-			MeshDistanceField mdf = collider.GetMeshDistanceField();
+			SignedDistanceField sdf = MeshColliders[i];
+			ResolveSdfCollision( sdf, pIndex );
 		}
 	}
 
@@ -460,6 +426,7 @@ CS
 		ResolveSphereCollisions( pIndex );
 		ResolveBoxCollisions( pIndex );
 		ResolveCapsuleCollisions( pIndex );
+		ResolveMeshCollisions( pIndex );
 	}
 
 	groupshared float3 g_vMins[1024];
@@ -539,128 +506,128 @@ CS
 
 	void OutputClothVertex( int pIndex )
 	{
-		VerletPoint p = Points[pIndex];
-		int x = pIndex % NumColumns;
-		int y = pIndex / NumColumns;
+		// VerletPoint p = Points[pIndex];
+		// int x = pIndex % NumColumns;
+		// int y = pIndex / NumColumns;
 
-		float3 vPositionWs = p.Position;
-		float3 delta = vPositionWs - p.LastPosition;
-		float2 uv = float2( (float)x / NumColumns, (float)y / NumColumns );
+		// float3 vPositionWs = p.Position;
+		// float3 delta = vPositionWs - p.LastPosition;
+		// float2 uv = float2( (float)x / NumColumns, (float)y / NumColumns );
 
-		Vertex v;
-		v.Position = vPositionWs;
-		v.TexCoord0 = float4( uv.x, uv.y, 0, 0 );
-		v.Normal = float4( 0, 0, 1, 0 );
-		v.Tangent0 = float4( delta.xyz, 0 );
-		v.TexCoord1 = RopeTint;
-		v.Color0 = float4( 1, 1, 1, 1 );
+		// Vertex v;
+		// v.Position = vPositionWs;
+		// v.TexCoord0 = float4( uv.x, uv.y, 0, 0 );
+		// v.Normal = float4( 0, 0, 1, 0 );
+		// v.Tangent0 = float4( delta.xyz, 0 );
+		// v.TexCoord1 = RopeTint;
+		// v.Color0 = float4( 1, 1, 1, 1 );
 		
-		OutputVertices[pIndex] = v;
+		// OutputVertices[pIndex] = v;
 
-		uint baseIndex = pIndex;
+		// uint baseIndex = pIndex;
 
-		int i0 = baseIndex;
-		int i1 = baseIndex + 1;
-		int i2 = baseIndex + NumColumns;
+		// int i0 = baseIndex;
+		// int i1 = baseIndex + 1;
+		// int i2 = baseIndex + NumColumns;
 
-		bool isOnEdge = x == NumColumns - 1 || y == NumColumns - 1 ;
+		// bool isOnEdge = x == NumColumns - 1 || y == NumColumns - 1 ;
 
-		if ( !isOnEdge )
-		{
-			int iIndex0 = pIndex * 6;
-			int iIndex1 = pIndex * 6 + 1;
-			int iIndex2 = pIndex * 6 + 2;
-			OutputIndices[iIndex0] = i0;
-			OutputIndices[iIndex1] = i1;
-			OutputIndices[iIndex2] = i2;
-		}
+		// if ( !isOnEdge )
+		// {
+		// 	int iIndex0 = pIndex * 6;
+		// 	int iIndex1 = pIndex * 6 + 1;
+		// 	int iIndex2 = pIndex * 6 + 2;
+		// 	OutputIndices[iIndex0] = i0;
+		// 	OutputIndices[iIndex1] = i1;
+		// 	OutputIndices[iIndex2] = i2;
+		// }
 
-		int i3 = baseIndex + NumColumns;
-		int i4 = baseIndex + 1;
-		int i5 = baseIndex + NumColumns + 1;
+		// int i3 = baseIndex + NumColumns;
+		// int i4 = baseIndex + 1;
+		// int i5 = baseIndex + NumColumns + 1;
 
-		if ( !isOnEdge )
-		{
-			int iIndex3 = pIndex * 6 + 3;
-			int iIndex4 = pIndex * 6 + 4;
-			int iIndex5 = pIndex * 6 + 5;
-			OutputIndices[iIndex3] = i3;
-			OutputIndices[iIndex4] = i4;
-			OutputIndices[iIndex5] = i5;
-		}
+		// if ( !isOnEdge )
+		// {
+		// 	int iIndex3 = pIndex * 6 + 3;
+		// 	int iIndex4 = pIndex * 6 + 4;
+		// 	int iIndex5 = pIndex * 6 + 5;
+		// 	OutputIndices[iIndex3] = i3;
+		// 	OutputIndices[iIndex4] = i4;
+		// 	OutputIndices[iIndex5] = i5;
+		// }
 
-		GroupMemoryBarrierWithGroupSync();
+		// GroupMemoryBarrierWithGroupSync();
 
-		float3 tNor0 = float3( 0, 0, 1 );
-		float3 tNor1 = float3( 0, 0, 1 );
+		// float3 tNor0 = float3( 0, 0, 1 );
+		// float3 tNor1 = float3( 0, 0, 1 );
 
-		if ( !isOnEdge )
-		{
-			float3 v0 = OutputVertices[i0].Position;
-			float3 v1 = OutputVertices[i1].Position;
-			float3 v2 = OutputVertices[i2].Position;
-			tNor0 = CalculateTriNormal( v0, v1, v2 );
-		}
+		// if ( !isOnEdge )
+		// {
+		// 	float3 v0 = OutputVertices[i0].Position;
+		// 	float3 v1 = OutputVertices[i1].Position;
+		// 	float3 v2 = OutputVertices[i2].Position;
+		// 	tNor0 = CalculateTriNormal( v0, v1, v2 );
+		// }
 
-		if ( !isOnEdge )
-		{
-			float3 v3 = OutputVertices[i3].Position;
-			float3 v4 = OutputVertices[i4].Position;
-			float3 v5 = OutputVertices[i5].Position;
-			tNor1 = CalculateTriNormal( v3, v4, v5 );
-		}
+		// if ( !isOnEdge )
+		// {
+		// 	float3 v3 = OutputVertices[i3].Position;
+		// 	float3 v4 = OutputVertices[i4].Position;
+		// 	float3 v5 = OutputVertices[i5].Position;
+		// 	tNor1 = CalculateTriNormal( v3, v4, v5 );
+		// }
 
-		float3 nor = 0;
-		if ( pIndex >= 1023 )
-		{
-			v.Normal = float4( normalize( tNor0 + tNor1 ).xyz, 1 );
-			OutputVertices[pIndex] = v;
-			return;
-		}
+		// float3 nor = 0;
+		// if ( pIndex >= 1023 )
+		// {
+		// 	v.Normal = float4( normalize( tNor0 + tNor1 ).xyz, 1 );
+		// 	OutputVertices[pIndex] = v;
+		// 	return;
+		// }
 
-		GroupMemoryBarrierWithGroupSync();
+		// GroupMemoryBarrierWithGroupSync();
 
-		TriNormals[pIndex * 2] = tNor0;
-		TriNormals[pIndex * 2 + 1] = tNor1;
+		// TriNormals[pIndex * 2] = tNor0;
+		// TriNormals[pIndex * 2 + 1] = tNor1;
 		
-		GroupMemoryBarrierWithGroupSync();
-		int iSelfTri = pIndex * 2;
-		int offsetNW = 0;
-		int offsetNNE = -1;
-		int offsetENE = -2;
-		int offsetSE = -(NumColumns * 2) - 1;
-		int offsetSSW = -(NumColumns * 2);
-		int offsetWSW = -(NumColumns * 2) + 1;
+		// GroupMemoryBarrierWithGroupSync();
+		// int iSelfTri = pIndex * 2;
+		// int offsetNW = 0;
+		// int offsetNNE = -1;
+		// int offsetENE = -2;
+		// int offsetSE = -(NumColumns * 2) - 1;
+		// int offsetSSW = -(NumColumns * 2);
+		// int offsetWSW = -(NumColumns * 2) + 1;
 
-		if ( x < NumColumns - 1 && y < NumColumns - 1 )
-		{
-			// NW
-			nor += TriNormals[iSelfTri + offsetNW];
-		}
-		if ( x > 0 && y < NumColumns - 1 )
-		{
-			// NNE
-			nor += TriNormals[iSelfTri + offsetNNE];
-			// ENE
-			nor += TriNormals[iSelfTri + offsetENE];
-		}
-		if ( x > 0 && y > 0 )
-		{
-			// SE
-			nor += TriNormals[iSelfTri + offsetSE];
-		}
-		if ( x < NumColumns - 1 && y > 0 )
-		{
-			// SSW 
-			nor += TriNormals[iSelfTri + offsetSSW];
-			// WSW
-			nor += TriNormals[iSelfTri + offsetWSW];
-		}
+		// if ( x < NumColumns - 1 && y < NumColumns - 1 )
+		// {
+		// 	// NW
+		// 	nor += TriNormals[iSelfTri + offsetNW];
+		// }
+		// if ( x > 0 && y < NumColumns - 1 )
+		// {
+		// 	// NNE
+		// 	nor += TriNormals[iSelfTri + offsetNNE];
+		// 	// ENE
+		// 	nor += TriNormals[iSelfTri + offsetENE];
+		// }
+		// if ( x > 0 && y > 0 )
+		// {
+		// 	// SE
+		// 	nor += TriNormals[iSelfTri + offsetSE];
+		// }
+		// if ( x < NumColumns - 1 && y > 0 )
+		// {
+		// 	// SSW 
+		// 	nor += TriNormals[iSelfTri + offsetSSW];
+		// 	// WSW
+		// 	nor += TriNormals[iSelfTri + offsetWSW];
+		// }
 
-		v.Normal = float4( normalize( nor ).xyz, 0 );
-		OutputVertices[pIndex] = v;
+		// v.Normal = float4( normalize( nor ).xyz, 0 );
+		// OutputVertices[pIndex] = v;
 
-		GroupMemoryBarrierWithGroupSync();
+		// GroupMemoryBarrierWithGroupSync();
 	}
 
 	void Simulate( int pIndex, float deltaTime )

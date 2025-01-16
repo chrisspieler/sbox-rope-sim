@@ -95,4 +95,3 @@ struct Voxel
 		SdfTexture[voxel] = signedDistance;
 	}
 };
-

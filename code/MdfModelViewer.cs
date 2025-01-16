@@ -497,17 +497,10 @@ public class MdfModelViewer : Component
 			debugMode = SdfSliceDebugVisualization.InsideOutside;
 		}
 		_textureSliceCs.Attributes.SetComboEnum( "D_MODE", debugMode );
-		if ( debugMode == SdfSliceDebugVisualization.Gradient)
-		{
-			var gradientBufferGpu = new GpuBuffer<Vector4>( voxelData.Debug.Gradients.Length, GpuBuffer.UsageFlags.Structured );
-			gradientBufferGpu.SetData( voxelData.Debug.Gradients );
-			_textureSliceCs.Attributes.Set( "Gradients", gradientBufferGpu );
-		}
-		_textureSliceCs.Attributes.Set( "VoxelMinsOs", voxelData.Bounds.Mins );
-		_textureSliceCs.Attributes.Set( "VoxelMaxsOs", voxelData.Bounds.Maxs );
-		_textureSliceCs.Attributes.Set( "VoxelVolumeDims", new Vector3( size ) );
-		// _textureSliceCs.Attributes.Set( "VoxelSdf", voxelSdfGpu );
-		_textureSliceCs.Attributes.Set( "SdfTexture", voxelData.DataTexture );
+		_textureSliceCs.Attributes.Set( "SdfTextureIndex", voxelData.DataTexture.Index );
+		_textureSliceCs.Attributes.Set( "MinsWs", voxelData.Bounds.Mins );
+		_textureSliceCs.Attributes.Set( "MaxsWs", voxelData.Bounds.Maxs );
+		_textureSliceCs.Attributes.Set( "TextureSize", voxelData.TextureSize );
 		_textureSliceCs.Attributes.Set( "ZLayer", z );
 		_textureSliceCs.Attributes.Set( "OutputTexture", outputTex );
 		_textureSliceCs.Dispatch( size, size, size );
