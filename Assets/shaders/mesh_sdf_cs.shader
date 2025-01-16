@@ -577,8 +577,6 @@ CS
 
 	#if D_STAGE == 1
 	[numthreads( 64, 1, 1 )]
-	#elif D_STAGE == 4
-	[numthreads( 2, 8, 8 )]
 	#else 
 	[numthreads( 4, 4, 4 )]
 	#endif

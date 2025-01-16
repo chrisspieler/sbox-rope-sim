@@ -65,6 +65,9 @@ CS
 	[numthreads( 8, 8, 8 )]
 	void MainCs( uint3 id : SV_DispatchThreadID )
 	{
+		if ( any( id > TextureSize ) )
+			return;
+			
 		SignedDistanceField sdf;
 		sdf.SdfTextureIndex = SdfTextureIndex;
 		sdf.MinsWs = MinsWs;

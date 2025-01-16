@@ -1,22 +1,7 @@
 float3 VoxelMinsOs < Attribute( "VoxelMinsOs" ); >;
 float3 VoxelMaxsOs < Attribute( "VoxelMaxsOs" ); >;
 float3 VoxelVolumeDims < Attribute( "VoxelVolumeDims" ); >;
-RWStructuredBuffer<int> VoxelSdf < Attribute( "VoxelSdf" ); >;
 RWTexture3D<float> SdfTexture < Attribute( "SdfTexture" ); >;
-
-int FloatToByte( float value, float minValue, float maxValue )
-{
-	float invLerp = ( value - minValue ) / ( maxValue - minValue );
-	invLerp = saturate( invLerp );
-	return int( lerp( -128.0, 127.0, invLerp ) );
-}
-
-float ByteToFloat(int byte, float minValue, float maxValue )
-{
-	float invLerp = ( float(byte) - (-128.0 ) ) / ( 127.0 - (-128.0) );
-	invLerp = saturate( invLerp );
-	return lerp( minValue, maxValue, invLerp );
-}
 
 struct Voxel
 {
