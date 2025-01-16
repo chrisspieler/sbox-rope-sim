@@ -14,19 +14,13 @@ public struct SphereCollisionInfo
 	}
 
 	public GpuSphereCollisionInfo AsGpu()
-	{
-		Matrix localToWorld = Matrix.CreateScale( Transform.Scale )
-			* Matrix.CreateRotation( Transform.Rotation )
-			* Matrix.CreateTranslation( Transform.Position );
-		Matrix worldToLocal = localToWorld.Inverted;
-		return new GpuSphereCollisionInfo
+		=> new()
 		{
 			Center = Center,
 			Radius = Radius,
-			LocalToWorld = localToWorld,
-			WorldToLocal = worldToLocal,
+			LocalToWorld = Transform.GetLocalToWorld(),
+			WorldToLocal = Transform.GetWorldToLocal(),
 		};
-	}
 }
 
 public struct GpuSphereCollisionInfo

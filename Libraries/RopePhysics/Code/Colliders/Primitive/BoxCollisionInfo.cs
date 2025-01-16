@@ -11,4 +11,20 @@ public struct BoxCollisionInfo
     {
 		CollidingPoints = new();
     }
+
+	public GpuBoxCollisionInfo AsGpu()
+		=> new()
+		{
+			Size = Size,
+			LocalToWorld = Transform.GetLocalToWorld(),
+			WorldToLocal = Transform.GetWorldToLocal(),
+		};
+}
+
+public struct GpuBoxCollisionInfo
+{
+	public Vector3 Size;
+	public int Padding;
+	public Matrix LocalToWorld;
+	public Matrix WorldToLocal;
 }

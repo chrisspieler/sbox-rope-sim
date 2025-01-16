@@ -100,10 +100,50 @@ CS
 			Points[pIndex] = p;
 		}
 	};
+	
+	struct BoxCollider
+	{
+		float3 Size;
+		int Padding;
+		float4x4 LocalToWorld;
+		float4x4 WorldToLocal;
+
+		void ResolveCollision( int pIndex )
+		{
+			VerletPoint p = Points[pIndex];
+			float3 pPositionOs = mul( WorldToLocal, float4( p.Position.xyz, 1 ) ).xyz;
+			float3 halfSize = Size * 0.5f;
+			float3 scale = 1;
+			float3 pointDepth = halfSize - abs( pPositionOs );
+			float radius = RopeWidth;
+
+			if ( pointDepth.x <= -radius || pointDepth.y <= -radius || pointDepth.z <= -radius )
+				return;
+
+			float3 pointScaled = pointDepth * scale;
+			float3 signs = sign( pPositionOs );
+			if ( pointScaled.x < pointScaled.y && pointScaled.x < pointScaled.z )
+			{
+				pPositionOs.x = halfSize.x * signs.x + radius * signs.x;
+			}
+			else if ( pointScaled.y < pointScaled.x && pointScaled.y < pointScaled.z )
+			{
+				pPositionOs.y = halfSize.y * signs.y + radius * signs.y;
+			}
+			else
+			{
+				pPositionOs.z = halfSize.z * signs.z + radius * signs.z;
+			}
+			p.Position = mul( LocalToWorld, float4( pPositionOs.xyz, 1 ) ).xyz;
+			Points[pIndex] = p;
+		}
+	};
 
 	// Colliders
 	int NumSphereColliders < Attribute( "NumSphereColliders" ); >;
 	RWStructuredBuffer<SphereCollider> SphereColliders < Attribute( "SphereColliders" ); >;
+	int NumBoxColliders < Attribute( "NumBoxColliders" ); >;
+	RWStructuredBuffer<BoxCollider> BoxColliders < Attribute( "BoxColliders" ); >;
 
 	DynamicCombo( D_SHAPE_TYPE, 0..1, Sys( All ) );
 	int Index2DTo1D( uint2 i )
@@ -288,9 +328,19 @@ CS
 		}
 	}
 
+	void ResolveBoxCollisions( int pIndex )
+	{
+		for ( int i = 0; i < NumBoxColliders; i++ )
+		{
+			BoxCollider box = BoxColliders[i];
+			box.ResolveCollision( pIndex );
+		}
+	}
+
 	void ResolveCollisions( int pIndex )
 	{
 		ResolveSphereCollisions( pIndex );
+		ResolveBoxCollisions( pIndex );
 	}
 
 	groupshared float3 g_vMins[1024];

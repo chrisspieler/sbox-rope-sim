@@ -99,6 +99,13 @@ public partial class VerletSystem
 			simData.Collisions.GpuSphereColliders.SetData( sphereColliders, 0 );
 			VerletComputeShader.Attributes.Set( "SphereColliders", simData.Collisions.GpuSphereColliders );
 		}
+		var boxColliders = simData.Collisions.BoxColliders.Values.Take( 16 ).Select( c => c.AsGpu() ).ToArray();
+		VerletComputeShader.Attributes.Set( "NumBoxColliders", boxColliders.Length );
+		if ( boxColliders.Length > 0 )
+		{
+			simData.Collisions.GpuBoxColliders.SetData( boxColliders, 0 );
+			VerletComputeShader.Attributes.Set( "BoxColliders", simData.Collisions.GpuBoxColliders );
+		}
 		// Output
 		VerletComputeShader.Attributes.Set( "OutputVertices", simData.ReadbackVertices );
 		VerletComputeShader.Attributes.Set( "OutputIndices", simData.ReadbackIndices );
