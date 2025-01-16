@@ -139,11 +139,55 @@ CS
 		}
 	};
 
+	struct CapsuleCollider
+	{
+		float3 Start;
+		float Radius;
+		float3 End;
+		int Padding;
+		float4x4 LocalToWorld;
+		float4x4 WorldToLocal;
+
+		// Adapted from: https://iquilezles.org/articles/distfunctions/
+		float sdCapsule( float3 p )
+		{
+			float3 pa = p - Start;
+			float3 ba = End - Start;
+			float h = clamp( dot( pa, ba ) / dot( ba, ba ), 0, 1 );
+			return length(pa - ba * h) - Radius;
+		}
+
+		void ResolveCollision( int pIndex )
+		{
+			VerletPoint p = Points[pIndex];
+			float3 pPositionOs = mul( WorldToLocal, float4( p.Position.xyz, 1 ) ).xyz;
+			float sd = sdCapsule( pPositionOs );
+			if ( sd > RopeWidth )
+				return;
+
+			float3 xOffset = float3( 0.0001, 0, 0 );
+			float3 yOffset = float3( 0, 0.0001, 0 );
+			float3 zOffset = float3( 0, 0, 0.0001 );
+			float3 gradient = float3
+			(
+				sdCapsule( pPositionOs + xOffset ) - sdCapsule( pPositionOs - xOffset ),
+				sdCapsule( pPositionOs + yOffset ) - sdCapsule( pPositionOs - yOffset ),
+				sdCapsule( pPositionOs + zOffset ) - sdCapsule( pPositionOs - zOffset )
+			);
+			gradient = normalize( gradient );
+			pPositionOs += gradient * ( -sd + RopeWidth );
+			p.Position = mul( LocalToWorld, float4( pPositionOs.xyz, 1 ) ).xyz;
+			Points[pIndex] = p;
+		}
+	};
+
 	// Colliders
 	int NumSphereColliders < Attribute( "NumSphereColliders" ); >;
 	RWStructuredBuffer<SphereCollider> SphereColliders < Attribute( "SphereColliders" ); >;
 	int NumBoxColliders < Attribute( "NumBoxColliders" ); >;
 	RWStructuredBuffer<BoxCollider> BoxColliders < Attribute( "BoxColliders" ); >;
+	int NumCapsuleColliders < Attribute( "NumCapsuleColliders" ); >;
+	RWStructuredBuffer<CapsuleCollider> CapsuleColliders < Attribute( "CapsuleColliders" ); >;
 
 	DynamicCombo( D_SHAPE_TYPE, 0..1, Sys( All ) );
 	int Index2DTo1D( uint2 i )
@@ -337,10 +381,20 @@ CS
 		}
 	}
 
+	void ResolveCapsuleCollisions( int pIndex )
+	{
+		for ( int i = 0; i < NumCapsuleColliders; i++ )
+		{
+			CapsuleCollider capsule = CapsuleColliders[i];
+			capsule.ResolveCollision( pIndex );
+		}
+	}
+
 	void ResolveCollisions( int pIndex )
 	{
 		ResolveSphereCollisions( pIndex );
 		ResolveBoxCollisions( pIndex );
+		ResolveCapsuleCollisions( pIndex );
 	}
 
 	groupshared float3 g_vMins[1024];
@@ -380,8 +434,8 @@ CS
 
 		if ( pIndex == 0 )
 		{
-			float3 mins = g_vMins[0] - 4;
-			float3 maxs = g_vMaxs[0] + 4;
+			float3 mins = g_vMins[0] - 24;
+			float3 maxs = g_vMaxs[0] + 24;
 			BoundsWs[0] = float4( mins.xyz, 1 );
 			BoundsWs[1] = float4( maxs.xyz, 1 );
 		}

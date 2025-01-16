@@ -115,6 +115,8 @@ public class SimulationData
 	}
 
 	private static int GpuReadbackOffset = 0;
+	[ConVar( "verlet_gpu_readback_interval" )]
+	public static int DefaultGpuReadbackInterval { get; set; } = 5;
 	public int GpuReadbackInterval
 	{
 		get => _gpuReadbackInterval;
@@ -127,7 +129,7 @@ public class SimulationData
 			}
 		}
 	}
-	private int _gpuReadbackInterval = 30;
+	private int _gpuReadbackInterval = 5;
 
 	public void InitializeGpu()
 	{
