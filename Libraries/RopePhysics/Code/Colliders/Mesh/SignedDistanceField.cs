@@ -15,6 +15,7 @@ public partial class SignedDistanceField
 	// Assume square bounds for now.
 	public float TexelSize => Bounds.Size.x / TextureSize;
 	public int[] Data { get; internal set; }
+	public Texture DataTexture { get; internal set; }
 	public int DataSize => TextureSize * TextureSize * TextureSize * sizeof( byte );
 	public DebugData Debug { get; set; }
 
@@ -61,6 +62,8 @@ public partial class SignedDistanceField
 	{
 		get
 		{
+			// TODO: Get all pixel data if needed.
+			return 0;
 			int x = texel.x.Clamp( 0, TextureSize - 1 );
 			int y = texel.y.Clamp( 0, TextureSize - 1 );
 			int z = texel.z.Clamp( 0, TextureSize - 1 );

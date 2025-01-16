@@ -181,6 +181,60 @@ CS
 		}
 	};
 
+	struct MeshDistanceField
+	{
+		Texture3D Texture;
+		int TextureSize;
+		float4x4 LocalToWorld;
+		float4x4 WorldToLocal;
+
+		float GetSignedDistance( uint3 texel )
+		{
+			return 0;
+			// float4 texData = Texture.Load( int4( texel.xyz, 0 ) );
+			// return texData.r;
+		}
+
+		float3 GetGradient( uint3 texel, out float signedDistance )
+		{
+			signedDistance = GetSignedDistance( texel );
+			float ddx = 0;
+			float ddy = 0;
+			float ddz = 1;
+			return normalize( float3( ddx, ddy, ddz ) );
+		}
+
+		void ResolveCollision( int pIndex )
+		{
+			VerletPoint p = Points[pIndex];
+			float3 pPositionOs = mul( WorldToLocal, float4( p.Position.xyz, 1 ) ).xyz;
+			float sd = 0;
+			float3 gradient = GetGradient( 0, sd );
+			pPositionOs += float3( 0, 0, sd );
+			p.Position = mul( LocalToWorld, float4( pPositionOs.xyz, 1 ) ).xyz;
+			Points[pIndex] = p;
+		}
+	};
+
+	struct MeshCollider
+	{
+		float4x4 LocalToWorld;
+		float4x4 WorldToLocal;
+		int SdfTextureIndex;
+		float3 MinsWs;
+		int TextureSize;
+		float3 MaxsWs;
+
+		MeshDistanceField GetMeshDistanceField()
+		{
+			MeshDistanceField mdf;
+			// mdf.Texture = Bindless::GetTexture3D( SdfTextureIndex );
+			mdf.TextureSize = TextureSize;
+			return mdf;
+		}
+	};
+
+
 	// Colliders
 	int NumSphereColliders < Attribute( "NumSphereColliders" ); >;
 	RWStructuredBuffer<SphereCollider> SphereColliders < Attribute( "SphereColliders" ); >;
@@ -188,6 +242,8 @@ CS
 	RWStructuredBuffer<BoxCollider> BoxColliders < Attribute( "BoxColliders" ); >;
 	int NumCapsuleColliders < Attribute( "NumCapsuleColliders" ); >;
 	RWStructuredBuffer<CapsuleCollider> CapsuleColliders < Attribute( "CapsuleColliders" ); >;
+	int NumMeshColliders < Attribute( "NumMeshColliders" ); >;
+	RWStructuredBuffer<MeshCollider> MeshColliders < Attribute( "MeshColliders" ); >;
 
 	DynamicCombo( D_SHAPE_TYPE, 0..1, Sys( All ) );
 	int Index2DTo1D( uint2 i )
@@ -387,6 +443,15 @@ CS
 		{
 			CapsuleCollider capsule = CapsuleColliders[i];
 			capsule.ResolveCollision( pIndex );
+		}
+	}
+
+	void ResolveMeshCollisions( int pIndex )
+	{
+		for( int i = 0; i < NumMeshColliders; i++ )
+		{
+			MeshCollider collider = MeshColliders[i];
+			MeshDistanceField mdf = collider.GetMeshDistanceField();
 		}
 	}
 

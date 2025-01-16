@@ -486,12 +486,12 @@ public class MdfModelViewer : Component
 	{
 		var size = voxelData.TextureSize;
 
-		var outputTex = Texture.Create( size, size )
+		var outputTex = Texture.Create( size, size, ImageFormat.RGBA8888 )
 			.WithUAVBinding()
 			.Finish();
 
-		var voxelSdfGpu = new GpuBuffer<int>( size * size * size / 4, GpuBuffer.UsageFlags.Structured );
-		voxelSdfGpu.SetData( voxelData.Data );
+		//var voxelSdfGpu = new GpuBuffer<int>( size * size * size / 4, GpuBuffer.UsageFlags.Structured );
+		//voxelSdfGpu.SetData( voxelData.Data );
 		if ( voxelData.Debug is null )
 		{
 			debugMode = SdfSliceDebugVisualization.InsideOutside;
@@ -506,7 +506,8 @@ public class MdfModelViewer : Component
 		_textureSliceCs.Attributes.Set( "VoxelMinsOs", voxelData.Bounds.Mins );
 		_textureSliceCs.Attributes.Set( "VoxelMaxsOs", voxelData.Bounds.Maxs );
 		_textureSliceCs.Attributes.Set( "VoxelVolumeDims", new Vector3( size ) );
-		_textureSliceCs.Attributes.Set( "VoxelSdf", voxelSdfGpu );
+		// _textureSliceCs.Attributes.Set( "VoxelSdf", voxelSdfGpu );
+		_textureSliceCs.Attributes.Set( "SdfTexture", voxelData.DataTexture );
 		_textureSliceCs.Attributes.Set( "ZLayer", z );
 		_textureSliceCs.Attributes.Set( "OutputTexture", outputTex );
 		_textureSliceCs.Dispatch( size, size, size );

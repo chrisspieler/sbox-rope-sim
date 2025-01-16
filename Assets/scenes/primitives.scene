@@ -6,7 +6,7 @@
       "Flags": 0,
       "Name": "Cube",
       "Position": "0,0.8455849,-64",
-      "Scale": "10,10,1",
+      "Scale": "10,50,1",
       "Enabled": true,
       "Components": [
         {
@@ -117,14 +117,13 @@
       "Flags": 0,
       "Name": "Rope",
       "Position": "-44.9053,49.8214,90.82498",
-      "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletRope",
           "__guid": "83c4aade-c14f-4ba6-8a21-a1ffacc216af",
           "Bounds": {
-            "Mins": "-68.9053,25.8214,-24.17162",
-            "Maxs": "4.067636,88.45649,114.825"
+            "Mins": "0,0,0",
+            "Maxs": "0,0,0"
           },
           "Color": "0,0,0,1",
           "DebugDrawPoints": false,
@@ -174,15 +173,15 @@
       "__guid": "539a31bc-b852-494a-bda0-152512c7d9a6",
       "Flags": 0,
       "Name": "Cloth",
-      "Position": "-112,-80,160",
+      "Position": "-111.9997,16,112",
       "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletCloth",
           "__guid": "027c0069-f345-4f0a-b516-d66f8f43a181",
           "Bounds": {
-            "Mins": "-136,-259.6698,86.32172",
-            "Maxs": "97.51144,-56,184"
+            "Mins": "-135.9997,-162.5075,88",
+            "Maxs": "96.39887,103.578,177.0288"
           },
           "ClothResolution": 32,
           "DebugDrawPoints": false,
@@ -193,11 +192,11 @@
             "_type": "gameobject",
             "go": "31c9aefa-5ab5-49a6-a3c5-630d84837651"
           },
-          "FirstRopePointPosition": "-112,-80,160",
+          "FirstRopePointPosition": "-111.9997,16,112",
           "FixedEnd": true,
           "FixedStart": true,
           "Iterations": 80,
-          "LastRopePointPosition": "-80,-240,160",
+          "LastRopePointPosition": "-79.99973,-144,112",
           "Material": null,
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
@@ -373,7 +372,6 @@
       "Flags": 0,
       "Name": "Cube",
       "Position": "-48,-144,32",
-      "Scale": "4.333334,1,1",
       "Enabled": true,
       "Components": [
         {
@@ -426,7 +424,8 @@
       "__guid": "56310c6c-add2-440c-aa4b-9a41e4b65a76",
       "Flags": 0,
       "Name": "GameObject",
-      "Position": "44.70034,-106.183,-16",
+      "Position": "-16,176,32",
+      "Rotation": "0,-0.258819,0,0.9659259",
       "Enabled": true,
       "Components": [
         {

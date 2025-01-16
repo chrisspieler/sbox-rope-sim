@@ -9,6 +9,7 @@ public class CollisionSnapshot
 	public GpuBuffer<GpuSphereCollisionInfo> GpuSphereColliders { get; } = new GpuBuffer<GpuSphereCollisionInfo>( 16 );
 	public GpuBuffer<GpuBoxCollisionInfo> GpuBoxColliders { get; } = new GpuBuffer<GpuBoxCollisionInfo>( 16 );
 	public GpuBuffer<GpuCapsuleCollisionInfo> GpuCapsuleColliders { get; } = new GpuBuffer<GpuCapsuleCollisionInfo>( 16 );
+	public GpuBuffer<GpuMeshCollisionInfo> GpuMeshColliders { get; } = new GpuBuffer<GpuMeshCollisionInfo>( 16 );
 	public bool ShouldCaptureSnapshot { get; set; } = true;
 
 	public void Clear()

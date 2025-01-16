@@ -32,8 +32,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		InitializeVolume,
 		FindSeeds,
 		InitializeSeeds,
-		JumpFlood,
-		Compress
+		JumpFlood
 	}
 
 	public MeshDistanceField MeshDistanceField { get; }
@@ -57,16 +56,15 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		int triCount = gpuMesh.Indices.ElementCount / 3;
 		int voxelCount = res * res * res;
 
-		GpuBuffer<float> scratchVoxelSdfGpu;
-		using ( PerfLog.Scope( Id, $"Create {nameof( scratchVoxelSdfGpu )}" ) )
-		{
-			scratchVoxelSdfGpu = new GpuBuffer<float>( voxelCount, GpuBuffer.UsageFlags.Structured );
-		}
+		outputSdf.DataTexture = Texture.CreateVolume( res, res, res, ImageFormat.A8 )
+			.WithUAVBinding()
+			.Finish();
+
 		// Set the attributes for the signed distance field.
 		_meshSdfCs.Attributes.Set( "VoxelMinsOs", bounds.Mins );
 		_meshSdfCs.Attributes.Set( "VoxelMaxsOs", bounds.Maxs );
 		_meshSdfCs.Attributes.Set( "VoxelVolumeDims", new Vector3( res ) );
-		_meshSdfCs.Attributes.Set( "ScratchVoxelSdf", scratchVoxelSdfGpu );
+		_meshSdfCs.Attributes.Set( "SdfTexture", outputSdf.DataTexture );
 
 
 		var voxelSeedsGpu = new GpuBuffer<int>( voxelCount, GpuBuffer.UsageFlags.Structured );
@@ -144,26 +142,6 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 			voxelSeedsGpu.GetData( seedIds );
 			outputSdf.Debug.VoxelSeedIds = seedIds;
 		}
-
-		GpuBuffer<int> voxelSdfGpu;
-		using ( PerfLog.Scope( Id, $"Create {nameof( voxelSdfGpu )}" ) )
-		{
-			voxelSdfGpu = new GpuBuffer<int>( voxelCount / 4, GpuBuffer.UsageFlags.Structured );
-		}
-		using ( PerfLog.Scope( Id, $"Dispatch {MdfBuildStage.Compress}" ) )
-		{
-			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.Compress );
-			_meshSdfCs.Attributes.Set( "VoxelSdf", voxelSdfGpu );
-			_meshSdfCs.Dispatch( res, res, res );
-		}
-
-		int[] voxelSdf;
-		using ( PerfLog.Scope( Id, $"Read {nameof( voxelSdfGpu )}" ) )
-		{
-			voxelSdf = new int[voxelCount / 4];
-			voxelSdfGpu.GetData( voxelSdf );
-		}
-		outputSdf.Data = voxelSdf;
 
 		if ( Input.CollectDebugData )
 		{

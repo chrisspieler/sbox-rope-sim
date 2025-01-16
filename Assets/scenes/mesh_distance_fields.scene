@@ -156,8 +156,7 @@
           "Freecam": null,
           "MeshContainer": {
             "_type": "gameobject",
-            "go": "5033acc0-1340-4e28-b4fe-0ae364eed887",
-            "prefab": null
+            "go": "5033acc0-1340-4e28-b4fe-0ae364eed887"
           },
           "ModelViewer": {
             "_type": "component",
@@ -16551,18 +16550,18 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "3c7eaf1f-e5dd-4800-a19c-ed0c4a65dc2c",
           "Bounds": {
-            "Mins": "-5,-5,-69",
+            "Mins": "-5,-5,-85.0105",
             "Maxs": "5,5,69"
           },
           "Color": "0.33333,0.33333,0.33333,1",
           "DebugDrawPoints": false,
+          "DefaultLength": 128,
           "EffectiveRadius": 0.5,
           "EnableCollision": true,
           "EnableRendering": true,
           "EndTarget": {
             "_type": "gameobject",
-            "go": "4d8f5e20-e50d-4814-9476-2d728327855a",
-            "prefab": null
+            "go": "4d8f5e20-e50d-4814-9476-2d728327855a"
           },
           "FirstRopePointPosition": "0,0,64",
           "FixedEnd": true,
@@ -16582,8 +16581,7 @@
           "SimulateOnGPU": false,
           "StartTarget": {
             "_type": "gameobject",
-            "go": "eb8b29db-0c5f-48c7-bb0e-0b980499f54c",
-            "prefab": null
+            "go": "eb8b29db-0c5f-48c7-bb0e-0b980499f54c"
           },
           "TimeStep": 0.01,
           "Wireframe": false
@@ -16604,24 +16602,23 @@
       "Flags": 0,
       "Name": "Rope (1)",
       "Position": "0,48,24",
-      "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletRope",
           "__guid": "797487fd-4e65-4a93-a1af-9e5f3fa37c3b",
           "Bounds": {
-            "Mins": "-5,-53,-6.367493",
-            "Maxs": "5,53,29"
+            "Mins": "0,0,0",
+            "Maxs": "0,0,0"
           },
           "Color": "0.33488,0.33488,0.33488,1",
           "DebugDrawPoints": false,
+          "DefaultLength": 128,
           "EffectiveRadius": 0.5,
           "EnableCollision": true,
           "EnableRendering": true,
           "EndTarget": {
             "_type": "gameobject",
-            "go": "db991db4-f1e8-4be0-ab46-3fc0ea09aa1a",
-            "prefab": null
+            "go": "db991db4-f1e8-4be0-ab46-3fc0ea09aa1a"
           },
           "FirstRopePointPosition": "0,48,24",
           "FixedEnd": true,
@@ -16641,8 +16638,7 @@
           "SimulateOnGPU": false,
           "StartTarget": {
             "_type": "gameobject",
-            "go": "1eb69421-fffc-4a8f-ad89-e88b84eb951b",
-            "prefab": null
+            "go": "1eb69421-fffc-4a8f-ad89-e88b84eb951b"
           },
           "TimeStep": 0.01,
           "Wireframe": false
