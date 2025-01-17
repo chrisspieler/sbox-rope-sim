@@ -41,6 +41,8 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 
 	protected override bool RunInternal( out OutputData result )
 	{
+		RenderAttributes attributes = new();
+
 		var bounds = Input.Mdf.VoxelToLocalBounds( Input.OctreeVoxel );
 		int res = Input.TextureResolution;
 
@@ -60,11 +62,11 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 			.Finish();
 
 		// Set the attributes for the signed distance field.
-		_meshSdfCs.Attributes.Set( "VoxelMinsOs", bounds.Mins );
-		_meshSdfCs.Attributes.Set( "VoxelMaxsOs", bounds.Maxs );
-		_meshSdfCs.Attributes.Set( "VoxelVolumeDims", new Vector3( res ) );
-		_meshSdfCs.Attributes.Set( "SdfTexture", outputSdf.DataTexture );
-		_meshSdfCs.Attributes.Set( "InsideDetectionThreshold", InsideThreshold );
+		attributes.Set( "VoxelMinsOs", bounds.Mins );
+		attributes.Set( "VoxelMaxsOs", bounds.Maxs );
+		attributes.Set( "SdfTextureSize", res );
+		attributes.Set( "SdfTexture", outputSdf.DataTexture );
+		attributes.Set( "InsideDetectionThreshold", InsideThreshold );
 
 		var seedCount = triCount * 4 + Input.EmptySeedCount;
 		GpuBuffer<MeshSeedData>	seedDataGpu = new( seedCount );
@@ -73,13 +75,13 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		{
 			// For each triangle, write its object space position and normal to the seed data.
 			// For each empty seed, write use the information from the nearest triangle.
-			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.FindSeeds );
-			_meshSdfCs.Attributes.Set( "Vertices", gpuMesh.Vertices );
-			_meshSdfCs.Attributes.Set( "Indices", gpuMesh.Indices );
-			_meshSdfCs.Attributes.Set( "NumEmptySeeds", Input.EmptySeedCount );
-			_meshSdfCs.Attributes.Set( "Seeds", seedDataGpu );
-			_meshSdfCs.Attributes.Set( "SeedVoxels", seedVoxelsGpu );
-			_meshSdfCs.Dispatch( threadsX: triCount + Input.EmptySeedCount );
+			attributes.SetComboEnum( "D_STAGE", MdfBuildStage.FindSeeds );
+			attributes.Set( "Vertices", gpuMesh.Vertices );
+			attributes.Set( "Indices", gpuMesh.Indices );
+			attributes.Set( "NumEmptySeeds", Input.EmptySeedCount );
+			attributes.Set( "Seeds", seedDataGpu );
+			attributes.Set( "SeedVoxels", seedVoxelsGpu );
+			_meshSdfCs.DispatchWithAttributes( attributes, threadsX: triCount + Input.EmptySeedCount );
 		}
 
 		if ( Input.CollectDebugData )
@@ -100,27 +102,9 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		using ( PerfLog.Scope( Id, $"Dispatch {nameof( MdfBuildStage.InitializeSeeds )}" ) )
 		{
 			// For each seed we found, write it to the seed data.
-			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeSeeds );
-			_meshSdfCs.Attributes.Set( "VoxelSeeds", voxelSeedsGpu );
-			_meshSdfCs.Dispatch( res, res, res );
-		}
-
-		// Run a jump flooding algorithm to find the nearest seed index for each texel/voxel
-		// and calculate the signed distance to that seed's object space position.
-		//_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.JumpFlood );
-		for ( int step = res / 2; step > 0; step /= 2 )
-		{
-			using var perfLog = PerfLog.Scope( Id, $"Dispatch {MdfBuildStage.JumpFlood}, Step Size: {step}" );
-			_meshSdfCs.Attributes.Set( "JumpStep", step );
-			_meshSdfCs.Dispatch( res, res, res );
-		}
-		for ( int i = 0; i < 2; i++ )
-		{
-			using ( PerfLog.Scope( Id, $"Dispatch {MdfBuildStage.JumpFlood}, Step Size: 1" ) )
-			{
-				_meshSdfCs.Attributes.Set( "JumpStep", 1 );
-				_meshSdfCs.Dispatch( res, res, res );
-			}
+			attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeSeeds );
+			attributes.Set( "VoxelSeeds", voxelSeedsGpu );
+			_meshSdfCs.DispatchWithAttributes( attributes, res, res, res );
 		}
 
 		if ( Input.CollectDebugData )
@@ -130,12 +114,29 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 			outputSdf.Debug.VoxelSeedIds = seedIds;
 		}
 
+		// Run a jump flooding algorithm to find the nearest seed index for each texel/voxel
+		// and calculate the signed distance to that seed's object space position.
+		attributes.SetComboEnum( "D_STAGE", MdfBuildStage.JumpFlood );
+		for ( int step = res / 2; step > 0; step /= 2 )
+		{
+			using var perfLog = PerfLog.Scope( Id, $"Dispatch {MdfBuildStage.JumpFlood}, Step Size: {step}" );
+			attributes.Set( "JumpStep", step );
+			_meshSdfCs.DispatchWithAttributes( attributes, res, res, res );
+		}
+		for ( int i = 0; i < 2; i++ )
+		{
+			using ( PerfLog.Scope( Id, $"Dispatch {MdfBuildStage.JumpFlood}, Step Size: 1" ) )
+			{
+				attributes.Set( "JumpStep", 1 );
+				_meshSdfCs.DispatchWithAttributes( attributes, res, res, res );
+			}
+		}
+
 		if ( Input.CollectDebugData )
 		{
 			outputSdf.Debug.PrecalculateGradients();
 		}
 
-		_meshSdfCs.Attributes.Clear();
 		result = new OutputData()
 		{
 			Mdf = Input.Mdf,

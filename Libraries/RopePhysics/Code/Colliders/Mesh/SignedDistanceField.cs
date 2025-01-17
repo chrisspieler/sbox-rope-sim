@@ -52,9 +52,9 @@ public partial class SignedDistanceField
 
 	public static Vector3Int Index1DTo3D( int i, int size )
 	{
-		int x = i / (size * size);
+		int z = i / (size * size);
 		int y = (i / size) % size;
-		int z = i % size;
+		int x = i % size;
 		return new Vector3Int( x, y, z );
 	}
 

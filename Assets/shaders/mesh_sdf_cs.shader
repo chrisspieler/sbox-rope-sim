@@ -241,7 +241,7 @@ CS
 			{
 				Triangle tri = Triangle::FromIndex( i );
 				float tDist = tri.GetDistanceToPoint( voxelPos );
-				if ( tDist < minDistance )
+				if ( tDist < minDistance - 0.001 )
 				{
 					closestTri = tri;
 					minDistance = tDist;
@@ -344,7 +344,7 @@ CS
 		// 8 in 16 is 2 : 0 (1) (3) (5) (7) (9) (11) (13) (15) 16
 		// 4 in 32 is 8 : 0 (4) (12) (20) (28) 32
 		// 8 in 32 is 4 : 0 (4) (8) (12) (16) (20) (24) (28) 32
-		int3 iStep = VoxelVolumeDims / seedsPerDim;
+		int3 iStep = SdfTextureSize / seedsPerDim;
 		
 		// As shown by the above table, the starting index is always iStep / 2
 		int3 startIdx = iStep / 2;
@@ -447,7 +447,7 @@ CS
 			SeedData seedData = Seeds[i];
 			float seedDistance = distance( texelPos, seedData.PositionOs.xyz );
 			// Did we find the closest seed yet?
-			if ( seedDistance < closestDistance )
+			if ( seedDistance < closestDistance - 0.001 )
 			{
 				closestSeed = seedData;
 				closestSeedId = i;
@@ -499,7 +499,7 @@ CS
 
 		// If this voxel is already defined and given a seed cell that is
 		// nearer than this neighbor, don't update this voxel at all.
-		if ( pCell.SeedId >= 0 && pDist < qDist )
+		if ( pCell.SeedId >= 0 && pDist < qDist - 0.001 )
 			return pCell;
 
 		// We will use our neighbor's seed, as it is nearer to this voxel.

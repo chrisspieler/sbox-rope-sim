@@ -19,10 +19,9 @@ CS
 
 	DynamicCombo( D_MODE, 0..1, Sys( All ) );
 
-	float3 GetDistanceColor( uint3 voxel, SignedDistanceField sdf )
+	float3 GetDistanceColor( uint3 voxel, SignedDistanceField sdf, Texture3D sdfTex )
 	{
-		Texture3D sdfTexture = Bindless::GetTexture3D( SdfTextureIndex );
-		float sdMesh = sdf.GetSignedDistance( sdfTexture, voxel );
+		float sdMesh = sdf.GetSignedDistance( sdfTex, voxel );
 		float3 minColor = float3( 0.5, 0.5, 0.5 );
 		float3 maxColor = float3( 0, 0, 0 );
 		float progressFactor = 2.5;
@@ -38,11 +37,10 @@ CS
 		return lerp( minColor, maxColor, progress );
 	}
 
-	float3 GetGradientColor( uint3 voxel, SignedDistanceField sdf )
+	float3 GetGradientColor( uint3 voxel, SignedDistanceField sdf, Texture3D sdfTex )
 	{
-		Texture3D sdfTexture = Bindless::GetTexture3D( SdfTextureIndex );
 		float sdMesh = 0;
-		float3 gradient = sdf.GetGradient( sdfTexture, voxel, sdMesh );
+		float3 gradient = sdf.GetGradient( sdfTex, voxel, sdMesh );
 		if ( dot( gradient, gradient ) > 0.001 )
 		{
 			gradient += 1;
@@ -51,31 +49,34 @@ CS
 		return gradient;
 	}
 
-	float4 GetOutputColor( uint3 voxel, SignedDistanceField sdf )
+	float4 GetOutputColor( uint3 voxel, SignedDistanceField sdf, Texture3D sdfTex )
 	{
 		float3 texCol = 0;
 		// Inside/Outside
 		#if D_MODE == 0
-			texCol = GetDistanceColor( voxel, sdf );
+			texCol = GetDistanceColor( voxel, sdf, sdfTex );
 		// Gradients
 		#else
-			texCol = GetGradientColor( voxel, sdf );
+			texCol = GetGradientColor( voxel, sdf, sdfTex );
 		#endif
 		return float4( texCol.xyz, 1 );
 	}
 
-	[numthreads( 8, 8, 8 )]
+	[numthreads( 8, 8, 1 )]
 	void MainCs( uint3 id : SV_DispatchThreadID )
 	{
-		if ( any( id > TextureSize ) )
+		if ( any( id >= TextureSize ) )
 			return;
-			
+
 		SignedDistanceField sdf;
 		sdf.SdfTextureIndex = SdfTextureIndex;
 		sdf.MinsWs = MinsWs;
 		sdf.MaxsWs = MaxsWs;
 		sdf.TextureSize = TextureSize;
+		Texture3D sdfTex = Bindless::GetTexture3D( SdfTextureIndex );
 
-		OutputTexture[id.xy] = GetOutputColor( id, sdf );
+		uint3 voxel = uint3( id.xy, ZLayer );
+
+		OutputTexture[id.xy] = GetOutputColor( voxel, sdf, sdfTex );
 	}	
 }

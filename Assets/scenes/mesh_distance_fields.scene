@@ -16550,7 +16550,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "3c7eaf1f-e5dd-4800-a19c-ed0c4a65dc2c",
           "Bounds": {
-            "Mins": "-5,-5,-85.0105",
+            "Mins": "-5,-5,-69",
             "Maxs": "5,5,69"
           },
           "Color": "0.33333,0.33333,0.33333,1",

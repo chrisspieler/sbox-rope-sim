@@ -15,7 +15,7 @@ struct SignedDistanceField
 	uint3 PositionOsToTexel( float3 positionOs )
 	{
 		float3 normalized = ( positionOs - MinsWs ) / GetBoundsSize();
-		return (uint3)( normalized * ( TextureSize - 1 ) );
+		return (uint3)( TextureSize - 1 ) * normalized;
 	}
 
 	float GetSignedDistance( Texture3D sdf, uint3 texel )
@@ -27,6 +27,12 @@ struct SignedDistanceField
 
 	float3 GetGradient( Texture3D sdf, uint3 texel, out float signedDistance )
 	{
+		if ( any( texel < 0 ) || any( texel > TextureSize ) )
+		{
+			signedDistance = 0;
+			return 0;
+		}
+
 		float4 texData = sdf.Load( int4( texel.xyz, 0 ) );
 		signedDistance = texData.a;
 		float3 gradient = texData.rgb;
