@@ -43,9 +43,11 @@ CS
 		Texture3D sdfTexture = Bindless::GetTexture3D( SdfTextureIndex );
 		float sdMesh = 0;
 		float3 gradient = sdf.GetGradient( sdfTexture, voxel, sdMesh );
-		if ( abs( gradient.x + gradient.y + gradient.z ) < 0.001 )
-			return 0;
-
+		if ( dot( gradient, gradient ) > 0.001 )
+		{
+			gradient += 1;
+			gradient /= 2;
+		}
 		return gradient;
 	}
 

@@ -29,6 +29,13 @@ struct SignedDistanceField
 	{
 		float4 texData = sdf.Load( int4( texel.xyz, 0 ) );
 		signedDistance = texData.a;
-		return texData.rgb;
+		float3 gradient = texData.rgb;
+		gradient *= 2;
+		gradient -= 1;
+		if ( dot( gradient, gradient ) < 0.001 )
+		{
+			gradient = 0;
+		}
+		return gradient;
 	}
 };

@@ -29,7 +29,6 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 	
 	private enum MdfBuildStage
 	{
-		InitializeVolume,
 		FindSeeds,
 		InitializeSeeds,
 		JumpFlood
@@ -65,31 +64,19 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		_meshSdfCs.Attributes.Set( "VoxelMaxsOs", bounds.Maxs );
 		_meshSdfCs.Attributes.Set( "VoxelVolumeDims", new Vector3( res ) );
 		_meshSdfCs.Attributes.Set( "SdfTexture", outputSdf.DataTexture );
-
-
-		var voxelSeedsGpu = new GpuBuffer<int>( voxelCount, GpuBuffer.UsageFlags.Structured );
-		using ( PerfLog.Scope( Id, $"Dispatch {MdfBuildStage.InitializeVolume}" ) )
-		{
-			// Initialize each texel of the volume texture as having no associated seed index.
-			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeVolume );
-			_meshSdfCs.Attributes.Set( "VoxelSeeds", voxelSeedsGpu );
-			_meshSdfCs.Dispatch( res, res, res );
-		}
+		_meshSdfCs.Attributes.Set( "InsideDetectionThreshold", InsideThreshold );
 
 		var seedCount = triCount * 4 + Input.EmptySeedCount;
-		GpuBuffer<MeshSeedData> seedDataGpu;
-		using ( PerfLog.Scope( Id, $"Create {nameof( seedDataGpu )}" ) )
-		{
-			seedDataGpu = new GpuBuffer<MeshSeedData>( seedCount, GpuBuffer.UsageFlags.Structured );
-		}
-		var seedVoxelsGpu = new GpuBuffer<int>( seedCount, GpuBuffer.UsageFlags.Structured );
+		GpuBuffer<MeshSeedData>	seedDataGpu = new( seedCount );
+		GpuBuffer<int> seedVoxelsGpu = new( seedCount );
 		using ( PerfLog.Scope( Id, $"Dispatch {MdfBuildStage.FindSeeds}" ) )
 		{
 			// For each triangle, write its object space position and normal to the seed data.
+			// For each empty seed, write use the information from the nearest triangle.
 			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.FindSeeds );
 			_meshSdfCs.Attributes.Set( "Vertices", gpuMesh.Vertices );
 			_meshSdfCs.Attributes.Set( "Indices", gpuMesh.Indices );
-			_meshSdfCs.Attributes.Set( "NumEmptySeeds", Input.EmptySeedCount);
+			_meshSdfCs.Attributes.Set( "NumEmptySeeds", Input.EmptySeedCount );
 			_meshSdfCs.Attributes.Set( "Seeds", seedDataGpu );
 			_meshSdfCs.Attributes.Set( "SeedVoxels", seedVoxelsGpu );
 			_meshSdfCs.Dispatch( threadsX: triCount + Input.EmptySeedCount );
@@ -109,18 +96,18 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 			outputSdf.Debug.SeedVoxels = seedVoxels;
 		}
 
-
+		GpuBuffer<int> voxelSeedsGpu = new( voxelCount );
 		using ( PerfLog.Scope( Id, $"Dispatch {nameof( MdfBuildStage.InitializeSeeds )}" ) )
 		{
 			// For each seed we found, write it to the seed data.
 			_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.InitializeSeeds );
+			_meshSdfCs.Attributes.Set( "VoxelSeeds", voxelSeedsGpu );
 			_meshSdfCs.Dispatch( res, res, res );
 		}
 
 		// Run a jump flooding algorithm to find the nearest seed index for each texel/voxel
 		// and calculate the signed distance to that seed's object space position.
-		_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.JumpFlood );
-		_meshSdfCs.Attributes.Set( "InsideDetectionThreshold", InsideThreshold );
+		//_meshSdfCs.Attributes.SetComboEnum( "D_STAGE", MdfBuildStage.JumpFlood );
 		for ( int step = res / 2; step > 0; step /= 2 )
 		{
 			using var perfLog = PerfLog.Scope( Id, $"Dispatch {MdfBuildStage.JumpFlood}, Step Size: {step}" );

@@ -1,7 +1,7 @@
 float3 VoxelMinsOs < Attribute( "VoxelMinsOs" ); >;
 float3 VoxelMaxsOs < Attribute( "VoxelMaxsOs" ); >;
 float3 VoxelVolumeDims < Attribute( "VoxelVolumeDims" ); >;
-RWTexture3D<float4> SdfTexture < Attribute( "SdfTexture" ); >;
+globallycoherent RWTexture3D<float4> SdfTexture < Attribute( "SdfTexture" ); >;
 
 struct Voxel
 {
@@ -67,6 +67,8 @@ struct Voxel
 	{
 		float4 texData = SdfTexture[voxel];
 		gradient = texData.rgb;
+		gradient *= 2;
+		gradient -= 1;
 		float size = GetVolumeSize().x;
 		signedDistance = lerp( -size, size, texData.a );
 	}
@@ -77,6 +79,9 @@ struct Voxel
 		signedDistance = clamp( signedDistance, -1, 1 );
 		signedDistance += 1;
 		signedDistance /= 2;
+		gradient += 1;
+		gradient /= 2;
+		gradient = saturate( gradient );
 		SdfTexture[voxel] = float4( gradient.rgb, signedDistance );
 	}
 };

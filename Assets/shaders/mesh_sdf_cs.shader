@@ -42,8 +42,8 @@ CS
 	StructuredBuffer<uint> Indices < Attribute("Indices"); >;
 	RWStructuredBuffer<SeedData> Seeds < Attribute( "Seeds" ); >;
 	int NumEmptySeeds < Attribute( "NumEmptySeeds" ); >;
-	RWStructuredBuffer<int> SeedVoxels < Attribute( "SeedVoxels" ); >;
-	RWStructuredBuffer<int> VoxelSeeds < Attribute( "VoxelSeeds" ); >;
+	globallycoherent RWStructuredBuffer<int> SeedVoxels < Attribute( "SeedVoxels" ); >;
+	globallycoherent RWStructuredBuffer<int> VoxelSeeds < Attribute( "VoxelSeeds" ); >;
 	float InsideDetectionThreshold < Attribute( "InsideDetectionThreshold" ); Default( 0.75 ); >;
 	int JumpStep < Attribute( "JumpStep" ); >;
 
@@ -77,7 +77,7 @@ CS
 		InterlockedExchange( VoxelSeeds[i], seedId, iOut );
 	}
 
-	void StoreSeedVoxelId( int seedId, uint3 voxel )
+	void StoreSeedVoxelFromId( int seedId, uint3 voxel )
 	{
 		int voxelId = Voxel::Index3DTo1D( voxel );
 		int iOut;
@@ -90,10 +90,10 @@ CS
 		InterlockedExchange( SeedVoxels[seedId], -1, iOut );
 	}
 
-	void StoreSeedVoxelId( int seedId, float3 positionOs )
+	void StoreSeedVoxelFromPosition( int seedId, float3 positionOs )
 	{
 		uint3 voxel = Voxel::FromPositionClamped( positionOs );
-		StoreSeedVoxelId( seedId, voxel );
+		StoreSeedVoxelFromId( seedId, voxel );
 	}
 
 	bool TryLoadSeedVoxel( int seedId, out uint3 voxel )
@@ -186,19 +186,19 @@ CS
 
 			int i = Triangle::IndexSeedToTriangleCenter( seedId );
 			Seeds[i] = SeedData::From( center, Normal );
-			StoreSeedVoxelId( i, center );
+			StoreSeedVoxelFromPosition( i, center );
 
 			i++;
 			Seeds[i] = SeedData::From( V0, Normal );
-			StoreSeedVoxelId( i, V0 );
+			StoreSeedVoxelFromPosition( i, V0 );
 
 			i++;
 			Seeds[i] = SeedData::From( V1, Normal );
-			StoreSeedVoxelId( i, V1 );
+			StoreSeedVoxelFromPosition( i, V1 );
 
 			i++;
 			Seeds[i] = SeedData::From( V2, Normal );
-			StoreSeedVoxelId( i, V2 );
+			StoreSeedVoxelFromPosition( i, V2 );
 		}
 
 		// Copied from: https://www.shadertoy.com/view/ttfGWl
@@ -278,7 +278,7 @@ CS
 		static void Initialize( uint3 voxel )
 		{
 			StoreVoxelSeedId( voxel, -1 );
-			Voxel::StoreData( voxel, 0, 1e5 );
+			Voxel::StoreData( voxel, -1, 1e5 );
 		}
 
 		bool IsValid()
@@ -288,7 +288,7 @@ CS
 
 		bool IsSeed()
 		{
-			return !( SeedId == -1 && SignedDistance < 0 );
+			return SeedId != -1 && SignedDistance < 1e5 + 0.001;
 		}
 
 		static Cell Load( uint3 voxel )
@@ -314,7 +314,7 @@ CS
 			cell.SeedNormalOs = seed.Normal.xyz;
 			return cell;
 		}
-
+		
 		void StoreData()
 		{
 			StoreVoxelSeedId( Voxel, SeedId);
@@ -327,19 +327,7 @@ CS
 //==================================================================
 
 //------------------------------------------------------------------
-// Stage 0, 3D (Voxels)
-//------------------------------------------------------------------
-
-	void InitializeVolume( uint3 voxel )
-	{
-		if ( !Voxel::IsInVolume( voxel ) )
-			return;
-		
-		Cell::Initialize( voxel );
-	}
-
-//------------------------------------------------------------------
-// Stage 1, 1D (Triangles + Empty Seeds)
+// Stage 0, 1D (Triangles + Empty Seeds)
 //------------------------------------------------------------------
 
 	// Assume emptySeedCount is a power of 2.
@@ -375,7 +363,7 @@ CS
 		data.PositionOs = float4( tri.Center, emptySeedId );
 		data.Normal = float4( tri.Normal, emptySeedOffset );
 		Seeds[emptySeedId] = data;
-		StoreSeedVoxelId( emptySeedId, voxel );
+		StoreSeedVoxelFromId( emptySeedId, voxel );
 	}
 
 	void StoreTriangleSeedsFromIndices( int triId )
@@ -397,6 +385,16 @@ CS
 	void FindSeedPoints( int DTid )
 	{
 		int numTris = GetMeshTriangleCount();
+		int maxDTid = ( numTris - 1 ) + ( NumEmptySeeds );
+
+		if ( DTid > maxDTid )
+		{
+			// The thread was out of range, so do nothing.
+			return;
+		}
+
+		StoreSeedInvalidVoxel( DTid );
+
 		if ( DTid < numTris )
 		{
 			// This thread corresponds to a triangle, so find that triangle.
@@ -404,7 +402,6 @@ CS
 			return;
 		}
 		
-		int maxDTid = ( numTris - 1 ) + ( NumEmptySeeds );
 		if ( DTid <= maxDTid )
 		{
 			// This thread corresponds to an empty seed.
@@ -415,38 +412,41 @@ CS
 			AddEmptySeed( emptySeedId, emptySeedOffset );
 			return;
 		}
-
-		// The thread was out of range, so do nothing.
 	}
 
 //------------------------------------------------------------------
-// Stage 2, 3D (Voxels)
+// Stage 1, 3D (Texels)
 //------------------------------------------------------------------
 
-	void InitializeSeedPoints( uint3 voxel )
+	// For each texel, if it overlaps one or more seeds, use the closest seed.
+	// Otherwise, initialize the texel with sensible defaults.
+	void InitializeSeedPoints( uint3 texel )
 	{
-		if ( !Voxel::IsInVolume( voxel ) )
+		if ( !Voxel::IsInVolume( texel ) )
 			return;
 
-		float3 voxelPos = Voxel::GetCenterPositionOs( voxel );
+		float3 texelPos = Voxel::GetCenterPositionOs( texel );
 
+		// Of all seeds overlapping this texel, which is the closest?
 		SeedData closestSeed;
 		int closestSeedId = -1;
-		float closestDistance = 1e5;
+		float closestDistance = 1e20;
 
 		int numSeeds = GetSeedCount();
 		for ( int i = 0; i < numSeeds; i++ )
 		{
 			uint3 seedVoxel = 0;
+			// Was this seed not intialized in the previous stage?
 			if ( !TryLoadSeedVoxel( i, seedVoxel ))
 				continue;
 
-			if ( any( seedVoxel != voxel ) )
+			// Do any of the seed's texel coordinates not match this texel?
+			if ( any( seedVoxel != texel ) )
 				continue;
 
-			// Triangle tri = Triangle::FromSeed( i );
 			SeedData seedData = Seeds[i];
-			float seedDistance = distance( voxelPos, seedData.PositionOs.xyz );
+			float seedDistance = distance( texelPos, seedData.PositionOs.xyz );
+			// Did we find the closest seed yet?
 			if ( seedDistance < closestDistance )
 			{
 				closestSeed = seedData;
@@ -455,23 +455,31 @@ CS
 			}
 		}
 
-		if ( closestSeedId > -1 )
+		// Was no seed found that overlaps this texel?
+		if ( closestSeedId == -1 )
 		{
-			float3 seedToLocalDir = normalize( voxelPos - closestSeed.PositionOs.xyz );
-			// Detect whether we are likely inside the mesh, assuming for now that this triangle is the closest.
-			if ( dot( seedToLocalDir, closestSeed.Normal.xyz ) < 0 )
-			{
-				closestDistance *= -1;
-			}
+			Cell::Initialize( texel );
+			return;
 		}
 
-		StoreVoxelSeedId( voxel, closestSeedId );
-		float3 gradient = normalize( closestSeed.PositionOs.xyz - voxelPos );
-		Voxel::StoreData( voxel, gradient, closestDistance );
+		Cell pCell = Cell::Load( texel );
+		pCell.SeedId = closestSeedId;
+
+		float3 seedToLocalDir = normalize( texelPos - closestSeed.PositionOs.xyz );
+		// Detect whether we are likely inside the mesh, assuming for now that this triangle is the closest.
+		if ( dot( seedToLocalDir, closestSeed.Normal.xyz ) < 0 )
+		{
+			closestDistance *= -1;
+		}
+
+		float3 gradient = normalize( closestSeed.PositionOs.xyz - texelPos );
+		pCell.Gradient = gradient;
+		pCell.SignedDistance = closestDistance;
+		pCell.StoreData();
 	}
 
 //------------------------------------------------------------------
-// Stage 3, 3D (Voxels)
+// Stage 2, 3D (Texels)
 //------------------------------------------------------------------
 	Cell Flood( uint3 voxel, Cell pCell, Cell qCell )
 	{
@@ -580,9 +588,9 @@ CS
 // MAIN
 //==================================================================
 
-	DynamicCombo( D_STAGE, 0..3, Sys( All ) );
+	DynamicCombo( D_STAGE, 0..2, Sys( All ) );
 
-	#if D_STAGE == 1
+	#if D_STAGE == 0
 	[numthreads( 64, 1, 1 )]
 	#else 
 	[numthreads( 4, 4, 4 )]
@@ -590,12 +598,10 @@ CS
 	void MainCs( uint3 id : SV_DispatchThreadID )
 	{
 		#if D_STAGE == 0
-			InitializeVolume( id );
-		#elif D_STAGE == 1
 			FindSeedPoints( id.x );
-		#elif D_STAGE == 2
+		#elif D_STAGE == 1
 			InitializeSeedPoints( id );
-		#elif D_STAGE == 3
+		#elif D_STAGE == 2
 			JumpFlood( id );
 		#endif
 	}
