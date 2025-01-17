@@ -107,12 +107,6 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 			_meshSdfCs.DispatchWithAttributes( attributes, res, res, res );
 		}
 
-		if ( Input.CollectDebugData )
-		{
-			var seedIds = new int[voxelSeedsGpu.ElementCount];
-			voxelSeedsGpu.GetData( seedIds );
-			outputSdf.Debug.VoxelSeedIds = seedIds;
-		}
 
 		// Run a jump flooding algorithm to find the nearest seed index for each texel/voxel
 		// and calculate the signed distance to that seed's object space position.
@@ -130,6 +124,13 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 				attributes.Set( "JumpStep", 1 );
 				_meshSdfCs.DispatchWithAttributes( attributes, res, res, res );
 			}
+		}
+
+		if ( Input.CollectDebugData )
+		{
+			var seedIds = new int[voxelSeedsGpu.ElementCount];
+			voxelSeedsGpu.GetData( seedIds );
+			outputSdf.Debug.VoxelSeedIds = seedIds;
 		}
 
 		if ( Input.CollectDebugData )

@@ -61,10 +61,10 @@ CS
 	RWStructuredBuffer<VerletPointUpdate> PointUpdates < Attribute ( "PointUpdates" ); >;
 	// Simulation
 	int Iterations < Attribute( "Iterations" ); >;
+	float PointWidth < Attribute( "PointWidth" ); Default( 1.0 ); >;
 	// Forces
 	float3 Gravity < Attribute( "Gravity" ); Default3( 0, 0, -800.0 ); >;
 	// Rope rendering
-	float RopeWidth < Attribute( "RopeWidth" ); Default( 2.0 ); >;
 	float RopeRenderWidth < Attribute( "RopeRenderWidth" ); Default( 2.0 ); >;
 	float RopeTextureCoord < Attribute( "RopeTextureCoord" ); Default( 1.0 ); >;
 	float4 RopeTint < Attribute( "RopeTint"); Default4( 0.0, 0.0, 0.0, 1.0 ); >;
@@ -90,11 +90,11 @@ CS
 			VerletPoint p = Points[pIndex];
 			float3 pPositionOs = mul( WorldToLocal, float4( p.Position.xyz, 1 ) ).xyz;
 			float dist = distance( pPositionOs, Center );
-			if ( dist - Radius > RopeWidth )
+			if ( dist - Radius > PointWidth )
 				return;
 
 			float3 dir = normalize( pPositionOs - Center );
-			float3 hitPositionOs = Center + dir * ( RopeWidth + Radius );
+			float3 hitPositionOs = Center + dir * ( PointWidth + Radius );
 			float3 hitPositionWs = mul( LocalToWorld, float4( hitPositionOs.xyz, 1 ) ).xyz;
 			p.Position = hitPositionWs;
 			Points[pIndex] = p;
@@ -115,7 +115,7 @@ CS
 			float3 halfSize = Size * 0.5f;
 			float3 scale = 1;
 			float3 pointDepth = halfSize - abs( pPositionOs );
-			float radius = RopeWidth;
+			float radius = PointWidth;
 
 			if ( pointDepth.x <= -radius || pointDepth.y <= -radius || pointDepth.z <= -radius )
 				return;
@@ -162,7 +162,7 @@ CS
 			VerletPoint p = Points[pIndex];
 			float3 pPositionOs = mul( WorldToLocal, float4( p.Position.xyz, 1 ) ).xyz;
 			float sd = sdCapsule( pPositionOs );
-			if ( sd > RopeWidth )
+			if ( sd > PointWidth )
 				return;
 
 			float3 xOffset = float3( 0.0001, 0, 0 );
@@ -175,7 +175,7 @@ CS
 				sdCapsule( pPositionOs + zOffset ) - sdCapsule( pPositionOs - zOffset )
 			);
 			gradient = normalize( gradient );
-			pPositionOs += gradient * ( -sd + RopeWidth );
+			pPositionOs += gradient * ( -sd + PointWidth );
 			p.Position = mul( LocalToWorld, float4( pPositionOs.xyz, 1 ) ).xyz;
 			Points[pIndex] = p;
 		}
@@ -191,12 +191,13 @@ CS
 			return;
 
 		float3 pPositionOs = mul( sdf.WorldToLocal, float4( p.Position.xyz, 1 ) ).xyz;
+		uint3 texel = sdf.PositionOsToTexel( pPositionOs );
 		float sd = 0;
-		float3 gradient = sdf.GetGradient( sdTex, 0, sd );
-		if ( sd > RopeWidth )
+		float3 gradient = sdf.GetGradient( sdTex, texel, sd );
+		if ( sd > PointWidth )
 			return;
 
-		pPositionOs += gradient * ( -sd + RopeWidth );
+		pPositionOs += gradient * ( -sd + PointWidth );
 		p.Position = mul( sdf.LocalToWorld, float4( pPositionOs.xyz, 1 ) ).xyz;
 		Points[pIndex] = p;
 	}

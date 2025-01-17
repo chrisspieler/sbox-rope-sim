@@ -576,11 +576,7 @@ CS
 		{
 			pCell = Flood( voxel, pCell, nCells[i] );
 		}
-
-		if ( !pCell.IsSeed() )
-		{
-			pCell.SignedDistance = 1e5;
-		}
+		
 		pCell.StoreData();
 	}
 

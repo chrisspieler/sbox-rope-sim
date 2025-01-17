@@ -142,6 +142,8 @@ public partial class MeshDistanceField
 	private Vector3 OctreePosToLocal( Vector3 octreePos ) => octreePos + MeshData?.Bounds.Center ?? 0;
 	private Vector3 LocalPosToOctree( Vector3 pos ) => pos - MeshData?.Bounds.Center ?? 0;
 
+	public IEnumerable<SparseVoxelOctree<SignedDistanceField>.OctreeNode> GetAllVoxels() => Octree.GetAllLeafNodes();
+
 	public Vector3Int PositionToVoxel( Vector3 localPos )
 	{
 		localPos = LocalPosToOctree( localPos );
@@ -151,7 +153,7 @@ public partial class MeshDistanceField
 	public Vector3 VoxelToLocalCenter( Vector3Int voxel )
 	{
 		var pos = Octree.VoxelToPosition( voxel );
-		pos += Octree.LeafSize;
+		pos += Octree.LeafSize * 0.5f;
 		return OctreePosToLocal( pos );
 	}
 

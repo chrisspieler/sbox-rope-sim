@@ -34,12 +34,16 @@ public class SparseVoxelOctree<T>
 		Size = size;
 		MaxDepth = maxDepth;
 		RootNode = new OctreeNode( Vector3Int.Zero, Size );
+		AllLeaves[RootNode.Position] = RootNode;
 	}
 
 	public int Size { get; private set; }
 	public int MaxDepth { get; private set; }
 	public int LeafSize => Size >> MaxDepth;
 	public OctreeNode RootNode { get; private set; }
+	private Dictionary<Vector3Int, OctreeNode> AllLeaves { get; set; } = [];
+
+	public IEnumerable<OctreeNode> GetAllLeafNodes() => AllLeaves.Values;
 
 	public bool ContainsPoint( Vector3 localPos )
 	{
@@ -86,8 +90,7 @@ public class SparseVoxelOctree<T>
 
 	public bool HasLeaf( Vector3Int leaf )
 	{
-		var found = FindRecursive( RootNode, leaf, 0 );
-		return found.Size == LeafSize;
+		return AllLeaves.ContainsKey( leaf );
 	}
 
 	public OctreeNode Trace( Vector3 point, Vector3 direction, out float hitDistance )
@@ -217,7 +220,9 @@ public class SparseVoxelOctree<T>
 		if ( node[childIndex] is null )
 		{
 			Vector3Int childPosition = CalculateChildPosition( node.Position, childSize, childIndex );
-			node[childIndex] = new OctreeNode( childPosition, childSize );
+			OctreeNode childNode = new( childPosition, childSize );
+			node[childIndex] = childNode;
+			AllLeaves[childPosition] = childNode;
 			node.IsLeaf = false;
 		}
 

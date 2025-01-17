@@ -39,7 +39,7 @@ struct Voxel
 	static uint3 FromPosition( float3 positionOs )
 	{
 		float3 normalized = ( positionOs - VoxelMinsOs ) / GetVolumeSize();
-		return (uint3)(SdfTextureSize - 1 ) * normalized;
+		return (uint3)(SdfTextureSize  * normalized );
 	}
 
 	static uint3 FromPositionClamped( float3 positionOs )

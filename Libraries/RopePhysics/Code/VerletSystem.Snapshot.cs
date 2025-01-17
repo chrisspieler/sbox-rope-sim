@@ -29,24 +29,19 @@ public partial class VerletSystem
 
 		simData.Collisions ??= new CollisionSnapshot();
 		CollisionSnapshot snapshot = simData.Collisions;
-		var points = simData.CpuPoints;
 
 		var mdfs = MeshDistanceSystem.FindInBox(collisionBounds);
-		for (int i = 0; i < points.Length; i++)
+		foreach ( var tr in trs )
 		{
-			foreach (var tr in trs)
+			var collisionType = tr.ClassifyColliderType();
+			CaptureConvexCollision( snapshot, collisionType, tr.Shape );
+		}
+		foreach ( var mdf in mdfs )
+		{
+			var useMdf = SimulationData.UseMeshDistanceFields && !mdf.GameObject.Tags.Has( "mdf_disable" );
+			if ( useMdf )
 			{
-				var collisionType = tr.ClassifyColliderType();
-				CaptureConvexCollision(snapshot, i, collisionType, tr.Shape);
-			}
-			foreach (var mdf in mdfs)
-			{
-				var useMdf = SimulationData.UseMeshDistanceFields && !mdf.GameObject.Tags.Has("mdf_disable");
-				if (useMdf)
-				{
-					var pointPos = points[i].Position;
-					CaptureMdfCollision(snapshot.MeshColliders, i, pointPos, mdf.GameObject.WorldTransform, mdf.Mdf);
-				}
+				CaptureMdfCollision( snapshot.MeshColliders, mdf.GameObject.WorldTransform, mdf.Mdf );
 			}
 		}
 
@@ -54,7 +49,7 @@ public partial class VerletSystem
 		return snapshot;
 	}
 
-	private static void CaptureConvexCollision(CollisionSnapshot snapshot, int pointIndex, RopeColliderType colliderType, PhysicsShape shape)
+	private static void CaptureConvexCollision(CollisionSnapshot snapshot, RopeColliderType colliderType, PhysicsShape shape)
 	{
 		switch (colliderType)
 		{
@@ -62,28 +57,28 @@ public partial class VerletSystem
 				return;
 			case RopeColliderType.UniformSphere:
 			case RopeColliderType.HullSphere:
-				CaptureSphereCollision(snapshot.SphereColliders, pointIndex, shape.Collider as SphereCollider);
+				CaptureSphereCollision(snapshot.SphereColliders, shape.Collider as SphereCollider);
 				break;
 			case RopeColliderType.Capsule:
-				CaptureCapsuleCollision(snapshot.CapsuleColliders, pointIndex, shape.Collider as CapsuleCollider);
+				CaptureCapsuleCollision(snapshot.CapsuleColliders, shape.Collider as CapsuleCollider);
 				break;
 			case RopeColliderType.Box:
-				CaptureBoxCollision(snapshot.BoxColliders, pointIndex, shape.Collider as BoxCollider);
+				CaptureBoxCollision(snapshot.BoxColliders, shape.Collider as BoxCollider);
 				break;
 			case RopeColliderType.Plane:
-				CapturePlaneCollision(snapshot.BoxColliders, pointIndex, shape.Collider as PlaneCollider);
+				CapturePlaneCollision(snapshot.BoxColliders, shape.Collider as PlaneCollider);
 				break;
 			default:
 				break;
 		}
 	}
 
-	private static void CaptureSphereCollision( Dictionary<int, SphereCollisionInfo> sphereColliders, int pointIndex, SphereCollider sphere)
+	private static void CaptureSphereCollision( Dictionary<int, SphereCollisionInfo> sphereColliders, SphereCollider sphere)
 	{
 		var colliderId = sphere.GetHashCode();
-		if ( !sphereColliders.TryGetValue(colliderId, out var ci) )
+		if ( !sphereColliders.ContainsKey(colliderId) )
 		{
-			ci = new SphereCollisionInfo()
+			SphereCollisionInfo ci = new()
 			{
 				Id = colliderId,
 				Transform = sphere.WorldTransform,
@@ -92,15 +87,14 @@ public partial class VerletSystem
 			};
 			sphereColliders[colliderId] = ci;
 		}
-		ci.CollidingPoints.Add(pointIndex);
 	}
 
-	private static void CaptureBoxCollision(Dictionary<int, BoxCollisionInfo> boxColliders, int pointIndex, BoxCollider box)
+	private static void CaptureBoxCollision(Dictionary<int, BoxCollisionInfo> boxColliders, BoxCollider box)
 	{
 		var colliderId = box.GetHashCode();
-		if (!boxColliders.TryGetValue(colliderId, out var ci))
+		if ( !boxColliders.ContainsKey(colliderId) )
 		{
-			ci = new BoxCollisionInfo()
+			BoxCollisionInfo ci = new()
 			{
 				Id = colliderId,
 				Transform = box.WorldTransform.WithPosition(box.WorldPosition + box.Center),
@@ -108,7 +102,6 @@ public partial class VerletSystem
 			};
 			boxColliders[colliderId] = ci;
 		}
-		ci.CollidingPoints.Add(pointIndex);
 	}
 
 	/// <summary>
@@ -118,14 +111,14 @@ public partial class VerletSystem
 	[ConVar("rope_collision_plane_thickness")]
 	public static float PlaneColliderThickness { get; set; } = 16f;
 
-	private static void CapturePlaneCollision(Dictionary<int, BoxCollisionInfo> boxColliders, int pointIndex, PlaneCollider plane)
+	private static void CapturePlaneCollision(Dictionary<int, BoxCollisionInfo> boxColliders, PlaneCollider plane)
 	{
 		var colliderId = plane.GetHashCode();
-		if (!boxColliders.TryGetValue(colliderId, out var ci))
+		if ( !boxColliders.ContainsKey(colliderId) )
 		{
 			var center = new Vector3(plane.Center.x, plane.Center.y, -PlaneColliderThickness * 0.5f);
 
-			ci = new BoxCollisionInfo()
+			BoxCollisionInfo ci = new()
 			{
 				Id = colliderId,
 				Transform = plane.WorldTransform.WithPosition(plane.WorldPosition + center),
@@ -133,15 +126,14 @@ public partial class VerletSystem
 			};
 			boxColliders[colliderId] = ci;
 		}
-		ci.CollidingPoints.Add(pointIndex);
 	}
 
-	private static void CaptureCapsuleCollision(Dictionary<int, CapsuleCollisionInfo> capsuleColliders, int pointindex, CapsuleCollider capsule)
+	private static void CaptureCapsuleCollision(Dictionary<int, CapsuleCollisionInfo> capsuleColliders, CapsuleCollider capsule)
 	{
 		var colliderId = capsule.GetHashCode();
-		if (!capsuleColliders.TryGetValue(colliderId, out var ci))
+		if ( !capsuleColliders.ContainsKey(colliderId) )
 		{
-			ci = new CapsuleCollisionInfo()
+			CapsuleCollisionInfo ci = new()
 			{
 				Id = colliderId,
 				Transform = capsule.WorldTransform,
@@ -151,36 +143,38 @@ public partial class VerletSystem
 			};
 			capsuleColliders[colliderId] = ci;
 		}
-		ci.CollidingPoints.Add(pointindex);
 	}
 
-	private static void CaptureMdfCollision(Dictionary<int, MeshCollisionInfo> meshColliders, int pointIndex, Vector3 pointPos, Transform tx, MeshDistanceField mdf)
+	private static void CaptureMdfCollision(Dictionary<int, MeshCollisionInfo> meshColliders, Transform gameObjectTx, MeshDistanceField mdf)
 	{
 		if (!mdf.IsOctreeBuilt)
 			return;
 
-		var localPos = tx.PointToLocal(pointPos);
-		var voxel = mdf.PositionToVoxel(localPos);
-		var sdfTex = mdf.GetSdfTexture(voxel);
-		if (sdfTex is null)
-			return;
-
-		var closestPoint = sdfTex.Bounds.ClosestPoint(localPos);
-		var distance = closestPoint.Distance(localPos);
-		if (distance > mdf.OctreeLeafDims * 0.5f)
-			return;
-
-		var id = HashCode.Combine(mdf.Id, voxel);
-		if (!meshColliders.TryGetValue(id, out var ci))
+		foreach( var sdf in mdf.GetAllVoxels() )
 		{
-			ci = new MeshCollisionInfo()
+			if ( sdf.Data is null )
+				continue;
+
+			var voxel = sdf.Position;
+			var voxelTx = new Transform()
 			{
-				Id = id,
-				Sdf = sdfTex,
-				Transform = tx,
+				Position = gameObjectTx.PointToWorld( mdf.VoxelToLocalCenter( voxel ) ),
+				Rotation = gameObjectTx.Rotation,
+				Scale = gameObjectTx.Scale,
 			};
-			meshColliders[id] = ci;
+
+			var id = HashCode.Combine( mdf.Id, voxel );
+			if ( !meshColliders.ContainsKey( id ) )
+			{
+				MeshCollisionInfo ci = new()
+				{
+					Id = id,
+					Sdf = sdf.Data,
+					Transform = voxelTx,
+				};
+				meshColliders[id] = ci;
+			}
 		}
-		ci.CollidingPoints.Add(pointIndex);
+		
 	}
 }

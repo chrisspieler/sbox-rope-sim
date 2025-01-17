@@ -15,7 +15,7 @@ struct SignedDistanceField
 	uint3 PositionOsToTexel( float3 positionOs )
 	{
 		float3 normalized = ( positionOs - MinsWs ) / GetBoundsSize();
-		return (uint3)( TextureSize - 1 ) * normalized;
+		return (uint3)( TextureSize * normalized );
 	}
 
 	float GetSignedDistance( Texture3D sdf, uint3 texel )

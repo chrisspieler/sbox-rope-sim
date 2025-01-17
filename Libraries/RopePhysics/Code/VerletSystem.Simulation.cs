@@ -83,10 +83,10 @@ public partial class VerletSystem
 		VerletComputeShader.Attributes.Set( "TimeStepSize", verlet.TimeStep );
 		VerletComputeShader.Attributes.Set( "MaxTimeStepPerUpdate", verlet.MaxTimeStepPerUpdate );
 		VerletComputeShader.Attributes.Set( "Translation", simData.Translation );
+		VerletComputeShader.Attributes.Set( "PointWidth", simData.Radius );
 		// TODO: Allow subtypes of VerletComponent to set these.
 		if ( verlet is VerletRope rope )
 		{
-			VerletComputeShader.Attributes.Set( "RopeWidth", rope.EffectiveRadius );
 			VerletComputeShader.Attributes.Set( "RopeRenderWidth", rope.EffectiveRadius * rope.RenderWidthScale );
 			VerletComputeShader.Attributes.Set( "RopeTextureCoord", 0f );
 			VerletComputeShader.Attributes.Set( "RopeTint", rope.Color );

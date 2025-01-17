@@ -6,12 +6,6 @@ public struct SphereCollisionInfo
 	public float Radius;
 	public Vector3 Center;
 	public Transform Transform;
-	public List<int> CollidingPoints;
-
-	public SphereCollisionInfo()
-	{
-		CollidingPoints = new();
-	}
 
 	public GpuSphereCollisionInfo AsGpu()
 		=> new()
