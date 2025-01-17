@@ -268,6 +268,7 @@ CS
 	{
 		uint3 Voxel;
 
+		float3 Gradient;
 		float SignedDistance;
 
 		int SeedId;
@@ -277,7 +278,7 @@ CS
 		static void Initialize( uint3 voxel )
 		{
 			StoreVoxelSeedId( voxel, -1 );
-			Voxel::Store( voxel, 1e5 );
+			Voxel::StoreData( voxel, 0, 1e5 );
 		}
 
 		bool IsValid()
@@ -297,7 +298,11 @@ CS
 			if ( !cell.IsValid() )
 				return cell;
 
-			cell.SignedDistance = Voxel::Load( cell.Voxel );
+			float3 gradient;
+			float signedDistance;
+			Voxel::LoadData( cell.Voxel, gradient, signedDistance );
+			cell.Gradient = gradient;
+			cell.SignedDistance = signedDistance;
 			int i = Voxel::Index3DTo1D( cell.Voxel );
 			cell.SeedId = VoxelSeeds[i];
 			
@@ -312,8 +317,8 @@ CS
 
 		void StoreData()
 		{
-			StoreVoxelSeedId( Voxel, SeedId );
-			Voxel::Store( Voxel, SignedDistance );
+			StoreVoxelSeedId( Voxel, SeedId);
+			Voxel::StoreData( Voxel, Gradient, SignedDistance );
 		}
 	};
 
@@ -461,7 +466,8 @@ CS
 		}
 
 		StoreVoxelSeedId( voxel, closestSeedId );
-		Voxel::Store( voxel, closestDistance );
+		float3 gradient = normalize( closestSeed.PositionOs.xyz - voxelPos );
+		Voxel::StoreData( voxel, gradient, closestDistance );
 	}
 
 //------------------------------------------------------------------
@@ -492,6 +498,7 @@ CS
 		pCell.SeedId = qCell.SeedId;
 		pCell.SeedPositionOs = qClosest;
 		pCell.SeedNormalOs = qTri.Normal;
+		pCell.Gradient = normalize( qClosest - localPos );
 
 		// If we've copied a triangle point from a neighbor, we should evaluate whether
 		// our new distance should be positive or negative.

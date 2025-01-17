@@ -56,7 +56,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 		int triCount = gpuMesh.Indices.ElementCount / 3;
 		int voxelCount = res * res * res;
 
-		outputSdf.DataTexture = Texture.CreateVolume( res, res, res, ImageFormat.A8 )
+		outputSdf.DataTexture = Texture.CreateVolume( res, res, res, ImageFormat.RGBA8888 )
 			.WithUAVBinding()
 			.Finish();
 
