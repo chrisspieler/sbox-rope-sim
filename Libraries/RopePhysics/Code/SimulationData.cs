@@ -308,7 +308,7 @@ public class SimulationData
 
 		var bounds = new VerletBounds[1];
 		ReadbackBounds.ReadData( bounds );
-		Bounds = bounds[0];
+		Bounds = bounds[0].AsBBox();
 	}
 
 	public void RecalculateCpuPointBounds()

@@ -103,6 +103,9 @@ public partial class VerletSystem
 
 		// Choose rope or cloth
 		attributes.SetComboEnum( "D_SHAPE_TYPE", shapeType );
+		// Choose whether the rope/cloth should collide with things
+		attributes.SetCombo( "D_COLLISION", true );
+
 		// Layout
 		attributes.Set( "NumPoints", simData.CpuPoints.Length );
 		attributes.Set( "NumColumns", simData.PointGridDims.y );
@@ -113,6 +116,7 @@ public partial class VerletSystem
 		attributes.Set( "PointUpdates", simData.GpuPointUpdates );
 		// Simulation
 		attributes.Set( "Iterations", simData.Iterations );
+		attributes.Set( "PointRadius", simData.Radius );
 		// Forces
 		attributes.Set( "Gravity", simData.Gravity );
 		// Delta
@@ -120,7 +124,6 @@ public partial class VerletSystem
 		attributes.Set( "TimeStepSize", timeStep );
 		attributes.Set( "MaxTimeStepPerUpdate", maxTotalTimeSteps );
 		attributes.Set( "Translation", simData.Translation );
-		attributes.Set( "PointWidth", simData.Radius );
 		// Colliders
 		simData.Collisions.ApplyColliderAttributes( attributes );
 

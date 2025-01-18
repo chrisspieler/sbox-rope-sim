@@ -116,30 +116,31 @@
       "__guid": "00e0f83b-1afc-4391-9343-67a8a997571b",
       "Flags": 0,
       "Name": "Rope",
-      "Position": "-44.9053,49.8214,90.82498",
+      "Position": "-48,32,160",
+      "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletRope",
           "__guid": "83c4aade-c14f-4ba6-8a21-a1ffacc216af",
           "Bounds": {
-            "Mins": "0,0,0",
-            "Maxs": "0,0,0"
+            "Mins": "-81,-130.4672,18.89402",
+            "Maxs": "-1.269985,65,193"
           },
           "Color": "0,0,0,1",
           "DebugDrawPoints": false,
           "DefaultLength": 128,
-          "EffectiveRadius": 0.5,
+          "EffectiveRadius": 0.095,
           "EnableCollision": true,
           "EnableRendering": true,
           "EndTarget": {
             "_type": "gameobject",
             "go": "fc00f137-e29d-46af-9626-7eea99407937"
           },
-          "FirstRopePointPosition": "-44.9053,49.8214,90.82498",
+          "FirstRopePointPosition": "-48,32,160",
           "FixedEnd": false,
           "FixedStart": true,
-          "Iterations": 76,
-          "LastRopePointPosition": "-44.90526,145.8214,90.82498",
+          "Iterations": 80,
+          "LastRopePointPosition": "-47.99996,128,160",
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
@@ -147,9 +148,9 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
-          "PointSpacing": 4,
-          "RadiusFraction": 0.25,
-          "RenderWidthScale": 1,
+          "PointSpacing": 0.38,
+          "RadiusFraction": 0.5,
+          "RenderWidthScale": 12.02,
           "SimulateOnGPU": true,
           "StartTarget": {
             "_type": "gameobject",
@@ -173,15 +174,15 @@
       "__guid": "539a31bc-b852-494a-bda0-152512c7d9a6",
       "Flags": 0,
       "Name": "Cloth",
-      "Position": "-111.9998,272,160",
+      "Position": "-144,-64,-16",
       "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletCloth",
           "__guid": "027c0069-f345-4f0a-b516-d66f8f43a181",
           "Bounds": {
-            "Mins": "-112.9998,260.0327,-31.95692",
-            "Maxs": "47.06979,289.2093,161"
+            "Mins": "-177,-249.8805,-61.56149",
+            "Maxs": "95.06979,-31,129"
           },
           "ClothResolution": 32,
           "DebugDrawPoints": false,
@@ -192,11 +193,11 @@
             "_type": "gameobject",
             "go": "31c9aefa-5ab5-49a6-a3c5-630d84837651"
           },
-          "FirstRopePointPosition": "-111.9998,272,160",
-          "FixedEnd": false,
+          "FirstRopePointPosition": "-144,-64,-16",
+          "FixedEnd": true,
           "FixedStart": true,
-          "Iterations": 80,
-          "LastRopePointPosition": "-79.99982,112,160",
+          "Iterations": 46,
+          "LastRopePointPosition": "-112,-224,-16",
           "Material": null,
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
@@ -211,7 +212,7 @@
             "_type": "gameobject",
             "go": "539a31bc-b852-494a-bda0-152512c7d9a6"
           },
-          "TimeStep": 0.01,
+          "TimeStep": 0.02,
           "Wireframe": false
         }
       ],

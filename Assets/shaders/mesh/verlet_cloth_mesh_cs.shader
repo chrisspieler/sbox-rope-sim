@@ -166,7 +166,7 @@ CS
 	[numthreads( 32, 32, 1 )]
 	void MainCs( uint3 id : SV_DispatchThreadID )
 	{
-		int i = Convert2DIndexTo1D( id.xy, uint2( NumPoints / NumColumns, NumColumns ) );
+		int i = Convert2DIndexTo1D( id.xy, uint2( NumColumns, NumColumns ) );
 		OutputClothVertex( i );
 	}	
 }

@@ -23,7 +23,7 @@ CS
 	RWStructuredBuffer<VerletPointUpdate> PointUpdates < Attribute ( "PointUpdates" ); >;
 	// Simulation
 	int Iterations < Attribute( "Iterations" ); >;
-	float PointWidth < Attribute( "PointWidth" ); Default( 1.0 ); >;
+	float PointRadius < Attribute( "PointRadius" ); Default( 1.0 ); >;
 	// Forces
 	float3 Gravity < Attribute( "Gravity" ); Default3( 0, 0, -800.0 ); >;
 	// Rope rendering
@@ -48,11 +48,11 @@ CS
 			VerletPoint p = Points[pIndex];
 			float3 pPositionOs = mul( WorldToLocal, float4( p.Position.xyz, 1 ) ).xyz;
 			float dist = distance( pPositionOs, Center );
-			if ( dist - Radius > PointWidth )
+			if ( dist - Radius >= PointRadius )
 				return;
 
 			float3 dir = normalize( pPositionOs - Center );
-			float3 hitPositionOs = Center + dir * ( PointWidth + Radius );
+			float3 hitPositionOs = Center + dir * ( PointRadius + Radius );
 			float3 hitPositionWs = mul( LocalToWorld, float4( hitPositionOs.xyz, 1 ) ).xyz;
 			p.Position = hitPositionWs;
 			Points[pIndex] = p;
@@ -73,7 +73,7 @@ CS
 			float3 halfSize = Size * 0.5f;
 			float3 scale = 1;
 			float3 pointDepth = halfSize - abs( pPositionOs );
-			float radius = PointWidth;
+			float radius = PointRadius;
 
 			if ( pointDepth.x <= -radius || pointDepth.y <= -radius || pointDepth.z <= -radius )
 				return;
@@ -120,7 +120,7 @@ CS
 			VerletPoint p = Points[pIndex];
 			float3 pPositionOs = mul( WorldToLocal, float4( p.Position.xyz, 1 ) ).xyz;
 			float sd = sdCapsule( pPositionOs );
-			if ( sd > PointWidth )
+			if ( sd >= PointRadius )
 				return;
 
 			float3 xOffset = float3( 0.0001, 0, 0 );
@@ -133,7 +133,7 @@ CS
 				sdCapsule( pPositionOs + zOffset ) - sdCapsule( pPositionOs - zOffset )
 			);
 			gradient = normalize( gradient );
-			pPositionOs += gradient * ( -sd + PointWidth );
+			pPositionOs += gradient * ( -sd + PointRadius );
 			p.Position = mul( LocalToWorld, float4( pPositionOs.xyz, 1 ) ).xyz;
 			Points[pIndex] = p;
 		}
@@ -153,10 +153,10 @@ CS
 		uint3 texel = sdf.PositionOsToTexel( pPositionOs );
 		float sd = 0;
 		float3 gradient = sdf.GetGradient( sdTex, texel, sd );
-		if ( sd > PointWidth )
+		if ( sd > PointRadius )
 			return;
 
-		pPositionOs += gradient * ( -sd + PointWidth );
+		pPositionOs += gradient * ( -sd + PointRadius );
 		p.Position = mul( sdf.LocalToWorld, float4( pPositionOs.xyz, 1 ) ).xyz;
 		Points[pIndex] = p;
 	}
@@ -172,6 +172,7 @@ CS
 	RWStructuredBuffer<SignedDistanceField> MeshColliders < Attribute( "MeshColliders" ); >;
 
 	DynamicCombo( D_SHAPE_TYPE, 0..1, Sys( All ) );
+	DynamicCombo( D_COLLISION, 0..1, Sys( All ) );
 
 	void ApplyUpdates( int DTid )
 	{
@@ -202,143 +203,135 @@ CS
 
 		if ( p.IsAnchor() )
 		{
+			p.LastPosition = p.Position;
 			Points[pIndex] = p;
 			return;
 		}
 
 		float3 temp = p.Position;
 		float3 delta = p.Position - p.LastPosition;
-		delta *= 1 - (0.95 * deltaTime);
+		delta *= 1 - ( 0.95 * deltaTime );
 		p.Position += delta;
 		p.Position += Gravity * ( deltaTime * deltaTime );
 		p.LastPosition = temp;
 		Points[pIndex] = p;
 	}
 
-	void ApplyRopeSegmentConstraint( int pIndex )
+	void ConstrainPoints( int pIndex, int qIndex, float segmentLength )
+	{
+		VerletPoint p = Points[pIndex];
+		VerletPoint q = Points[qIndex];
+
+		float3 delta = p.Position - q.Position;
+		float distance = length( delta );
+		float distanceFactor = 0;
+		if ( distance > 0 )
+		{
+			distanceFactor = ( segmentLength - distance ) / distance * 0.5;
+		}
+		float3 offset = delta * distanceFactor;
+		
+		if ( !p.IsAnchor() )
+		{
+			p.Position += offset;
+			Points[pIndex] = p;
+		}
+		if ( !q.IsAnchor() )
+		{
+			q.Position -= offset;
+			Points[qIndex] = q;
+		}
+	}
+
+	void ApplyRopeSegmentConstraints( int pIndex )
+	{
+		if ( pIndex >= NumPoints - 1 )
+			return;
+
+		GroupMemoryBarrierWithGroupSync();
+		if ( pIndex % 2 == 0 )
+		{
+			ConstrainPoints( pIndex, pIndex + 1, SegmentLength );
+		}
+		GroupMemoryBarrierWithGroupSync();
+		if ( pIndex % 2 == 1 )
+		{
+			ConstrainPoints( pIndex, pIndex + 1, SegmentLength );
+		}
+	}
+
+	void ApplyClothSegmentConstraints( int pIndex )
 	{
 		VerletPoint pCurr = Points[pIndex];
+		uint2 coords = Convert1DIndexTo2D( pIndex, NumColumns );
+		int x = coords.x;
+		int y = coords.y;
+		int xMax = NumColumns - 1;
+		int yMax = NumColumns - 1;
 
-		if ( pIndex < NumPoints - 1 )
+		
+
+		if ( x < NumColumns - 1 )
 		{
-			VerletPoint pNext = Points[pIndex + 1];
-
-			float3 delta = pCurr.Position - pNext.Position;
-			float distance = length( delta );
-			float distanceFactor = 0;
-			if ( distance > 0 )
+			int qIndex = pIndex + 1;
+			GroupMemoryBarrierWithGroupSync();
+			if ( pIndex % 2 == 0 )
 			{
-				distanceFactor = ( SegmentLength - distance ) / distance * 0.5;
+				ConstrainPoints( pIndex, qIndex, SegmentLength );
 			}
-			float3 offset = delta * distanceFactor;
-
-			pCurr.Position += offset;
-			Points[pIndex] = pCurr;
+			GroupMemoryBarrierWithGroupSync();
+			if ( pIndex % 2 == 1 )
+			{
+				ConstrainPoints( pIndex, qIndex, SegmentLength );
+			}
 		}
 
-		if  ( pIndex > 0 )
+		if ( y < NumColumns - 1 )
 		{
-			VerletPoint pPrev = Points[pIndex - 1];
-
-			float3 delta = pPrev.Position - pCurr.Position;
-			float distance = length( delta );
-			float distanceFactor = 0;
-			if ( distance > 0 )
+			int qIndex = pIndex + NumColumns;
+			GroupMemoryBarrierWithGroupSync();
+			if ( y % 2 == 0 )
 			{
-				distanceFactor = ( SegmentLength - distance ) / distance * 0.5;
+				ConstrainPoints( pIndex, qIndex, SegmentLength );
 			}
-			float3 offset = delta * distanceFactor;
-
-			pCurr.Position -= offset;
-			Points[pIndex] = pCurr;
-		}
-	}
-
-	void ApplyRopeConstraints( int pIndex )
-	{
-		ApplyRopeSegmentConstraint( pIndex );
-	}
-
-	void ApplyClothSegmentConstraint( int pIndex )
-	{
-		VerletPoint pCurr = Points[pIndex];
-		int x = pIndex % NumColumns;
-		int xSize = NumColumns;
-		int y = pIndex / NumColumns;
-		int ySize = NumColumns;
-
-		if ( x < xSize - 1 )
-		{
-			VerletPoint pNext = Points[pIndex + 1];
-
-			float3 delta = pCurr.Position - pNext.Position;
-			float distance = length( delta );
-			float distanceFactor = 0;
-			if ( distance > 0 )
+			GroupMemoryBarrierWithGroupSync();
+			if ( y % 2 == 1 )
 			{
-				distanceFactor = ( SegmentLength - distance ) / distance * 0.5;
+				ConstrainPoints( pIndex, qIndex, SegmentLength );
 			}
-			float3 offset = delta * distanceFactor;
-
-			pCurr.Position += offset;
-			Points[pIndex] = pCurr;
 		}
 
-		if  ( x > 0 )
+		if ( x < NumColumns - 1 && y < NumColumns - 1 )
 		{
-			VerletPoint pPrev = Points[pIndex - 1];
-
-			float3 delta = pPrev.Position - pCurr.Position;
-			float distance = length( delta );
-			float distanceFactor = 0;
-			if ( distance > 0 )
+			int qIndex = pIndex + 1 + NumColumns;
+			float length = distance( Points[pIndex].Position, Points[qIndex].Position ); 
+			GroupMemoryBarrierWithGroupSync();
+			if ( x % 2 == 0 )
 			{
-				distanceFactor = ( SegmentLength - distance ) / distance * 0.5;
+				ConstrainPoints( pIndex, qIndex, length );
 			}
-			float3 offset = delta * distanceFactor;
-
-			pCurr.Position -= offset;
-			Points[pIndex] = pCurr;
+			GroupMemoryBarrierWithGroupSync();
+			if ( x % 2 == 1 )
+			{
+				ConstrainPoints( pIndex, qIndex, length );
+			}
 		}
 
-		if ( y < ySize - 1 )
+		if ( x > 0 && y > 0 )
 		{
-			VerletPoint pNext = Points[pIndex + xSize];
-
-			float3 delta = pCurr.Position - pNext.Position;
-			float distance = length( delta );
-			float distanceFactor = 0;
-			if ( distance > 0 )
+			int qIndex = pIndex - 1 - NumColumns;
+			float length = distance( Points[pIndex].Position, Points[qIndex].Position ); 
+			GroupMemoryBarrierWithGroupSync();
+			if ( x % 2 == 0 )
 			{
-				distanceFactor = ( SegmentLength - distance ) / distance * 0.5;
+				ConstrainPoints( pIndex, qIndex, length );
 			}
-			float3 offset = delta * distanceFactor;
-
-			pCurr.Position += offset;
-			Points[pIndex] = pCurr;
-		}
-
-		if ( y > 0 )
-		{
-			VerletPoint pPrev = Points[pIndex - xSize];
-
-			float3 delta = pPrev.Position - pCurr.Position;
-			float distance = length( delta );
-			float distanceFactor = 0;
-			if ( distance > 0 )
+			GroupMemoryBarrierWithGroupSync();
+			if ( x % 2 == 1 )
 			{
-				distanceFactor = ( SegmentLength - distance ) / distance * 0.5;
+				ConstrainPoints( pIndex, qIndex, length );
 			}
-			float3 offset = delta * distanceFactor;
-
-			pCurr.Position -= offset;
-			Points[pIndex] = pCurr;
 		}
-	}
-
-	void ApplyClothConstraints( int pIndex )
-	{
-		ApplyClothSegmentConstraint( pIndex );
 	}
 
 	void ResolveSphereCollisions( int pIndex )
@@ -391,19 +384,18 @@ CS
 
 		ApplyForces( pIndex, deltaTime );
 		
-		if ( p.IsAnchor() )
-		return;
-		
 		for ( int i = 0; i < Iterations; i++ )
 		{
-			#if D_SHAPE_TYPE == 0
-				ApplyRopeConstraints( pIndex );
-			#elif D_SHAPE_TYPE == 1
-				ApplyClothConstraints( pIndex );
+			#if D_SHAPE_TYPE == 1
+				ApplyClothSegmentConstraints( pIndex );
+			#else
+				ApplyRopeSegmentConstraints( pIndex );
 			#endif
-			
-			GroupMemoryBarrierWithGroupSync();		
-			ResolveCollisions( pIndex );
+
+				GroupMemoryBarrierWithGroupSync();
+			#if D_COLLISION
+				ResolveCollisions( pIndex );
+			#endif
 		}
 	}
 
@@ -414,33 +406,34 @@ CS
 	#endif
 	void MainCs( uint3 id : SV_DispatchThreadID )
 	{
-		int pIndex = Convert2DIndexTo1D( id.xy, uint2( NumPoints / NumColumns, NumColumns ) );
+		#if D_SHAPE_TYPE == 1
+			int pIndex = Convert2DIndexTo1D( id.xy, NumColumns );
+		#else
+			int pIndex = id.x;
+		#endif
+
+		if ( pIndex >= NumPoints )
+			return;
 
 		// TODO: Apply updates only from thread group 0,0
 		if ( pIndex < NumPointUpdates )
 		{
 			ApplyUpdates( pIndex );
 		}
-		GroupMemoryBarrierWithGroupSync();
 		
 		VerletPoint p = Points[pIndex];
 		if ( p.IsRopeLocal() )
 		{
 			ApplyTransform( pIndex, p );
 		}
-		GroupMemoryBarrierWithGroupSync();
 
 		float totalTime = min( DeltaTime, MaxTimeStepPerUpdate );
-		for( int i = 0; i < 50; i++ )
+		float timeStepSize = max( TimeStepSize, 0.01 );
+		while( totalTime >= 0 )
 		{
-			float deltaTime = min( TimeStepSize, totalTime );
+			float deltaTime = min( timeStepSize, totalTime );
 			Simulate( pIndex, deltaTime );
-			totalTime -= TimeStepSize;
-
-			if ( totalTime < 0 )
-				break;
+			totalTime -= timeStepSize;
 		}
-
-		GroupMemoryBarrierWithGroupSync();
 	}
 }
