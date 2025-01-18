@@ -16550,7 +16550,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "3c7eaf1f-e5dd-4800-a19c-ed0c4a65dc2c",
           "Bounds": {
-            "Mins": "-5,-5,-81.48625",
+            "Mins": "-5,-5,-69",
             "Maxs": "5,5,69"
           },
           "Color": "0.33333,0.33333,0.33333,1",
@@ -16608,8 +16608,8 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "797487fd-4e65-4a93-a1af-9e5f3fa37c3b",
           "Bounds": {
-            "Mins": "-5,-53,-4.923636",
-            "Maxs": "5,53,29"
+            "Mins": "-5,-5,-9.019383",
+            "Maxs": "5,5,5"
           },
           "Color": "0.33488,0.33488,0.33488,1",
           "DebugDrawPoints": false,

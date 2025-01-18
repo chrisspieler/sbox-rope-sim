@@ -474,7 +474,7 @@ public class MdfModelViewer : Component
 		}
 	}
 
-	readonly ComputeShader _textureSliceCs = new( "mesh_sdf_preview_cs" );
+	readonly ComputeShader _textureSliceCs = new( "shaders/sdf/mesh_sdf_preview_cs.shader" );
 
 	private enum SdfSliceDebugVisualization
 	{

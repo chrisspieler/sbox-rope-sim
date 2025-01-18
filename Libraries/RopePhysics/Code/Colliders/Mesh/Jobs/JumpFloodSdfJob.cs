@@ -5,7 +5,7 @@ namespace Duccsoft;
 internal class JumpFloodSdfJob : Job<InputData, OutputData>
 {
 	[ConVar("rope_mdf_jfa_emptyseeds")]
-	public static int NumEmptySeeds { get; set; } = 64;
+	public static int NumEmptySeeds { get; set; } = 0;
 	[ConVar( "rope_mdf_jfa_inside_threshold" )]
 	public static float InsideThreshold { get; set; } = 0.99f;
 
@@ -37,7 +37,7 @@ internal class JumpFloodSdfJob : Job<InputData, OutputData>
 	public MeshDistanceField MeshDistanceField { get; }
 	public Vector3Int LocalPosition { get; }
 
-	private readonly ComputeShader _meshSdfCs = new( "mesh_sdf_cs" );
+	private readonly ComputeShader _meshSdfCs = new( "shaders/sdf/mesh_sdf_cs.shader" );
 
 	protected override bool RunInternal( out OutputData result )
 	{
