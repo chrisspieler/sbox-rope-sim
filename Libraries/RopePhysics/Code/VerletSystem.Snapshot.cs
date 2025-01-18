@@ -18,6 +18,7 @@ public partial class VerletSystem
 		if ( simData is null || !simData.Physics.IsValid() || simData?.CpuPoints?.Length < 1 )
 			return new();
 
+		// TODO: Use a collection of bounds so that very long ropes don't have massive bounding boxes.
 		var collisionBounds = simData.Bounds;
 
 		// Find possible collisions in the scene.

@@ -16550,8 +16550,8 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "3c7eaf1f-e5dd-4800-a19c-ed0c4a65dc2c",
           "Bounds": {
-            "Mins": "-24,-24,-105.346",
-            "Maxs": "24,24,88"
+            "Mins": "-5,-5,-81.48625",
+            "Maxs": "5,5,69"
           },
           "Color": "0.33333,0.33333,0.33333,1",
           "DebugDrawPoints": false,
@@ -16578,7 +16578,7 @@
           "PointSpacing": 1,
           "RadiusFraction": 1,
           "RenderWidthScale": 1,
-          "SimulateOnGPU": true,
+          "SimulateOnGPU": false,
           "StartTarget": {
             "_type": "gameobject",
             "go": "eb8b29db-0c5f-48c7-bb0e-0b980499f54c"
@@ -16608,8 +16608,8 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "797487fd-4e65-4a93-a1af-9e5f3fa37c3b",
           "Bounds": {
-            "Mins": "-24,-72,-38.87118",
-            "Maxs": "24,72,48"
+            "Mins": "-5,-53,-4.923636",
+            "Maxs": "5,53,29"
           },
           "Color": "0.33488,0.33488,0.33488,1",
           "DebugDrawPoints": false,
@@ -16636,7 +16636,7 @@
           "PointSpacing": 1,
           "RadiusFraction": 1,
           "RenderWidthScale": 1,
-          "SimulateOnGPU": true,
+          "SimulateOnGPU": false,
           "StartTarget": {
             "_type": "gameobject",
             "go": "1eb69421-fffc-4a8f-ad89-e88b84eb951b"
