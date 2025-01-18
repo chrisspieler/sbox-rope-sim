@@ -1,27 +1,22 @@
 struct SignedDistanceField
 {
-	float3 MinsWs;
 	int SdfTextureIndex;
-	float3 MaxsWs;
 	int TextureSize;
+	float BoundsSizeOs;
+	float Padding;
 	float4x4 LocalToWorld;
 	float4x4 WorldToLocal;
 
-	float3 GetBoundsSize()
-	{
-		return MaxsWs - MinsWs;
-	}
-
 	uint3 PositionOsToTexel( float3 positionOs )
 	{
-		float3 normalized = ( positionOs - MinsWs ) / GetBoundsSize();
+		float3 normalized = positionOs / BoundsSizeOs;
 		return (uint3)( TextureSize * normalized );
 	}
 
 	float GetSignedDistance( Texture3D sdf, uint3 texel )
 	{
 		float normalized = sdf.Load( int4( texel.xyz, 0 ) ).a;
-		float size = GetBoundsSize().x;
+		float size = BoundsSizeOs;
 		return normalized * size * 2 - size;
 	}
 

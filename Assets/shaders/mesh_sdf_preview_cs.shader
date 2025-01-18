@@ -11,8 +11,7 @@ CS
 	#include "common/classes/Bindless.hlsl"
 
 	int SdfTextureIndex < Attribute( "SdfTextureIndex" ); >;
-	float3 MinsWs < Attribute( "MinsWs" ); >;
-	float3 MaxsWs < Attribute( "MaxsWs" ); >;
+	float BoundsSizeOs < Attribute( "BoundsSizeOs" ); >;
 	int TextureSize < Attribute( "TextureSize" ); >;
 	int ZLayer < Attribute( "ZLayer" ); >;
 	RWTexture2D<float4> OutputTexture < Attribute( "OutputTexture" ); >;
@@ -31,7 +30,7 @@ CS
 			maxColor = float3(0, 0.15, 0.3 );
 			progressFactor = 5;
 		}
-		float progress = abs( sdMesh ) / sdf.GetBoundsSize().x;
+		float progress = abs( sdMesh ) / BoundsSizeOs;
 		progress *= progressFactor;
 		progress = saturate( progress );
 		return lerp( minColor, maxColor, progress );
@@ -70,8 +69,7 @@ CS
 
 		SignedDistanceField sdf;
 		sdf.SdfTextureIndex = SdfTextureIndex;
-		sdf.MinsWs = MinsWs;
-		sdf.MaxsWs = MaxsWs;
+		sdf.BoundsSizeOs = BoundsSizeOs;
 		sdf.TextureSize = TextureSize;
 		Texture3D sdfTex = Bindless::GetTexture3D( SdfTextureIndex );
 

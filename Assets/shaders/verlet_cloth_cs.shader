@@ -187,10 +187,11 @@ CS
 	{
 		Texture3D sdTex = Bindless::GetTexture3D( sdf.SdfTextureIndex );
 		VerletPoint p = Points[pIndex];
-		if ( any( p.Position < sdf.MinsWs ) || any( p.Position > sdf.MaxsWs ) )
-			return;
 
 		float3 pPositionOs = mul( sdf.WorldToLocal, float4( p.Position.xyz, 1 ) ).xyz;
+		if ( any( pPositionOs < 0 ) || any( pPositionOs > sdf.BoundsSizeOs ) )
+			return;
+			
 		uint3 texel = sdf.PositionOsToTexel( pPositionOs );
 		float sd = 0;
 		float3 gradient = sdf.GetGradient( sdTex, texel, sd );

@@ -496,8 +496,7 @@ public class MdfModelViewer : Component
 		}
 		_textureSliceCs.Attributes.SetComboEnum( "D_MODE", debugMode );
 		_textureSliceCs.Attributes.Set( "SdfTextureIndex", voxelData.DataTexture.Index );
-		_textureSliceCs.Attributes.Set( "MinsWs", voxelData.Bounds.Mins );
-		_textureSliceCs.Attributes.Set( "MaxsWs", voxelData.Bounds.Maxs );
+		_textureSliceCs.Attributes.Set( "BoundsSizeOs", voxelData.Bounds.Size.x );
 		_textureSliceCs.Attributes.Set( "TextureSize", voxelData.TextureSize );
 		_textureSliceCs.Attributes.Set( "ZLayer", z );
 		_textureSliceCs.Attributes.Set( "OutputTexture", outputTex );

@@ -9,21 +9,20 @@ public struct MeshCollisionInfo
 	public GpuMeshCollisionInfo AsGpu()
 		=> new()
 		{
+			SdfTextureIndex = Sdf.DataTexture.Index,
+			TextureSize = Sdf.TextureSize,
+			BoundsSizeOs = Sdf.Bounds.Size.x * Transform.Scale.x,
 			LocalToWorld = Transform.GetLocalToWorld(),
 			WorldToLocal = Transform.GetWorldToLocal(),
-			SdfTextureIndex = Sdf.DataTexture.Index,
-			MinsWs = Sdf.Bounds.Mins,
-			TextureSize = Sdf.TextureSize,
-			MaxsWs = Sdf.Bounds.Maxs,
 		};
 }
 
 public struct GpuMeshCollisionInfo
 {
-	public Vector3 MinsWs;
 	public int SdfTextureIndex;
-	public Vector3 MaxsWs;
 	public int TextureSize;
+	public float BoundsSizeOs;
+	public float Padding;
 	public Matrix LocalToWorld;
 	public Matrix WorldToLocal;
 }

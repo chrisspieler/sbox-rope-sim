@@ -156,13 +156,15 @@ public partial class VerletSystem
 				continue;
 
 			var voxel = sdf.Position;
+			var size = sdf.Data.Bounds.Size.x;
 			var voxelTx = new Transform()
 			{
-				Position = gameObjectTx.PointToWorld( mdf.VoxelToLocalCenter( voxel ) ),
+				Position = gameObjectTx.PointToWorld( mdf.VoxelToLocalCenter( voxel ) - size * 0.5f ),
 				Rotation = gameObjectTx.Rotation,
 				Scale = gameObjectTx.Scale,
 			};
 
+			// DebugOverlaySystem.Current.Box( size * 0.5f, size, transform: voxelTx );
 			var id = HashCode.Combine( mdf.Id, voxel );
 			if ( !meshColliders.ContainsKey( id ) )
 			{

@@ -363,7 +363,9 @@ CS
 		data.PositionOs = float4( tri.Center, emptySeedId );
 		data.Normal = float4( tri.Normal, emptySeedOffset );
 		Seeds[emptySeedId] = data;
-		StoreSeedVoxelFromId( emptySeedId, voxel );
+		float3 voxelPos = Voxel::GetCenterPositionOs( voxel );
+		float3 closestPoint = tri.GetClosestPoint( voxelPos );
+		StoreSeedVoxelFromPosition( emptySeedId, closestPoint );
 	}
 
 	void StoreTriangleSeedsFromIndices( int triId )
