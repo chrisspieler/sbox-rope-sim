@@ -18,5 +18,38 @@ public class CollisionSnapshot
 		BoxColliders.Clear();
 		CapsuleColliders.Clear();
 		MeshColliders.Clear();
+		
+	}
+
+	public void ApplyColliderAttributes( RenderAttributes attributes )
+	{
+		var sphereColliders = SphereColliders.Values.Take( 16 ).Select( c => c.AsGpu() ).ToArray();
+		attributes.Set( "NumSphereColliders", sphereColliders.Length );
+		if ( sphereColliders.Length > 0 )
+		{
+			GpuSphereColliders.SetData( sphereColliders, 0 );
+			attributes.Set( "SphereColliders", GpuSphereColliders );
+		}
+		var boxColliders = BoxColliders.Values.Take( 16 ).Select( c => c.AsGpu() ).ToArray();
+		attributes.Set( "NumBoxColliders", boxColliders.Length );
+		if ( boxColliders.Length > 0 )
+		{
+			GpuBoxColliders.SetData( boxColliders, 0 );
+			attributes.Set( "BoxColliders", GpuBoxColliders );
+		}
+		var capsuleColliders = CapsuleColliders.Values.Take( 16 ).Select( c => c.AsGpu() ).ToArray();
+		attributes.Set( "NumCapsuleColliders", capsuleColliders.Length );
+		if ( capsuleColliders.Length > 0 )
+		{
+			GpuCapsuleColliders.SetData( capsuleColliders, 0 );
+			attributes.Set( "CapsuleColliders", GpuCapsuleColliders );
+		}
+		var meshColliders = MeshColliders.Values.Take( 16 ).Select( c => c.AsGpu() ).ToArray();
+		attributes.Set( "NumMeshColliders", meshColliders.Length );
+		if ( meshColliders.Length > 0 )
+		{
+			GpuMeshColliders.SetData( meshColliders, 0 );
+			attributes.Set( "MeshColliders", GpuMeshColliders );
+		}
 	}
 }

@@ -16,8 +16,11 @@ public partial class VerletSystem
 	private ComputeShader MeshBoundsCs;
 	private SceneCustomObject GpuSimulateSceneObject;
 	private readonly HashSet<VerletComponent> GpuSimulateQueue = [];
+
 	private List<double> PerSimGpuReadbackTimes = [];
 	private List<double> PerSimGpuSimulateTimes = [];
+	private List<double> PerSimGpuBuildMeshTimes = [];
+	private List<double> PerSimGpuCalculateBoundsTimes = [];
 	private List<double> PerSimGpuStorePointsTimes = [];
 
 	private void InitializeGpu()
@@ -67,7 +70,7 @@ public partial class VerletSystem
 		}
 
 		GpuDispatchCalculateMeshBounds( simData );
-		// GpuReadbackBounds( simData );
+		GpuReadbackBounds( simData );
 	}
 
 	private void GpuStorePoints( SimulationData simData )
@@ -119,34 +122,8 @@ public partial class VerletSystem
 		attributes.Set( "Translation", simData.Translation );
 		attributes.Set( "PointWidth", simData.Radius );
 		// Colliders
-		var sphereColliders = simData.Collisions.SphereColliders.Values.Take( 16 ).Select( c => c.AsGpu() ).ToArray();
-		attributes.Set( "NumSphereColliders", sphereColliders.Length );
-		if ( sphereColliders.Length > 0 )
-		{
-			simData.Collisions.GpuSphereColliders.SetData( sphereColliders, 0 );
-			attributes.Set( "SphereColliders", simData.Collisions.GpuSphereColliders );
-		}
-		var boxColliders = simData.Collisions.BoxColliders.Values.Take( 16 ).Select( c => c.AsGpu() ).ToArray();
-		attributes.Set( "NumBoxColliders", boxColliders.Length );
-		if ( boxColliders.Length > 0 )
-		{
-			simData.Collisions.GpuBoxColliders.SetData( boxColliders, 0 );
-			attributes.Set( "BoxColliders", simData.Collisions.GpuBoxColliders );
-		}
-		var capsuleColliders = simData.Collisions.CapsuleColliders.Values.Take( 16 ).Select( c => c.AsGpu() ).ToArray();
-		attributes.Set( "NumCapsuleColliders", capsuleColliders.Length );
-		if ( capsuleColliders.Length > 0 )
-		{
-			simData.Collisions.GpuCapsuleColliders.SetData( capsuleColliders, 0 );
-			attributes.Set( "CapsuleColliders", simData.Collisions.GpuCapsuleColliders );
-		}
-		var meshColliders = simData.Collisions.MeshColliders.Values.Take( 16 ).Select( c => c.AsGpu() ).ToArray();
-		attributes.Set( "NumMeshColliders", meshColliders.Length );
-		if ( meshColliders.Length > 0 )
-		{
-			simData.Collisions.GpuMeshColliders.SetData( meshColliders, 0 );
-			attributes.Set( "MeshColliders", simData.Collisions.GpuMeshColliders );
-		}
+		simData.Collisions.ApplyColliderAttributes( attributes );
+
 		VerletIntegrationCs.DispatchWithAttributes( attributes, xThreads, yThreads, 1 );
 
 		PerSimGpuSimulateTimes.Add( simTimer.ElapsedMilliSeconds );
@@ -154,42 +131,70 @@ public partial class VerletSystem
 
 	private void GpuDispatchBuildRopeMesh( VerletRope rope )
 	{
-		SimulationData simData = rope.SimData;
+		var timer = FastTimer.StartNew();
 
+		SimulationData simData = rope.SimData;
 		RenderAttributes attributes = new();
 
+		attributes.Set( "NumPoints", simData.CpuPoints.Length );
+		attributes.Set( "Points", simData.GpuPoints );
 		attributes.Set( "RenderWidth", rope.EffectiveRadius * rope.RenderWidthScale );
 		attributes.Set( "TextureCoord", 0f );
 		attributes.Set( "Tint", rope.Color );
 		attributes.Set( "OutputVertices", simData.ReadbackVertices );
 		attributes.Set( "OutputIndices", simData.ReadbackIndices );
+
+		VerletRopeMeshCs.DispatchWithAttributes( attributes, simData.CpuPoints.Length, 1, 1 );
+
+		PerSimGpuBuildMeshTimes.Add( timer.ElapsedMilliSeconds );
 	}
 
 	private void GpuDispatchBuildClothMesh( VerletCloth cloth )
 	{
-		SimulationData simData = cloth.SimData;
+		var timer = FastTimer.StartNew();
 
+		SimulationData simData = cloth.SimData;
 		RenderAttributes attributes = new();
 
+		attributes.Set( "NumPoints", simData.CpuPoints.Length );
+		attributes.Set( "NumColumns", simData.PointGridDims.y );
+		attributes.Set( "Points", simData.GpuPoints );
+		attributes.Set( "Tint", Color.White );
 		attributes.Set( "OutputVertices", simData.ReadbackVertices );
 		attributes.Set( "OutputIndices", simData.ReadbackIndices );
+
+		VerletClothMeshCs.DispatchWithAttributes( attributes, simData.PointGridDims.x, simData.PointGridDims.y, 1 );
+
+		PerSimGpuBuildMeshTimes.Add( timer.ElapsedMilliSeconds );
 	}
 
 	private void GpuDispatchCalculateMeshBounds( SimulationData simData )
 	{
+		var timer = FastTimer.StartNew();
+
 		RenderAttributes attributes = new();
 
+		attributes.Set( "NumPoints", simData.CpuPoints.Length );
+		attributes.Set( "Points", simData.GpuPoints );
+		attributes.Set( "SkinSize", 1f );
+
 		attributes.Set( "BoundsWs", simData.ReadbackBounds.SwapToBack() );
+
+		MeshBoundsCs.DispatchWithAttributes( attributes, simData.CpuPoints.Length );
+
+		PerSimGpuCalculateBoundsTimes.Add( timer.ElapsedMilliSeconds );
 	}
 
 	private void GpuReadbackBounds( SimulationData simData )
 	{
 		var timer = FastTimer.StartNew();
+
 		simData.ClearPendingPointUpdates();
 		simData.Collisions.Clear();
 		simData.LoadBoundsFromGpu();
 		simData.LastTransform = simData.Transform;
 		simData.LastTick = 0;
+
 		PerSimGpuReadbackTimes.Add( timer.ElapsedMilliSeconds );
 	}
 }

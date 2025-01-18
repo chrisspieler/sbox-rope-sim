@@ -10,6 +10,7 @@ CS
 	#include "shared/index.hlsl"
 
 	// TODO: Make this a superclass of VerletPoint?
+	// !! THIS MUST MATCH THE SIZE OF VerletPoint IN shared/verlet.hlsl !!
 	struct MeshPoint
 	{
 		float3 Position;
@@ -17,10 +18,12 @@ CS
 		float4 Padding2;
 	};
 
+	// Input
 	int NumPoints < Attribute( "NumPoints" ); >;
-	int NumColumns < Attribute( "NumColumns" ); >;
-	float Skin < Attribute( "Skin" ); Default( 1.0 ); >;
 	RWStructuredBuffer<MeshPoint> Points < Attribute( "Points" ); >;
+	float Skin < Attribute( "SkinSize" ); Default( 1.0 ); >;
+
+	// Output
 	RWStructuredBuffer<float4> BoundsWs < Attribute( "BoundsWs" ); >;
 
 	groupshared float3 g_vMins[1024];
@@ -67,10 +70,12 @@ CS
 		}
 	}
 
-	[numthreads( 32, 32, 1 )]
+	[numthreads( 1024, 1, 1 )]
 	void MainCs( uint3 id : SV_DispatchThreadID )
 	{
-		int i = Convert2DIndexTo1D( id.xy, uint2( NumPoints / NumColumns, NumColumns ) );
-		UpdateBounds( i );
+		if ( id.x >= 1024 )
+			return;
+
+		UpdateBounds( id.x );
 	}	
 }
