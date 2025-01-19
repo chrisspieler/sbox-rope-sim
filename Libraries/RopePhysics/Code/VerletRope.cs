@@ -148,7 +148,7 @@ public partial class VerletRope : VerletComponent
 		var endPos = LastRopePointPosition;
 		var pointCount = CalculatePointCount( startPos, endPos );
 		var points = RopeGenerator.Generate( startPos, endPos, pointCount, out float segmentLength );
-		var simData = new SimulationData( physics, points, 1, segmentLength );
+		var simData = new SimulationData( physics, points, new Vector2Int( pointCount, 1 ), segmentLength );
 		simData.InitializeGpu();
 		return simData;
 	}

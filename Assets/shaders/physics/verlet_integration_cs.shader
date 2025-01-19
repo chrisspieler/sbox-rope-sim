@@ -502,6 +502,8 @@ CS
 		{
 			ApplyUpdates( pIndex );
 		}
+
+		GroupMemoryBarrierWithGroupSync();
 		
 		VerletPoint p = Points[pIndex];
 		if ( p.IsRopeLocal() )

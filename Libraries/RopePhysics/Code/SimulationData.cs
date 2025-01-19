@@ -2,11 +2,11 @@
 
 public class SimulationData
 {
-	public SimulationData( PhysicsWorld physics, VerletPoint[] points, int numColumns, float segmentLength )
+	public SimulationData( PhysicsWorld physics, VerletPoint[] points, Vector2Int resolution, float segmentLength )
 	{
 		Physics = physics;
 		CpuPoints = points;
-		PointGridDims = new Vector2Int( points.Length / numColumns, numColumns );
+		PointGridDims = resolution;
 		SegmentLength = segmentLength;
 	}
 
