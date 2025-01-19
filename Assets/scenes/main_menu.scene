@@ -195,7 +195,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "a7c06f93-0168-4c32-ae15-838b8e7f849a",
           "Bounds": {
-            "Mins": "46.00538,-33,-0.1488233",
+            "Mins": "46.00538,-33,7.4271",
             "Maxs": "48.00538,33,17"
           },
           "Color": "0,0,0,1",
@@ -228,6 +228,7 @@
             "_type": "gameobject",
             "go": "ad433f3c-b0e3-499c-9114-a30ec805a008"
           },
+          "Stretchiness": 0,
           "TimeStep": 0.01,
           "Wireframe": false
         }
@@ -253,7 +254,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "4b863253-4fb6-4f83-9372-6eee061ccb73",
           "Bounds": {
-            "Mins": "46.00538,-33,-2.29657",
+            "Mins": "46.00538,-33,5.42548",
             "Maxs": "48.00538,33,15"
           },
           "Color": "0,0,0,1",
@@ -286,6 +287,7 @@
             "_type": "gameobject",
             "go": "b4ff0170-a33e-4b40-9e5a-54a10619d4a2"
           },
+          "Stretchiness": 0,
           "TimeStep": 0.01,
           "Wireframe": false
         }
@@ -311,7 +313,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "e0a4cbf2-80e8-4d78-951c-c21c6f9a7e72",
           "Bounds": {
-            "Mins": "46.00538,-33,1.810087",
+            "Mins": "46.00538,-33,9.425191",
             "Maxs": "48.00538,33,19"
           },
           "Color": "0,0,0,1",
@@ -344,6 +346,7 @@
             "_type": "gameobject",
             "go": "77271cf4-a57c-499e-b05b-f7b0bc8c0e36"
           },
+          "Stretchiness": 0,
           "TimeStep": 0.01,
           "Wireframe": false
         }
@@ -369,7 +372,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "b9148a2f-4037-4f6a-a8bc-2edca73c2683",
           "Bounds": {
-            "Mins": "46.00538,-33,3.807701",
+            "Mins": "46.00538,-33,11.42749",
             "Maxs": "48.00538,33,21"
           },
           "Color": "0,0,0,1",
@@ -402,6 +405,7 @@
             "_type": "gameobject",
             "go": "07983a85-702c-49ec-94fb-639393ad635e"
           },
+          "Stretchiness": 0,
           "TimeStep": 0.01,
           "Wireframe": false
         }
@@ -427,7 +431,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "5cccdb65-62f8-494b-a73f-50eaf0e6fe55",
           "Bounds": {
-            "Mins": "46.00538,-33,-6.189096",
+            "Mins": "46.00538,-33,1.377267",
             "Maxs": "48.00538,33,11"
           },
           "Color": "0,0,0,1",
@@ -460,6 +464,7 @@
             "_type": "gameobject",
             "go": "2d6143c3-06c2-4df5-9737-b2f9cb87a224"
           },
+          "Stretchiness": 0,
           "TimeStep": 0.01,
           "Wireframe": false
         }
@@ -485,7 +490,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "c97b5ba2-b3e4-4914-a83b-38e175bf5613",
           "Bounds": {
-            "Mins": "46.00538,-33,-8.13588",
+            "Mins": "46.00538,-33,-0.6196936",
             "Maxs": "48.00538,33,9"
           },
           "Color": "0,0,0,1",
@@ -518,6 +523,7 @@
             "_type": "gameobject",
             "go": "0dfefba8-11d0-4398-8992-f66470f57ffd"
           },
+          "Stretchiness": 0,
           "TimeStep": 0.01,
           "Wireframe": false
         }
@@ -543,7 +549,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "96363128-d71c-4a05-8930-c1089d719c75",
           "Bounds": {
-            "Mins": "46.00538,-33,-4.187476",
+            "Mins": "46.00538,-33,3.424028",
             "Maxs": "48.00538,33,13"
           },
           "Color": "0,0,0,1",
@@ -576,6 +582,7 @@
             "_type": "gameobject",
             "go": "9fb56a53-546a-402f-938d-acfc0d782333"
           },
+          "Stretchiness": 0,
           "TimeStep": 0.01,
           "Wireframe": false
         }
@@ -601,7 +608,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "d803cecf-4cbb-4a2f-bd57-882dd00f86c8",
           "Bounds": {
-            "Mins": "47,-1,-20.33464",
+            "Mins": "47,-1,-137255.2",
             "Maxs": "49,1,33"
           },
           "Color": "0,0,0,1",
@@ -631,6 +638,7 @@
             "_type": "gameobject",
             "go": "1fcf01df-0765-48dc-8877-829961f26561"
           },
+          "Stretchiness": 0,
           "TimeStep": 0.01,
           "Wireframe": false
         }
@@ -647,7 +655,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "e470aa03-6855-4dae-8daa-e230297338a2",
           "Bounds": {
-            "Mins": "49,-1,-20.3588",
+            "Mins": "49,-1,31",
             "Maxs": "51,1,33"
           },
           "Color": "0,0,0,1",
@@ -677,6 +685,7 @@
             "_type": "gameobject",
             "go": "a9b108a5-3987-487a-92b8-07ef2c8ecfb3"
           },
+          "Stretchiness": 0,
           "TimeStep": 0.01,
           "Wireframe": false
         }
@@ -693,7 +702,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "e06a6415-38f2-4c45-870e-dd3d3414e1ca",
           "Bounds": {
-            "Mins": "45,-1,-20.33335",
+            "Mins": "45,-1,31",
             "Maxs": "47,1,33"
           },
           "Color": "0,0,0,1",
@@ -723,6 +732,7 @@
             "_type": "gameobject",
             "go": "c6e42b1c-effc-4e34-83f2-e794c4980de5"
           },
+          "Stretchiness": 0,
           "TimeStep": 0.01,
           "Wireframe": false
         }
@@ -739,7 +749,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "a5243c50-23d4-43b3-b61f-1f20e273a7a8",
           "Bounds": {
-            "Mins": "49,1,-20.35897",
+            "Mins": "49,1,31",
             "Maxs": "51,3,33"
           },
           "Color": "0,0,0,1",
@@ -769,6 +779,7 @@
             "_type": "gameobject",
             "go": "d6bc13b7-91b4-4d81-8464-5fb6571ff38f"
           },
+          "Stretchiness": 0,
           "TimeStep": 0.01,
           "Wireframe": false
         }
@@ -785,7 +796,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "ab114479-0578-49ce-9a84-fe2a8d55de35",
           "Bounds": {
-            "Mins": "45,1,-20.35961",
+            "Mins": "45,1,31",
             "Maxs": "47,3,33"
           },
           "Color": "0,0,0,1",
@@ -815,6 +826,7 @@
             "_type": "gameobject",
             "go": "93d3df05-30e8-493a-b7ea-99e5d13edb43"
           },
+          "Stretchiness": 0,
           "TimeStep": 0.01,
           "Wireframe": false
         }
@@ -831,8 +843,8 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "6e203cf5-c558-4332-be58-65f82e30377a",
           "Bounds": {
-            "Mins": "49,-3,-20.26892",
-            "Maxs": "51,-1,33"
+            "Mins": "49,-3,31",
+            "Maxs": "51,-1,77.71475"
           },
           "Color": "0,0,0,1",
           "DebugDrawPoints": false,
@@ -861,6 +873,7 @@
             "_type": "gameobject",
             "go": "2a8364e3-d909-49e8-843c-8b3acf1a449f"
           },
+          "Stretchiness": 0,
           "TimeStep": 0.01,
           "Wireframe": false
         }
@@ -877,7 +890,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "7365b115-951b-41c4-b8fb-59d1a279ca12",
           "Bounds": {
-            "Mins": "45,-3,-20.36001",
+            "Mins": "45,-3,31",
             "Maxs": "47,-1,33"
           },
           "Color": "0,0,0,1",
@@ -907,6 +920,7 @@
             "_type": "gameobject",
             "go": "07378953-6215-4220-b1b9-ce1a5f82c064"
           },
+          "Stretchiness": 0,
           "TimeStep": 0.01,
           "Wireframe": false
         }
@@ -923,7 +937,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "399222c3-5352-42ae-bcbe-c1d19b694b96",
           "Bounds": {
-            "Mins": "47,1,-20.33399",
+            "Mins": "47,1,31",
             "Maxs": "49,3,33"
           },
           "Color": "0,0,0,1",
@@ -953,6 +967,7 @@
             "_type": "gameobject",
             "go": "611b12fa-31c4-45c6-bc94-d5cfde91c66a"
           },
+          "Stretchiness": 0,
           "TimeStep": 0.01,
           "Wireframe": false
         }
@@ -969,7 +984,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "64699d75-9a09-4e13-9777-6916735fbd80",
           "Bounds": {
-            "Mins": "47,-3,-20.35766",
+            "Mins": "47,-3,31",
             "Maxs": "49,-1,33"
           },
           "Color": "0,0,0,1",
@@ -999,6 +1014,7 @@
             "_type": "gameobject",
             "go": "92c09f22-980a-47f2-844c-adce428f2b31"
           },
+          "Stretchiness": 0,
           "TimeStep": 0.01,
           "Wireframe": false
         }

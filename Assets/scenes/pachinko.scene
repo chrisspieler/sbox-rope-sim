@@ -19,7 +19,8 @@
           "OnComponentEnabled": null,
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
-          "OnComponentUpdate": null
+          "OnComponentUpdate": null,
+          "ThumbnailPath": null
         }
       ]
     },
@@ -894,90 +895,34 @@
       ]
     },
     {
-      "__guid": "30a5ac78-ac28-49b9-93a8-d773041257b8",
-      "Flags": 0,
-      "Name": "Cloth",
-      "Position": "48,32,224",
-      "Enabled": true,
-      "Components": [
-        {
-          "__type": "Duccsoft.VerletCloth",
-          "__guid": "cce8db93-6d8d-4952-9e30-c30a29a05288",
-          "Bounds": {
-            "Mins": "44,-95.89362,215.0822",
-            "Maxs": "176.2502,36,228"
-          },
-          "ClothResolution": 32,
-          "DebugDrawPoints": false,
-          "EnableCollision": true,
-          "EnableRendering": true,
-          "EndTarget": {
-            "_type": "gameobject",
-            "go": "195f251d-269f-49a7-95eb-d550dd694435",
-            "prefab": null
-          },
-          "FirstRopePointPosition": "48,32,224",
-          "FixedEnd": true,
-          "FixedStart": true,
-          "LastRopePointPosition": "48,-96,224",
-          "Material": "materials/cloth_default.vmat",
-          "MaxTimeStepPerUpdate": 0.1,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Radius": 1,
-          "SimulateOnGPU": true,
-          "StartTarget": {
-            "_type": "gameobject",
-            "go": "30a5ac78-ac28-49b9-93a8-d773041257b8",
-            "prefab": null
-          },
-          "Stiffness": 1,
-          "TimeStep": 0.01
-        }
-      ],
-      "Children": [
-        {
-          "__guid": "195f251d-269f-49a7-95eb-d550dd694435",
-          "Flags": 0,
-          "Name": "Cloth End Pos",
-          "Position": "0,-128,0",
-          "Rotation": "0,-1,0,0.0000001390709",
-          "Enabled": true
-        }
-      ]
-    },
-    {
       "__guid": "1e27d789-0980-4439-82d0-10cf86e4b85c",
       "Flags": 0,
       "Name": "Rope",
-      "Position": "240,208,688",
+      "Position": "128,168,192",
       "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletRope",
           "__guid": "d39c0e78-82c6-4036-ae57-a299e1f859b1",
           "Bounds": {
-            "Mins": "236,-820,606.9734",
-            "Maxs": "244,212,692"
+            "Mins": "127,-85.55466,169.813",
+            "Maxs": "129,169,193"
           },
           "Color": "0.01395,0.01395,0.01395,1",
-          "DebugDrawPoints": false,
-          "EffectiveRadius": 5.7706003,
-          "EnableCollision": false,
+          "DebugDrawPoints": true,
+          "DefaultLength": 128,
+          "EffectiveRadius": 0.5628,
+          "EnableCollision": true,
           "EnableRendering": true,
           "EndTarget": {
             "_type": "gameobject",
-            "go": "7548821a-9269-4d2f-a353-1e0492740255",
-            "prefab": null
+            "go": "7548821a-9269-4d2f-a353-1e0492740255"
           },
-          "FirstRopePointPosition": "240,208,688",
+          "FirstRopePointPosition": "128,168,192",
           "FixedEnd": true,
           "FixedStart": true,
-          "LastRopePointPosition": "240,-816,688",
+          "Iterations": 20,
+          "LastRopePointPosition": "128,-88,192",
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
@@ -985,16 +930,15 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
-          "PointSpacing": 26.84,
-          "RadiusFraction": 0.43,
+          "PointSpacing": 4.02,
+          "RadiusFraction": 0.28,
           "RenderWidthScale": 1,
           "SimulateOnGPU": true,
           "StartTarget": {
             "_type": "gameobject",
-            "go": "1e27d789-0980-4439-82d0-10cf86e4b85c",
-            "prefab": null
+            "go": "1e27d789-0980-4439-82d0-10cf86e4b85c"
           },
-          "Stiffness": 0.56,
+          "Stretchiness": 0,
           "TimeStep": 0.01,
           "Wireframe": false
         }
@@ -1004,7 +948,7 @@
           "__guid": "7548821a-9269-4d2f-a353-1e0492740255",
           "Flags": 0,
           "Name": "End Point",
-          "Position": "0,-1024,0",
+          "Position": "0,-256,0",
           "Enabled": true
         }
       ]

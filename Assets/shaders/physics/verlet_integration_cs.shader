@@ -14,7 +14,9 @@ CS
 	#include "shared/verlet.hlsl"
 
 	DynamicCombo( D_INFESTATION, 0..1, Sys( All ) );
-	
+
+	static const int MAX_POINT_UPDATES = 1024;
+
 	// Layout
 	int NumPoints < Attribute( "NumPoints" ); >;
 	int NumColumns < Attribute( "NumColumns" ); >;
@@ -171,6 +173,11 @@ CS
 		Points[pIndex] = p;
 	}
 
+	static const int MAX_SPHERE_COLLIDERS = 16;
+	static const int MAX_BOX_COLLIDERS = 16;
+	static const int MAX_CAPSULE_COLLIDERS = 16;
+	static const int MAX_MESH_COLLIDERS = 256;
+
 	// Colliders
 	int NumSphereColliders < Attribute( "NumSphereColliders" ); >;
 	RWStructuredBuffer<SphereCollider> SphereColliders < Attribute( "SphereColliders" ); >;
@@ -186,6 +193,9 @@ CS
 
 	void ApplyUpdates( int DTid )
 	{
+		if ( DTid > MAX_POINT_UPDATES - 1 )
+			return;
+
 		VerletPointUpdate update = PointUpdates[DTid];
 		int pIndex = update.Index;
 		VerletPoint p = Points[pIndex];
@@ -256,7 +266,23 @@ CS
 	float3 GetNearestRopeAnchorPosition( int pIndex, out float initialDistance )
 	{
 		int aIndex = pIndex < NumPoints / 2 ? 0 : NumPoints - 1;
-		initialDistance = SegmentLength * ( pIndex - aIndex );
+		if ( pIndex == aIndex )
+		{
+			initialDistance = 0;
+			return 0;
+		}
+		VerletPoint pAnchor = Points[aIndex];
+		if ( !pAnchor.IsAnchor() )
+		{
+			aIndex = aIndex == 0 ? NumPoints - 1 : 0;
+			pAnchor = Points[aIndex];
+			if ( !pAnchor.IsAnchor() )
+			{
+				initialDistance = 0;
+				return 0;
+			}
+		}
+		initialDistance = SegmentLength * abs( pIndex - aIndex );
 		return Points[aIndex].Position;
 	}
 
@@ -270,9 +296,8 @@ CS
 		if ( pX == aX && pY == aY )
 		{
 			initialDistance = 0;
-			return pIndex;
+			return 0;
 		}
-
 
 		int aIndex = Convert2DIndexTo1D( uint2( aX, aY ), NumColumns );
 		VerletPoint pAnchor = Points[aIndex];
@@ -280,7 +305,7 @@ CS
 		if ( !pAnchor.IsAnchor() )
 		{
 			// Get the anchor on the opposite end.
-			aX = aX == 0 ? 1 : 0;
+			aX = aX == 0 ? NumColumns - 1 : 0;
 			aIndex = Convert2DIndexTo1D( uint2( aX, aY ), NumColumns );
 			pAnchor = Points[aIndex];
 			if ( !pAnchor.IsAnchor() )
@@ -416,7 +441,8 @@ CS
 
 	void ResolveSphereCollisions( int pIndex )
 	{
-		for( int i = 0; i < NumSphereColliders; i++ )
+		int numColliders = min( NumSphereColliders, MAX_SPHERE_COLLIDERS );
+		for( int i = 0; i < numColliders; i++ )
 		{
 			SphereCollider sphere = SphereColliders[i];
 			sphere.ResolveCollision( pIndex );
@@ -425,7 +451,8 @@ CS
 
 	void ResolveBoxCollisions( int pIndex )
 	{
-		for ( int i = 0; i < NumBoxColliders; i++ )
+		int numColliders = min( NumBoxColliders, MAX_BOX_COLLIDERS );
+		for ( int i = 0; i < numColliders; i++ )
 		{
 			BoxCollider box = BoxColliders[i];
 			box.ResolveCollision( pIndex );
@@ -434,7 +461,8 @@ CS
 
 	void ResolveCapsuleCollisions( int pIndex )
 	{
-		for ( int i = 0; i < NumCapsuleColliders; i++ )
+		int numColliders = min( NumCapsuleColliders, MAX_CAPSULE_COLLIDERS );
+		for ( int i = 0; i < numColliders; i++ )
 		{
 			CapsuleCollider capsule = CapsuleColliders[i];
 			capsule.ResolveCollision( pIndex );
@@ -443,7 +471,8 @@ CS
 
 	void ResolveMeshCollisions( int pIndex )
 	{
-		for( int i = 0; i < NumMeshColliders; i++ )
+		int numColliders = min( NumMeshColliders, MAX_MESH_COLLIDERS );
+		for( int i = 0; i < numColliders; i++ )
 		{
 			SignedDistanceField sdf = MeshColliders[i];
 			ResolveSdfCollision( sdf, pIndex );
