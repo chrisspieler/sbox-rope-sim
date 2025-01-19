@@ -1,7 +1,11 @@
-﻿namespace Duccsoft;
+﻿using Sandbox.Diagnostics;
+
+namespace Duccsoft;
 
 public partial class VerletSystem
 {
+	private List<double> PerSimCaptureSnapshotTimes = [];
+
 	private void SetShouldCaptureSnapshot()
 	{
 		var verletComponents = Scene.GetAllComponents<VerletComponent>();
@@ -13,10 +17,12 @@ public partial class VerletSystem
 			verlet.SimData.Collisions.ShouldCaptureSnapshot = true;
 		}
 	}
-	public static CollisionSnapshot CaptureCollisionSnapshot( SimulationData simData )
+	public CollisionSnapshot CaptureCollisionSnapshot( SimulationData simData )
 	{
 		if ( simData is null || !simData.Physics.IsValid() || simData?.CpuPoints?.Length < 1 )
 			return new();
+
+		var timer = FastTimer.StartNew();
 
 		// TODO: Use a collection of bounds so that very long ropes don't have massive bounding boxes.
 		var collisionBounds = simData.Bounds.Grow( 32f );
@@ -46,7 +52,7 @@ public partial class VerletSystem
 			}
 		}
 
-		simData.Bounds = collisionBounds;
+		PerSimCaptureSnapshotTimes.Add( timer.ElapsedMilliSeconds );
 		return snapshot;
 	}
 

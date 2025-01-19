@@ -9,8 +9,6 @@ public class BenchmarkUI : Component
 	[Property] public List<VerletComponent> Simulations { get; set; } = [];
 	[Property] public GameObject RopeContainer { get; set; }
 
-	private int GpuReadbackInterval = 30;
-
 	private float RopeSpacing = 4f;
 
 	private float RopeLength = 96f;
@@ -38,15 +36,11 @@ public class BenchmarkUI : Component
 	private void PaintWindow()
 	{
 		ImGui.Text( $"FPS: {1 / DeltaTimes.Average():F1}" );
-		ImGui.Text( $"CPU Sim Time: {VerletSystem.Current.AverageTotalSimulationCPUTime:F3}ms" );
+		ImGui.Text( $"CPU Capture Snapshots: {VerletSystem.Current.AverageTotalCaptureSnapshotTime:F3}ms" );
+		ImGui.Text( $"GPU Simulation: {VerletSystem.Current.AverageTotalGpuSimulationTime:F3}ms" );
+		ImGui.Text( $"GPU Store Points: {VerletSystem.Current.AverageTotalGpuStorePointsTime:F3}ms" );
+		ImGui.Text( $"GPU Build Mesh: {VerletSystem.Current.AverageTotalGpuBuildMeshTimes:F3}ms" );
 		ImGui.Text( $"GPU Readback Time: {VerletSystem.Current.AverageTotalGpuReadbackTime:F3}ms" );
-		ImGui.Text( $"GPU Readback Interval:" ); ImGui.SameLine();
-		var swapInterval = GpuReadbackInterval;
-		if ( ImGui.SliderInt( "GPU Readback Interval", ref swapInterval, 1,60 ) )
-		{
-			GpuReadbackInterval = swapInterval;
-			ResetAllSims();
-		}
 		ImGui.Text( $"Rope Count: {Simulations.Count}" ); ImGui.SameLine();
 		if ( ImGui.Button( " - ") )
 		{
@@ -137,7 +131,6 @@ public class BenchmarkUI : Component
 			{
 				rope = CreateRope( RopeContainer.WorldPosition );
 			}
-			rope.SimData.GpuReadbackInterval = GpuReadbackInterval;
 			rope.DefaultLength = RopeLength;
 			rope.PointSpacing = PointSpacing;
 		}

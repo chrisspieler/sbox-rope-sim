@@ -18,13 +18,20 @@ CS
 		float4 Padding2;
 	};
 
+	struct VerletBounds
+	{
+		float4 Mins;
+		float4 Maxs;
+	};
+
 	// Input
+	int BoundsIndex < Attribute( "BoundsIndex"); >;
 	int NumPoints < Attribute( "NumPoints" ); >;
 	RWStructuredBuffer<MeshPoint> Points < Attribute( "Points" ); >;
 	float Skin < Attribute( "SkinSize" ); Default( 1.0 ); >;
 
 	// Output
-	RWStructuredBuffer<float4> BoundsWs < Attribute( "BoundsWs" ); >;
+	RWStructuredBuffer<VerletBounds> BoundsBuffer < Attribute( "Bounds" ); >;
 
 	groupshared float3 g_vMins[1024];
 	groupshared float3 g_vMaxs[1024];
@@ -63,10 +70,10 @@ CS
 
 		if ( pIndex == 0 )
 		{
-			float3 mins = g_vMins[0] - Skin;
-			float3 maxs = g_vMaxs[0] + Skin;
-			BoundsWs[0] = float4( mins.xyz, 1 );
-			BoundsWs[1] = float4( maxs.xyz, 1 );
+			VerletBounds bounds;
+			bounds.Mins = float4( ( g_vMins[0] - Skin ).xyz, 0 );
+			bounds.Maxs = float4( ( g_vMaxs[0] + Skin ).xyz, 0 );
+			BoundsBuffer[BoundsIndex] = bounds;
 		}
 	}
 

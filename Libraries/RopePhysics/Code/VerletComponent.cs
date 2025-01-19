@@ -252,16 +252,6 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	}
 	private CircularBuffer<double> _debugTimes = new CircularBuffer<double>( 25 );
 	[Property, ReadOnly, JsonIgnore] public int GpuPendingUpdates => SimData?.PendingPointUpdates ?? 0;
-	[Property, ReadOnly, JsonIgnore] public string GpuReadbackTime
-	{
-		get
-		{
-			if ( SimData?.ReadbackBounds?.IsValid() != true )
-				return string.Empty;
-
-			return $"{SimData.ReadbackBounds.TimingStats.LastMilliseconds:F3}ms";
-		}
-	}
 
 	protected override void DrawGizmos()
 	{

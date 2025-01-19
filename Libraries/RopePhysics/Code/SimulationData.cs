@@ -86,7 +86,6 @@ public class SimulationData
 	// Gpu outputs
 	internal GpuBuffer<VerletVertex> ReadbackVertices { get; set; }
 	internal GpuBuffer<uint> ReadbackIndices { get; set; }
-	internal GpuDoubleBuffer<VerletBounds> ReadbackBounds { get; set; }
 
 
 	public Vector2Int IndexToPointCoord( int index )
@@ -114,23 +113,6 @@ public class SimulationData
 		CpuPointsAreDirty = false;
 	}
 
-	private static int GpuReadbackOffset = 0;
-	[ConVar( "verlet_gpu_readback_interval" )]
-	public static int DefaultGpuReadbackInterval { get; set; } = 5;
-	public int GpuReadbackInterval
-	{
-		get => _gpuReadbackInterval;
-		set
-		{
-			_gpuReadbackInterval = value;
-			if ( ReadbackBounds.IsValid() )
-			{
-				ReadbackBounds.SwapInterval = value;
-			}
-		}
-	}
-	private int _gpuReadbackInterval = 5;
-
 	public void InitializeGpu()
 	{
 		PointUpdateQueue.Clear();
@@ -151,14 +133,6 @@ public class SimulationData
 		var numIndices = 6 * ( numQuads + PointGridDims.x - 1 );
 		numIndices = Math.Max( 6, numIndices );
 		ReadbackIndices = new GpuBuffer<uint>( numIndices, GpuBuffer.UsageFlags.Index | GpuBuffer.UsageFlags.Structured );
-
-		var swapOffset = GpuReadbackOffset;
-		GpuReadbackOffset++;
-		ReadbackBounds = new GpuDoubleBuffer<VerletBounds>( readbackBuffer, swapOffset )
-		{
-			EnableFrontCache = true,
-			SwapInterval = GpuReadbackInterval,
-		};
 
 		Bounds = BBox.FromPositionAndSize( Transform.Position, 128f );
 	}
@@ -299,16 +273,6 @@ public class SimulationData
 		};
 		CpuPoints[i] = p;
 		PointUpdateQueue[i] = VerletPointUpdate.Flags( i, flags );
-	}
-
-	public void LoadBoundsFromGpu()
-	{
-		if ( !ReadbackBounds.IsValid() )
-			return;
-
-		var bounds = new VerletBounds[1];
-		ReadbackBounds.ReadData( bounds );
-		Bounds = bounds[0].AsBBox();
 	}
 
 	public void RecalculateCpuPointBounds()

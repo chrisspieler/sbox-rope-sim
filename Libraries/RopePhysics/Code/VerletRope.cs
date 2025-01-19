@@ -44,7 +44,11 @@ public partial class VerletRope : VerletComponent
 	{
 		base.DrawGizmos();
 
+		if ( !Gizmo.IsSelected )
+			return;
+
 		using var scope = Gizmo.Scope( "RopePhysicsDebug" );
+
 
 		Gizmo.Transform = Scene.LocalTransform;
 		var ropeLineColor = Color.Blue;
