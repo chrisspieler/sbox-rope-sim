@@ -7,6 +7,8 @@ public class ClothDemo : Component
 {
 	[Property] public VerletCloth Cloth { get; set; }
 	[Property] public Freecam Freecam { get; set; }
+	[Property] public Material ClothTextureSource { get; set; }
+	[Property] public float ClothMoveSpeed { get; set; } = 200f;
 	[Property] public float OrbitCamDistance = 75f;
 	[Property, Range( 1f, 32f )] public float OrbitCamPositionExpDecay = 8f;
 	[Property, Range( 0f, 1f )] public float OrbitCamRotationSmoothTime = 0.5f;
@@ -28,7 +30,29 @@ public class ClothDemo : Component
 
 	protected override void OnPreRender()
 	{
+		UpdateMovement();
 		UpdateOrbitCamera();
+	}
+
+	private void UpdateMovement()
+	{
+		if ( Freecam.Enabled )
+			return;
+
+		var moveDir = Scene.Camera.WorldRotation * Input.AnalogMove;
+		moveDir = moveDir.WithZ( 0f ).Normal;
+		Cloth.WorldPosition += moveDir * ClothMoveSpeed * Time.Delta;
+		float targetHeight = Cloth.WorldPosition.z;
+		if ( Input.Down( "jump" ) )
+		{
+			targetHeight += ClothMoveSpeed * Time.Delta;
+		}
+		else if ( Input.Down( "run" ) )
+		{
+			targetHeight -= ClothMoveSpeed * Time.Delta;
+		}
+		targetHeight = targetHeight.Clamp( 1f, 250f );
+		Cloth.WorldPosition = Cloth.WorldPosition.WithZ( targetHeight );
 	}
 
 	private void UpdateOrbitCamera()
@@ -91,6 +115,14 @@ public class ClothDemo : Component
 
 	private void PaintClothDemoWindow()
 	{
+		if ( !Freecam.Enabled )
+		{
+			ImGui.Text( "WASD: move cloth" );
+			ImGui.Text( "Space/Shift: increase/decrease height" );
+			ImGui.Text( "RMB: orbit camera" );
+			ImGui.Text( "scroll wheel: zoom in/out" );
+			ImGui.NewLine();
+		}
 		bool enableFreecam = Freecam.Enabled;
 		if ( ImGui.Checkbox( "Enable Freecam", ref enableFreecam ) )
 		{
@@ -100,11 +132,23 @@ public class ClothDemo : Component
 				Freecam.CameraAngles = Scene.Camera.WorldRotation;
 			}
 		}
-		ImGui.Text( "Position:" ); ImGui.SameLine();
-		float position = -Cloth.WorldPosition.y;
-		if ( ImGui.SliderFloat( "Position", ref position, -200, 200 ) )
+
+		bool textureCloth = Cloth.Material is not null;
+		if ( ImGui.Checkbox( "Texture Cloth", ref textureCloth ) )
 		{
-			Cloth.WorldPosition = Cloth.WorldPosition.WithY( -position );
+			Cloth.Material = textureCloth ? ClothTextureSource : null;
+		}
+
+		bool fixedEnd = Cloth.FixedEnd;
+		if ( ImGui.Checkbox( "Fixed End Point", ref fixedEnd ) )
+		{
+			Cloth.FixedEnd = fixedEnd;
+		}
+		ImGui.Text( "Height:" ); ImGui.SameLine();
+		float height = Cloth.WorldPosition.z;
+		if ( ImGui.SliderFloat( "Height", ref height, 0, 250 ) )
+		{
+			Cloth.WorldPosition = Cloth.WorldPosition.WithZ( height );
 		}
 		ImGui.NewLine();
 		bool unlockResolution = UnlockResolution;
@@ -123,12 +167,27 @@ public class ClothDemo : Component
 		{
 			Cloth.ClothResolution = resolution;
 		}
+		ImGui.Text( "Time Step Size:" ); ImGui.SameLine();
+		float timeStepSize = Cloth.TimeStep;
+		if ( ImGui.SliderFloat( "TimeStep", ref timeStepSize, 0.001f, 0.32f ) )
+		{
+			Cloth.TimeStep = timeStepSize;
+		}
+		ImGui.Text( "Stretchiness:" ); ImGui.SameLine();
+		float stretchiness = Cloth.Stretchiness;
+		if ( ImGui.SliderFloat( "Stretchiness", ref stretchiness, 0f, 4f ) )
+		{
+			Cloth.Stretchiness = stretchiness;
+		}
 		ImGui.Text( "Iterations:" ); ImGui.SameLine();
 		int iterations = Cloth.Iterations;
 		if ( ImGui.SliderInt( "Iterations", ref iterations, 1, 80 ) )
 		{
 			Cloth.Iterations = iterations;
 		}
-
+		if ( ImGui.Button( "Reset Cloth" ) )
+		{
+			Cloth.ResetSimulation();
+		}
 	}
 }

@@ -354,7 +354,7 @@ CS
 		float3 anchorPos = GetNearestClothAnchorPosition( pIndex, initialDistance );
 		if ( initialDistance == 0 )
 			return;
-		ApplyMaxDistanceConstraint( pIndex, anchorPos, initialDistance * ( 1.01 + AnchorMaxDistanceFactor ) );
+		ApplyMaxDistanceConstraint( pIndex, anchorPos, initialDistance * ( 2 + AnchorMaxDistanceFactor ) );
 	}
 
 	void ApplyRopeSegmentConstraints( int pIndex )
