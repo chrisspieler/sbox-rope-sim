@@ -53,7 +53,32 @@ public class VerletCloth : VerletComponent
 		return new SimulationData( physics, points, ClothResolution, spacing );
 	}
 	#region Rendering
-	[Property] public Material Material { get; set; }
+	[Property] public Material Material 
+	{
+		get => _so?.TextureSourceMaterial ?? _textureSourceMaterial;
+		set
+		{
+			_textureSourceMaterial = value;
+			if ( _so.IsValid() )
+			{
+				_so.TextureSourceMaterial = _textureSourceMaterial;
+			}
+		}
+	}
+	private Material _textureSourceMaterial;
+	[Property] public Color Tint
+	{
+		get => _so?.Tint ?? _tint;
+		set
+		{
+			_tint = value;
+			if ( _so.IsValid() )
+			{
+				_so.Tint = value;
+			}
+		}
+	}
+	private Color _tint = Color.White;
 	[Property] public bool Wireframe { get; set; } = false;
 	private SceneClothObject _so;
 	protected override void CreateRenderer()
@@ -61,6 +86,8 @@ public class VerletCloth : VerletComponent
 		_so = new SceneClothObject( Scene.SceneWorld );
 		_so.Flags.IsOpaque = true;
 		_so.Flags.CastShadows = true;
+		_so.TextureSourceMaterial = _textureSourceMaterial;
+		_so.Tint = _tint;
 	}
 
 	protected override void DestroyRenderer()

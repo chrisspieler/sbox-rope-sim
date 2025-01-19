@@ -177,15 +177,15 @@
       "__guid": "539a31bc-b852-494a-bda0-152512c7d9a6",
       "Flags": 0,
       "Name": "Cloth",
-      "Position": "-112.0002,-120,168",
+      "Position": "-110.0666,-16,88",
       "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletCloth",
           "__guid": "027c0069-f345-4f0a-b516-d66f8f43a181",
           "Bounds": {
-            "Mins": "-114.7784,-153.8533,12.53731",
-            "Maxs": "47.81635,-112.2938,169"
+            "Mins": "-113.9933,-78.02548,-36.42619",
+            "Maxs": "49.003,-12.67658,89"
           },
           "ClothResolution": 32,
           "DebugDrawPoints": false,
@@ -196,12 +196,12 @@
             "_type": "gameobject",
             "go": "31c9aefa-5ab5-49a6-a3c5-630d84837651"
           },
-          "FirstRopePointPosition": "-112.0002,-120,168",
+          "FirstRopePointPosition": "-110.0666,-16,88",
           "FixedEnd": false,
           "FixedStart": true,
           "Iterations": 7,
-          "LastRopePointPosition": "-80.00015,-280,168",
-          "Material": null,
+          "LastRopePointPosition": "-78.06661,-176,88",
+          "Material": "tarp kit/construction_tarp_red.vmat",
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
@@ -217,6 +217,7 @@
           },
           "Stretchiness": 0,
           "TimeStep": 0.02,
+          "Tint": "1,1,1,1",
           "Wireframe": false
         }
       ],
@@ -745,6 +746,8 @@
   "ResourceVersion": 2,
   "Title": null,
   "Description": null,
-  "__references": [],
+  "__references": [
+    "gkaf.construction_tarp_red#82562"
+  ],
   "__version": 2
 }
