@@ -25,6 +25,7 @@ CS
 	RWStructuredBuffer<VerletPointUpdate> PointUpdates < Attribute ( "PointUpdates" ); >;
 	// Simulation
 	int Iterations < Attribute( "Iterations" ); >;
+	float AnchorMaxDistanceFactor < Attribute( "AnchorMaxDistanceFactor" ); Default( 3.0 ); >;
 	float PointRadius < Attribute( "PointRadius" ); Default( 1.0 ); >;
 	// Forces
 	float3 Gravity < Attribute( "Gravity" ); Default3( 0, 0, -800.0 ); >;
@@ -252,6 +253,78 @@ CS
 		}
 	}
 
+	float3 GetNearestRopeAnchorPosition( int pIndex, out float initialDistance )
+	{
+		int aIndex = pIndex < NumPoints / 2 ? 0 : NumPoints - 1;
+		initialDistance = SegmentLength * ( pIndex - aIndex );
+		return Points[aIndex].Position;
+	}
+
+	float3 GetNearestClothAnchorPosition( int pIndex, out float initialDistance )
+	{
+		uint2 coords = Convert1DIndexTo2D( pIndex, NumColumns );
+		int pX = coords.x;
+		int pY = coords.y;
+		int aX = pX < NumColumns / 2 ? 0 : NumColumns - 1;
+		int aY = pY < NumColumns / 2 ? 0 : NumColumns - 1;
+		if ( pX == aX && pY == aY )
+		{
+			initialDistance = 0;
+			return pIndex;
+		}
+
+
+		int aIndex = Convert2DIndexTo1D( uint2( aX, aY ), NumColumns );
+		VerletPoint pAnchor = Points[aIndex];
+		// If we couldn't find an anchor...
+		if ( !pAnchor.IsAnchor() )
+		{
+			// Get the anchor on the opposite end.
+			aX = aX == 0 ? 1 : 0;
+			aIndex = Convert2DIndexTo1D( uint2( aX, aY ), NumColumns );
+			pAnchor = Points[aIndex];
+			if ( !pAnchor.IsAnchor() )
+			{
+				initialDistance = 0;
+				return 0;
+			}
+		}
+
+		initialDistance = distance( float2( pX, pY ), float2( aX, aY ) );
+		initialDistance *= SegmentLength;
+		return Points[aIndex].Position;
+	}
+
+	void ApplyMaxDistanceConstraint( int pIndex, float3 target, float maxDist )
+	{
+		VerletPoint p = Points[pIndex];
+		float currDist = distance( p.Position, target );
+		if ( distance( p.Position, target ) < maxDist )
+			return;
+
+		float3 dir = normalize( target - p.Position );
+		p.Position += dir * ( currDist - maxDist );
+		Points[pIndex] = p;
+	}
+
+	void ConstrainToRopeAnchor( int pIndex )
+	{
+		float initialDistance = 0;
+		float3 anchorPos = GetNearestRopeAnchorPosition( pIndex, initialDistance );
+		if ( initialDistance == 0 )
+			return;
+		ApplyMaxDistanceConstraint( pIndex, anchorPos, initialDistance * ( 1.01 + AnchorMaxDistanceFactor ) );
+	}
+
+	void ConstrainToClothAnchor( int pIndex )
+	{
+		float initialDistance = 0;
+		float3 anchorPos = GetNearestClothAnchorPosition( pIndex, initialDistance );
+		if ( initialDistance == 0 )
+			return;
+		ApplyMaxDistanceConstraint( pIndex, anchorPos, initialDistance * ( 1.01 + AnchorMaxDistanceFactor ) );
+	}
+
 	void ApplyRopeSegmentConstraints( int pIndex )
 	{
 		if ( pIndex >= NumPoints - 1 )
@@ -277,8 +350,6 @@ CS
 		int y = coords.y;
 		int xMax = NumColumns - 1;
 		int yMax = NumColumns - 1;
-
-		
 
 		if ( x < NumColumns - 1 )
 		{
@@ -397,8 +468,10 @@ CS
 		{
 			#if D_SHAPE_TYPE == 1
 				ApplyClothSegmentConstraints( pIndex );
+				ConstrainToClothAnchor( pIndex );
 			#else
 				ApplyRopeSegmentConstraints( pIndex );
+				ConstrainToRopeAnchor( pIndex );
 			#endif
 
 				GroupMemoryBarrierWithGroupSync();

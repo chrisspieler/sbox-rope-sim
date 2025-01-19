@@ -112,7 +112,8 @@
           "__type": "Sandbox.ClothDemo",
           "__guid": "ebcb663a-5aa6-426f-84ba-f043f01f450e",
           "OrbitCamDistance": 150,
-          "OrbitCamSmoothTime": 0.5,
+          "OrbitCamPositionExpDecay": 8,
+          "OrbitCamRotationSmoothTime": 0.5,
           "Cloth": {
             "_type": "component",
             "component_id": "027c0069-f345-4f0a-b516-d66f8f43a181",
@@ -176,15 +177,15 @@
       "__guid": "539a31bc-b852-494a-bda0-152512c7d9a6",
       "Flags": 0,
       "Name": "Cloth",
-      "Position": "-112,3.999995,104",
+      "Position": "-111.9999,-56,184",
       "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletCloth",
           "__guid": "027c0069-f345-4f0a-b516-d66f8f43a181",
           "Bounds": {
-            "Mins": "-113,-3.021221,-33.3639",
-            "Maxs": "47.06961,9.356151,105"
+            "Mins": "-116.3581,-59.74296,27.45061",
+            "Maxs": "47.22587,-51.68163,185"
           },
           "ClothResolution": 32,
           "DebugDrawPoints": false,
@@ -195,11 +196,11 @@
             "_type": "gameobject",
             "go": "31c9aefa-5ab5-49a6-a3c5-630d84837651"
           },
-          "FirstRopePointPosition": "-112,3.999995,104",
+          "FirstRopePointPosition": "-111.9999,-56,184",
           "FixedEnd": false,
           "FixedStart": true,
-          "Iterations": 50,
-          "LastRopePointPosition": "-80,-156,104",
+          "Iterations": 7,
+          "LastRopePointPosition": "-79.99994,-216,184",
           "Material": null,
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
@@ -208,12 +209,13 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
-          "Radius": 6.39,
+          "Radius": 4.85,
           "SimulateOnGPU": true,
           "StartTarget": {
             "_type": "gameobject",
             "go": "539a31bc-b852-494a-bda0-152512c7d9a6"
           },
+          "Stretchiness": 0,
           "TimeStep": 0.02,
           "Wireframe": false
         }

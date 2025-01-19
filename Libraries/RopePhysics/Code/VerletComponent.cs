@@ -158,6 +158,20 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 
 	[Property, ReadOnly, JsonIgnore]
 	public float SegmentLength => SimData?.SegmentLength ?? 1f;
+	[Property, Range( 0, 1 )]
+	public float Stretchiness
+	{
+		get => SimData?.AnchorMaxDistanceFactor ?? _stretchiness;
+		set
+		{
+			_stretchiness = value;
+			if ( SimData is not null )
+			{
+				SimData.AnchorMaxDistanceFactor = value;
+			}
+		}
+	}
+	private float _stretchiness = 0;
 
 	[Property, ReadOnly, JsonIgnore]
 	public int PointCount

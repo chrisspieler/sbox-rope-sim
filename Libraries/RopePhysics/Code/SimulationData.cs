@@ -59,6 +59,7 @@ public class SimulationData
 	/// </summary>
 	public Vector3 Translation => Transform.Position - LastTransform.Position;
 	public int Iterations { get; set; } = 80;
+	public float AnchorMaxDistanceFactor { get; set; } = 0;
 	public float Radius { get; set; } = 1f;
 
 	[ConVar( "verlet_collision_mdf_enable" )]

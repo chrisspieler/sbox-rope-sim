@@ -139,6 +139,7 @@ public partial class VerletSystem
 		attributes.Set( "PointUpdates", simData.GpuPointUpdates );
 		// Simulation
 		attributes.Set( "Iterations", simData.Iterations );
+		attributes.Set( "AnchorMaxDistanceFactor", simData.AnchorMaxDistanceFactor );
 		attributes.Set( "PointRadius", simData.Radius );
 		// Forces
 		attributes.Set( "Gravity", simData.Gravity );
