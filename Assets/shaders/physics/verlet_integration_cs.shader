@@ -265,7 +265,13 @@ CS
 
 	float3 GetNearestRopeAnchorPosition( int pIndex, out float initialDistance )
 	{
-		int aIndex = pIndex < NumPoints / 2 ? 0 : NumPoints - 1;
+		int aIndex = 0;
+		int startDist = pIndex;
+		int endDist = ( NumPoints - 1 ) - pIndex;
+		if ( startDist > endDist )
+		{
+			aIndex = NumPoints - 1;
+		}
 		if ( pIndex == aIndex )
 		{
 			initialDistance = 0;
@@ -338,7 +344,8 @@ CS
 		float3 anchorPos = GetNearestRopeAnchorPosition( pIndex, initialDistance );
 		if ( initialDistance == 0 )
 			return;
-		ApplyMaxDistanceConstraint( pIndex, anchorPos, initialDistance * ( 1.01 + AnchorMaxDistanceFactor ) );
+
+		ApplyMaxDistanceConstraint( pIndex, anchorPos, initialDistance * ( 2 + AnchorMaxDistanceFactor ) );
 	}
 
 	void ConstrainToClothAnchor( int pIndex )
