@@ -1,4 +1,6 @@
-﻿namespace Sandbox;
+﻿using Duccsoft;
+
+namespace Sandbox;
 
 public class MousePlane : Component
 {

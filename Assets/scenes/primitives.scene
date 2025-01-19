@@ -59,8 +59,8 @@
       "__guid": "afa11c1c-174a-4335-96c1-d2f893190572",
       "Flags": 0,
       "Name": "Camera",
-      "Position": "-300,0,72",
-      "Rotation": "0,0.1305262,0,0.9914449",
+      "Position": "-304.2451,210.9194,151.4935",
+      "Rotation": "0.06354185,0.206902,-0.2866191,0.9332757",
       "Tags": "maincamera",
       "Enabled": true,
       "Components": [
@@ -69,7 +69,7 @@
           "__guid": "62389c7f-0a8d-4662-9e95-133fb88aef5b",
           "BackgroundColor": "0.33333,0.46275,0.52157,1",
           "ClearFlags": "All",
-          "FieldOfView": 60,
+          "FieldOfView": 90,
           "IsMainCamera": true,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
@@ -86,6 +86,66 @@
           "Viewport": "0,0,1,1",
           "ZFar": 10000,
           "ZNear": 10
+        }
+      ]
+    },
+    {
+      "__guid": "1e7c7363-3fde-458e-a0b8-feaf32b7c952",
+      "Flags": 0,
+      "Name": "Demo",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.DemoSceneInformation",
+          "__guid": "6cf5eb56-b4aa-4930-a272-c6cec2272c6c",
+          "DemoDescription": "Watch cloth interaction with various shapes!",
+          "DemoName": "Cloth",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "ThumbnailPath": "thumbnails/cloth.png"
+        },
+        {
+          "__type": "Sandbox.ClothDemo",
+          "__guid": "ebcb663a-5aa6-426f-84ba-f043f01f450e",
+          "OrbitCamDistance": 150,
+          "OrbitCamSmoothTime": 0.5,
+          "Cloth": {
+            "_type": "component",
+            "component_id": "027c0069-f345-4f0a-b516-d66f8f43a181",
+            "go": "539a31bc-b852-494a-bda0-152512c7d9a6",
+            "component_type": "VerletCloth"
+          },
+          "Freecam": {
+            "_type": "component",
+            "component_id": "92c0da68-12c8-4184-b181-b9fcee7fc0ac",
+            "go": "1e7c7363-3fde-458e-a0b8-feaf32b7c952",
+            "component_type": "Freecam"
+          },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
+        },
+        {
+          "__type": "Sandbox.Freecam",
+          "__guid": "92c0da68-12c8-4184-b181-b9fcee7fc0ac",
+          "__enabled": false,
+          "CameraAngles": "0,0,0",
+          "FreecamDuckFactor": 0.5,
+          "FreecamRunFactor": 2.5,
+          "FreecamSpeed": 75,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
         }
       ]
     },
@@ -113,76 +173,18 @@
       ]
     },
     {
-      "__guid": "00e0f83b-1afc-4391-9343-67a8a997571b",
-      "Flags": 0,
-      "Name": "Rope",
-      "Position": "-48,32,160",
-      "Enabled": true,
-      "Components": [
-        {
-          "__type": "Duccsoft.VerletRope",
-          "__guid": "83c4aade-c14f-4ba6-8a21-a1ffacc216af",
-          "Bounds": {
-            "Mins": "-81.00016,-4.384884,8.57959",
-            "Maxs": "-14.99731,65.11118,193"
-          },
-          "Color": "0,0,0,1",
-          "DebugDrawPoints": false,
-          "DefaultLength": 128,
-          "EffectiveRadius": 0.095,
-          "EnableCollision": true,
-          "EnableRendering": true,
-          "EndTarget": {
-            "_type": "gameobject",
-            "go": "fc00f137-e29d-46af-9626-7eea99407937"
-          },
-          "FirstRopePointPosition": "-48,32,160",
-          "FixedEnd": false,
-          "FixedStart": true,
-          "Iterations": 80,
-          "LastRopePointPosition": "-47.99996,128,160",
-          "MaxTimeStepPerUpdate": 0.1,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "PointSpacing": 0.38,
-          "RadiusFraction": 0.5,
-          "RenderWidthScale": 12.02,
-          "SimulateOnGPU": true,
-          "StartTarget": {
-            "_type": "gameobject",
-            "go": "00e0f83b-1afc-4391-9343-67a8a997571b"
-          },
-          "TimeStep": 0.01,
-          "Wireframe": false
-        }
-      ],
-      "Children": [
-        {
-          "__guid": "fc00f137-e29d-46af-9626-7eea99407937",
-          "Flags": 0,
-          "Name": "End Point",
-          "Position": "0.00003772861,96,0",
-          "Enabled": true
-        }
-      ]
-    },
-    {
       "__guid": "539a31bc-b852-494a-bda0-152512c7d9a6",
       "Flags": 0,
       "Name": "Cloth",
-      "Position": "-143.9999,16,96",
+      "Position": "-112,3.999995,104",
       "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletCloth",
           "__guid": "027c0069-f345-4f0a-b516-d66f8f43a181",
           "Bounds": {
-            "Mins": "-176.9999,-23.0451,-66.50238",
-            "Maxs": "50.89827,76.89767,131.0152"
+            "Mins": "-113,-3.021221,-33.3639",
+            "Maxs": "47.06961,9.356151,105"
           },
           "ClothResolution": 32,
           "DebugDrawPoints": false,
@@ -193,11 +195,11 @@
             "_type": "gameobject",
             "go": "31c9aefa-5ab5-49a6-a3c5-630d84837651"
           },
-          "FirstRopePointPosition": "-143.9999,16,96",
+          "FirstRopePointPosition": "-112,3.999995,104",
           "FixedEnd": false,
           "FixedStart": true,
-          "Iterations": 46,
-          "LastRopePointPosition": "-111.9999,-144,96",
+          "Iterations": 50,
+          "LastRopePointPosition": "-80,-156,104",
           "Material": null,
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
@@ -720,7 +722,11 @@
     "ThreadedAnimation": true,
     "TimeScale": 1,
     "UseFixedUpdate": true,
-    "Metadata": {},
+    "Metadata": {
+      "DemoName": "Cloth",
+      "DemoDescription": "Watch cloth interaction with various shapes!",
+      "ThumbnailPath": "thumbnails/cloth.png"
+    },
     "NavMesh": {
       "Enabled": false,
       "IncludeStaticBodies": true,
