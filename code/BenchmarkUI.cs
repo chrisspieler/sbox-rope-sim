@@ -1,6 +1,7 @@
 ﻿using Duccsoft;
 using Duccsoft.ImGui;
 using Sandbox.Utility;
+using System;
 
 namespace Sandbox;
 
@@ -30,6 +31,12 @@ public class BenchmarkUI : Component
 			{
 				var child = ColliderContainer.Children[i];
 				child.Enabled = _selectedColliderIndex == i;
+				// Don't cause horrible lag
+				if ( child.Enabled && child.Tags.Has( "mdf_model" ) )
+				{
+					Iterations = 1;
+					UpdateAllRopeIterations();
+				}
 			}
 		}
 	}
@@ -45,6 +52,7 @@ public class BenchmarkUI : Component
 		}
 	}
 
+	private int RopesPerRow = 50;
 	private float RopeSpacing = 4f;
 
 	private float RopeWidth = 1f;
@@ -136,16 +144,19 @@ public class BenchmarkUI : Component
 				rope.RadiusFraction = RopeWidth / PointSpacing;
 			}
 		}
+		ImGui.Text( "Ropes Per Row:" ); ImGui.SameLine();
+		int ropesPerRow = RopesPerRow;
+		if ( ImGui.SliderInt( "Ropes Per Row", ref ropesPerRow, 1, 300 ) )
+		{
+			RopesPerRow = ropesPerRow;
+			ResetRopePositions();
+		}
 		ImGui.Text( "Rope Spacing:" ); ImGui.SameLine();
 		float ropeSpacing = RopeSpacing;
 		if ( ImGui.SliderFloat( "Rope Spacing", ref ropeSpacing, 1f, 8f ) )
 		{
 			RopeSpacing = ropeSpacing;
-			for ( int i = 0; i < Simulations.Count; i++ )
-			{
-				var verlet = Simulations[i];
-				verlet.WorldPosition = GetPositionForRope( i );
-			}
+			ResetRopePositions();
 		}
 		ImGui.Text( "Point Spacing:" ); ImGui.SameLine();
 		float pointSpacing = PointSpacing;
@@ -167,11 +178,8 @@ public class BenchmarkUI : Component
 		int iterations = Iterations;
 		if ( ImGui.SliderInt( "Iterations", ref iterations, 1, 20 ) )
 		{
-			foreach( var verlet in Simulations )
-			{
-				verlet.Iterations = iterations;
-			}
 			Iterations = iterations;
+			UpdateAllRopeIterations();
 		}
 
 		ImGui.NewLine();
@@ -216,9 +224,32 @@ public class BenchmarkUI : Component
 
 	private Vector3 GetPositionForRope( int i )
 	{
-		var x = i % 10 * RopeSpacing;
-		var y = i / 10 * RopeSpacing;
-		return RopeContainer.WorldPosition + new Vector3( x, y, 0 );
+		var width = RopesPerRow * RopeSpacing - 1;
+		var length = Simulations.Count / RopesPerRow * RopeSpacing;
+		var height = RopeLength;
+		var bounds = BBox.FromPositionAndSize( RopeContainer.WorldPosition, new Vector3( length, width, height ) );
+		var startPos = bounds.Mins.WithZ( bounds.Size.z );
+		var x = i / RopesPerRow * RopeSpacing;
+		var y = i % RopesPerRow * RopeSpacing;
+		return startPos + new Vector3( x, y, 0 );
+	}
+
+	private void ResetRopePositions()
+	{
+		for ( int i = 0; i < Simulations.Count; i++ )
+		{
+			var verlet = Simulations[i];
+			verlet.WorldPosition = GetPositionForRope( i );
+		}
+		ResetAllSims();
+	}
+
+	private void UpdateAllRopeIterations()
+	{
+		foreach ( var verlet in Simulations )
+		{
+			verlet.Iterations = Iterations;
+		}
 	}
 
 	private void AddRope( int count )
@@ -226,14 +257,8 @@ public class BenchmarkUI : Component
 		for ( int i = 0; i < count; i++ )
 		{
 			VerletRope rope;
-			if ( Simulations.Count > 0 )
-			{
-				rope = CreateRope( GetPositionForRope( i ) );
-			}
-			else
-			{
-				rope = CreateRope( RopeContainer.WorldPosition );
-			}
+			var ropePos = GetPositionForRope( i + Simulations.Count );
+			rope = CreateRope( ropePos );
 			rope.DefaultLength = RopeLength;
 			rope.PointSpacing = PointSpacing;
 			rope.Iterations = Iterations;
@@ -259,8 +284,7 @@ public class BenchmarkUI : Component
 
 	private VerletRope CreateRope( Vector3 position )
 	{
-		var ropeGo = new GameObject( true, "Verlet Rope" );
-		ropeGo.Parent = RopeContainer;
+		var ropeGo = new GameObject( RopeContainer, true, "Verlet Rope" );
 		ropeGo.WorldPosition = position;
 		var verlet = ropeGo.AddComponent<VerletRope>();
 		Simulations.Add( verlet );

@@ -197,6 +197,7 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 
 	[Property, Range( 4, 80, 1 )]
 	public int Iterations { get; set; } = 20;
+
 	#endregion
 
 	#region Collision
@@ -245,6 +246,7 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 
 	public void SetPointPosition( Vector2Int pointCoord, Vector3 worldPos ) 
 		=> SimData?.SetPointPosition( pointCoord, worldPos );
+
 #endregion
 	#region Rendering
 	[Property] public bool DebugDrawPoints { get; set; } = false;

@@ -155,6 +155,7 @@ public class ClothDemo : Component
 		if ( ImGui.Checkbox( "Unlock Resolution", ref unlockResolution ) )
 		{
 			UnlockResolution = unlockResolution;
+			Cloth.ClothResolution = Cloth.ClothResolution.Clamp( 4, 32 );
 		}
 		if ( UnlockResolution )
 		{
