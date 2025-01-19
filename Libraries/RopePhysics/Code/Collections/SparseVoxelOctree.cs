@@ -224,6 +224,7 @@ public class SparseVoxelOctree<T>
 			node[childIndex] = childNode;
 			AllLeaves[childPosition] = childNode;
 			node.IsLeaf = false;
+			AllLeaves.Remove( node.Position );
 		}
 
 		InsertRecursive( node[childIndex], point, data, depth + 1 );

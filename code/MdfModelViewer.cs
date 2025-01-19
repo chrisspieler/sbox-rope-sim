@@ -170,12 +170,15 @@ public class MdfModelViewer : Component
 	{
 		if ( Mdf.IsBuilding )
 		{
-			ImGui.Text( $"Building, elapsed time: {Mdf.SinceBuildStarted.Relative:F3}ms" );
+			ImGui.Text( $"Building, elapsed time: {Mdf.SinceBuildStarted.Relative * 1000:F3}ms" );
 		}
 		else
 		{
-			float buildTime = Mdf.SinceBuildStarted - Mdf.SinceBuildFinished;
-			ImGui.Text( $"Build complete in: {buildTime:F3}ms" );
+			float buildTime = ( Mdf.SinceBuildFinished.Absolute - Mdf.SinceBuildStarted.Absolute ) * 1000f;
+			string buildString = buildTime == 0 
+				? "<4ms"
+				: $"{buildTime:F3}ms";
+			ImGui.Text( $"Build complete in: {buildString}" );
 		}
 		ImGui.Text( $"HasMesh: {Mdf.IsMeshBuilt}, HasOctree: {Mdf.IsOctreeBuilt}, JFAJobs: {Mdf.QueuedJumpFloodJobs}" );
 		if ( Mdf.VertexCount < 0 )
@@ -371,10 +374,10 @@ public class MdfModelViewer : Component
 			return;
 
 		ImGui.Text( $"Selected Texel: {texel}" );
-		ImGui.Text( $"Signed Distance: {sdfTex[texel]:F3}" );
-		var gradient = sdfTex.CalculateGradient( texel );
+		//ImGui.Text( $"Signed Distance: {sdfTex[texel]:F3}" );
+		//var gradient = sdfTex.CalculateGradient( texel );
 
-		ImGui.Text( $"Gradient: {gradient.x:F3},{gradient.y:F3},{gradient.z:F3}" );
+		//ImGui.Text( $"Gradient: {gradient.x:F3},{gradient.y:F3},{gradient.z:F3}" );
 		if ( sdfTex.Debug is not null )
 		{
 			ImGui.Text( $"SeedId: {sdfTex.Debug.GetSeedId( texel )}" );

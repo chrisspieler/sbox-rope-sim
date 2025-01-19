@@ -45,17 +45,30 @@
         {
           "__type": "Sandbox.BenchmarkUI",
           "__guid": "0675b7b5-e8d3-4e69-95b3-9343684072fd",
+          "ColliderContainer": {
+            "_type": "gameobject",
+            "go": "d3f0b40c-c5d6-4b9d-82bc-82196372ea00"
+          },
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
+          "Oscillator": {
+            "_type": "component",
+            "component_id": "0556ebd7-3719-42b2-9332-067f11f8f3ff",
+            "go": "fe8b17d1-c101-442e-bec1-e2b07bc6e432",
+            "component_type": "Oscillator"
+          },
           "RopeContainer": {
             "_type": "gameobject",
             "go": "fe8b17d1-c101-442e-bec1-e2b07bc6e432"
           },
-          "Simulations": []
+          "RopePivot": {
+            "_type": "gameobject",
+            "go": "2bd4bc94-8409-4fb1-b965-47bf6706a4c3"
+          }
         },
         {
           "__type": "Sandbox.Freecam",
@@ -70,6 +83,35 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null
+        }
+      ]
+    },
+    {
+      "__guid": "2bd4bc94-8409-4fb1-b965-47bf6706a4c3",
+      "Flags": 0,
+      "Name": "Rope Array",
+      "Position": "0,0,128",
+      "Enabled": true,
+      "Children": [
+        {
+          "__guid": "fe8b17d1-c101-442e-bec1-e2b07bc6e432",
+          "Flags": 0,
+          "Name": "Rope Pivot",
+          "Enabled": true,
+          "Components": [
+            {
+              "__type": "Sandbox.Oscillator",
+              "__guid": "0556ebd7-3719-42b2-9332-067f11f8f3ff",
+              "Amplitude": "32,32,0",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "Period": "2,4,1"
+            }
+          ]
         }
       ]
     },
@@ -107,84 +149,118 @@
       ]
     },
     {
-      "__guid": "2bd4bc94-8409-4fb1-b965-47bf6706a4c3",
+      "__guid": "d3f0b40c-c5d6-4b9d-82bc-82196372ea00",
       "Flags": 0,
-      "Name": "Rope Array",
-      "Position": "0,0,128",
+      "Name": "Colliders",
+      "Position": "-70.30905,24.63407,40.99774",
       "Enabled": true,
       "Children": [
         {
-          "__guid": "fe8b17d1-c101-442e-bec1-e2b07bc6e432",
+          "__guid": "7cbbded4-32cb-4215-a370-63cdc0a90502",
           "Flags": 0,
-          "Name": "Rope Pivot",
-          "Enabled": true,
+          "Name": "None",
+          "Enabled": true
+        },
+        {
+          "__guid": "379abbe9-9fb1-443c-b041-e8b3e7a58639",
+          "Flags": 0,
+          "Name": "Sphere",
+          "Position": "70.30905,-24.63407,31.00226",
           "Components": [
             {
-              "__type": "Sandbox.Oscillator",
-              "__guid": "0556ebd7-3719-42b2-9332-067f11f8f3ff",
-              "Amplitude": "32,32,0",
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "d2c39a7e-e082-43c3-947c-9c010ce3d070",
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "MaterialGroup": null,
+              "MaterialOverride": null,
+              "Model": "models/dev/sphere.vmdl",
               "OnComponentDestroy": null,
               "OnComponentDisabled": null,
               "OnComponentEnabled": null,
               "OnComponentFixedUpdate": null,
               "OnComponentStart": null,
               "OnComponentUpdate": null,
-              "Period": "2,4,1"
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "1,1,1,1"
+            },
+            {
+              "__type": "Sandbox.SphereCollider",
+              "__guid": "a6633e0b-e7fd-4b8f-b483-b2d6d72217f1",
+              "Center": "0,0,0",
+              "Friction": null,
+              "IsTrigger": false,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "OnObjectTriggerEnter": null,
+              "OnObjectTriggerExit": null,
+              "OnTriggerEnter": null,
+              "OnTriggerExit": null,
+              "Radius": 32,
+              "Static": false,
+              "Surface": null,
+              "SurfaceVelocity": "0,0,0"
             }
           ]
-        }
-      ]
-    },
-    {
-      "__guid": "379abbe9-9fb1-443c-b041-e8b3e7a58639",
-      "Flags": 0,
-      "Name": "Sphere",
-      "Position": "0,0,72",
-      "Enabled": true,
-      "Components": [
-        {
-          "__type": "Sandbox.ModelRenderer",
-          "__guid": "d2c39a7e-e082-43c3-947c-9c010ce3d070",
-          "BodyGroups": 18446744073709551615,
-          "CreateAttachments": false,
-          "MaterialGroup": null,
-          "MaterialOverride": null,
-          "Model": "models/dev/sphere.vmdl",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "RenderOptions": {
-            "GameLayer": true,
-            "OverlayLayer": false,
-            "BloomLayer": false,
-            "AfterUILayer": false
-          },
-          "RenderType": "On",
-          "Tint": "1,1,1,1"
         },
         {
-          "__type": "Sandbox.SphereCollider",
-          "__guid": "a6633e0b-e7fd-4b8f-b483-b2d6d72217f1",
-          "Center": "0,0,0",
-          "Friction": null,
-          "IsTrigger": false,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "OnObjectTriggerEnter": null,
-          "OnObjectTriggerExit": null,
-          "OnTriggerEnter": null,
-          "OnTriggerExit": null,
-          "Radius": 32,
-          "Static": false,
-          "Surface": null,
-          "SurfaceVelocity": "0,0,0"
+          "__guid": "2041dcdb-55e4-4ba6-850f-3c1b246d5210",
+          "Flags": 0,
+          "Name": "Terry",
+          "Position": "70.30905,-24.63407,-40.99774",
+          "Rotation": "0,0,1,-0.00000004371139",
+          "Tags": "mdf_model",
+          "Components": [
+            {
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "e736c6fd-1baa-425c-bd13-16aaff51dd75",
+              "BodyGroups": 341,
+              "CreateAttachments": false,
+              "MaterialGroup": null,
+              "MaterialOverride": null,
+              "Model": "models/citizen/citizen.vmdl",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "1,1,1,1"
+            },
+            {
+              "__type": "Duccsoft.MeshDistanceConfig",
+              "__guid": "794d2278-72a1-4184-95ec-1d6d89ec0bc3",
+              "BakeOnStart": true,
+              "Collider": null,
+              "MeshSource": "Model",
+              "Model": "models/citizen/citizen.vmdl",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "TextureExponent": 5,
+              "TextureResolution": 32
+            }
+          ]
         }
       ]
     }

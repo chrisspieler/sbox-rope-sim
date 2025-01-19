@@ -16,7 +16,7 @@ public partial class SignedDistanceField
 	public float TexelSize => Bounds.Size.x / TextureSize;
 	public int[] Data { get; internal set; }
 	public Texture DataTexture { get; internal set; }
-	public int DataSize => TextureSize * TextureSize * TextureSize * sizeof( byte );
+	public int DataSize => TextureSize * TextureSize * TextureSize * 16;
 	public DebugData Debug { get; set; }
 
 	public Vector3Int PositionToTexel( Vector3 localPos )

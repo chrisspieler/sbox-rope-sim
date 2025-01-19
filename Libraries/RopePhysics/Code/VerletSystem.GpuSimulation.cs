@@ -24,6 +24,9 @@ public partial class VerletSystem
 	private List<double> PerSimGpuCalculateBoundsTimes = [];
 	private List<double> PerSimGpuStorePointsTimes = [];
 
+	[ConVar( "verlet_infestation" )]
+	public static bool InfestationMode { get; set; } = false;
+
 	private void InitializeGpu()
 	{
 		VerletIntegrationCs ??= new ComputeShader( "shaders/physics/verlet_integration_cs.shader" );
@@ -54,13 +57,17 @@ public partial class VerletSystem
 		EnsureGpuReadbackBuffer();
 		foreach( (int i, VerletComponent verlet ) in GpuSimulateQueue.Index() )
 		{
-			GpuUpdateSingle( verlet, i );
+			if ( verlet?.SimData is null )
+				continue;
+
+			verlet.SimData.RopeIndex = i;
+			GpuUpdateSingle( verlet );
 		}
 		GpuReadbackBounds();
 		GpuSimulateQueue.Clear();
 	}
 
-	private void GpuUpdateSingle( VerletComponent verlet, int i )
+	private void GpuUpdateSingle( VerletComponent verlet )
 	{
 		SimulationData simData = verlet.SimData;
 		if ( !verlet.IsValid() || simData is null )
@@ -84,7 +91,7 @@ public partial class VerletSystem
 			return;
 		}
 
-		GpuDispatchCalculateMeshBounds( simData, i );
+		GpuDispatchCalculateMeshBounds( simData );
 		GpuPostSimCleanup( simData );
 	}
 
@@ -120,6 +127,7 @@ public partial class VerletSystem
 		attributes.SetComboEnum( "D_SHAPE_TYPE", shapeType );
 		// Choose whether the rope/cloth should collide with things
 		attributes.SetCombo( "D_COLLISION", true );
+		attributes.SetCombo( "D_INFESTATION", InfestationMode );
 
 		// Layout
 		attributes.Set( "NumPoints", simData.CpuPoints.Length );
@@ -156,7 +164,7 @@ public partial class VerletSystem
 
 		attributes.Set( "NumPoints", simData.CpuPoints.Length );
 		attributes.Set( "Points", simData.GpuPoints );
-		attributes.Set( "RenderWidth", rope.EffectiveRadius * rope.RenderWidthScale );
+		attributes.Set( "RenderWidth", rope.EffectiveRadius * 2 * rope.RenderWidthScale );
 		attributes.Set( "TextureCoord", 0f );
 		attributes.Set( "Tint", rope.Color );
 		attributes.Set( "OutputVertices", simData.ReadbackVertices );
@@ -186,7 +194,7 @@ public partial class VerletSystem
 		PerSimGpuBuildMeshTimes.Add( timer.ElapsedMilliSeconds );
 	}
 
-	private void GpuDispatchCalculateMeshBounds( SimulationData simData, int boundsIndex )
+	private void GpuDispatchCalculateMeshBounds( SimulationData simData )
 	{
 		var timer = FastTimer.StartNew();
 
@@ -196,7 +204,7 @@ public partial class VerletSystem
 		attributes.Set( "Points", simData.GpuPoints );
 		attributes.Set( "SkinSize", 1f );
 
-		attributes.Set( "BoundsIndex", boundsIndex );
+		attributes.Set( "BoundsIndex", simData.RopeIndex );
 		attributes.Set( "Bounds", GpuReadbackBoundsBuffer );
 
 		MeshBoundsCs.DispatchWithAttributes( attributes, simData.CpuPoints.Length );
@@ -211,12 +219,12 @@ public partial class VerletSystem
 		var readbackBounds = new VerletBounds[GpuReadbackBoundsBuffer.ElementCount];
 		GpuReadbackBoundsBuffer.GetData( readbackBounds );
 
-		foreach( ( int i, VerletComponent verlet ) in GpuSimulateQueue.Index() )
+		foreach( VerletComponent verlet in GpuSimulateQueue )
 		{
 			if ( verlet?.SimData is null )
 				continue;
 
-			verlet.SimData.Bounds = readbackBounds[i].AsBBox();
+			verlet.SimData.Bounds = readbackBounds[verlet.SimData.RopeIndex].AsBBox();
 		}
 		
 		PerSimGpuReadbackTimes.Add( timer.ElapsedMilliSeconds );

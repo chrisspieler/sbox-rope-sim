@@ -6,11 +6,48 @@ namespace Sandbox;
 
 public class BenchmarkUI : Component
 {
-	[Property] public List<VerletComponent> Simulations { get; set; } = [];
+	public List<VerletComponent> Simulations { get; set; } = [];
+	[Property] public GameObject RopePivot { get; set; }
+	[Property] public Oscillator Oscillator { get; set; }
 	[Property] public GameObject RopeContainer { get; set; }
+	[Property] public GameObject ColliderContainer { get; set; }
+	public int SelectedColliderIndex
+	{
+		get
+		{
+			if ( !ColliderContainer.IsValid() || ColliderContainer.Children.Count < 1 )
+				return 0;
+
+			return _selectedColliderIndex.UnsignedMod( ColliderContainer.Children.Count );
+		}
+		set
+		{
+			_selectedColliderIndex = value.UnsignedMod( ColliderContainer?.Children?.Count ?? 1 );
+			if ( !ColliderContainer.IsValid() )
+				return;
+
+			for ( int i = 0; i < ColliderContainer.Children.Count; i++ )
+			{
+				var child = ColliderContainer.Children[i];
+				child.Enabled = _selectedColliderIndex == i;
+			}
+		}
+	}
+	private int _selectedColliderIndex;
+	public GameObject SelectedColliderGameObject
+	{
+		get
+		{
+			if ( !ColliderContainer.IsValid() || ColliderContainer.Children.Count < 1 )
+				return null;
+
+			return ColliderContainer.Children[SelectedColliderIndex];
+		}
+	}
 
 	private float RopeSpacing = 4f;
 
+	private float RopeWidth = 1f;
 	private float RopeLength = 96f;
 	private float PointSpacing = 4f;
 	private int Iterations = 20;
@@ -41,6 +78,16 @@ public class BenchmarkUI : Component
 		ImGui.Text( $"GPU Store Points: {VerletSystem.Current.AverageTotalGpuStorePointsTime:F3}ms" );
 		ImGui.Text( $"GPU Build Mesh: {VerletSystem.Current.AverageTotalGpuBuildMeshTimes:F3}ms" );
 		ImGui.Text( $"GPU Readback Time: {VerletSystem.Current.AverageTotalGpuReadbackTime:F3}ms" );
+		if ( ImGui.Button( " < " ) )
+		{
+			SelectedColliderIndex--;
+		}
+		ImGui.SameLine();
+		ImGui.Text( $"{SelectedColliderGameObject?.Name ?? "None"}" ); ImGui.SameLine();
+		if ( ImGui.Button( " > " ) )
+		{
+			SelectedColliderIndex++;
+		}
 		ImGui.Text( $"Rope Count: {Simulations.Count}" ); ImGui.SameLine();
 		if ( ImGui.Button( " - ") )
 		{
@@ -63,6 +110,8 @@ public class BenchmarkUI : Component
 		}
 		ImGui.Text( $"Points per rope: {Simulations.FirstOrDefault()?.PointCount ?? 0}" );
 
+		
+
 		ImGui.Text( "Length:" ); ImGui.SameLine();
 		float ropeLength = RopeLength;
 		if ( ImGui.SliderFloat( "Rope Length", ref ropeLength, 10f, 500f ) )
@@ -74,18 +123,41 @@ public class BenchmarkUI : Component
 			}
 			ResetAllSims();
 		}
-
-		ImGui.Text( "Point Spacing:" ); ImGui.SameLine();
-		float ropeSpacing = PointSpacing;
-		if ( ImGui.SliderFloat( "Point Spacing", ref ropeSpacing, 0.5f, 25f ) )
+		ImGui.Text( "Rope Width:" ); ImGui.SameLine();
+		float ropeWidth = RopeWidth;
+		if ( ImGui.SliderFloat( "Rope Width", ref ropeWidth, 0.25f, 4f ) )
 		{
-			PointSpacing = ropeSpacing;
+			RopeWidth = ropeWidth;
+			foreach( var verlet in Simulations )
+			{
+				if ( verlet is not VerletRope rope )
+					continue;
+
+				rope.RadiusFraction = RopeWidth / PointSpacing;
+			}
+		}
+		ImGui.Text( "Rope Spacing:" ); ImGui.SameLine();
+		float ropeSpacing = RopeSpacing;
+		if ( ImGui.SliderFloat( "Rope Spacing", ref ropeSpacing, 1f, 8f ) )
+		{
+			RopeSpacing = ropeSpacing;
+			for ( int i = 0; i < Simulations.Count; i++ )
+			{
+				var verlet = Simulations[i];
+				verlet.WorldPosition = GetPositionForRope( i );
+			}
+		}
+		ImGui.Text( "Point Spacing:" ); ImGui.SameLine();
+		float pointSpacing = PointSpacing;
+		if ( ImGui.SliderFloat( "Point Spacing", ref pointSpacing, 0.5f, 25f ) )
+		{
+			PointSpacing = pointSpacing;
 			foreach ( var verlet in Simulations )
 			{
 				if ( verlet is not VerletRope rope )
 					continue;
 
-				rope.RadiusFraction = 1f / PointSpacing;
+				rope.RadiusFraction = RopeWidth / PointSpacing;
 				rope.PointSpacing = PointSpacing;
 			}
 			ResetAllSims();
@@ -93,7 +165,7 @@ public class BenchmarkUI : Component
 
 		ImGui.Text( "Iterations:" ); ImGui.SameLine();
 		int iterations = Iterations;
-		if ( ImGui.SliderInt( "Iterations", ref iterations, 1, 255 ) )
+		if ( ImGui.SliderInt( "Iterations", ref iterations, 1, 20 ) )
 		{
 			foreach( var verlet in Simulations )
 			{
@@ -102,6 +174,33 @@ public class BenchmarkUI : Component
 			Iterations = iterations;
 		}
 
+		ImGui.NewLine();
+		ImGui.Text( "Position:" ); ImGui.SameLine();
+		Vector3 containerPos = RopePivot.WorldPosition * new Vector3( 1, -1, 1 );
+		if ( ImGui.SliderFloat3( "Oscillator Position", ref containerPos, -100, 100 ) )
+		{
+			RopePivot.WorldPosition = containerPos * new Vector3( 1, -1, 1 );
+		}
+		ImGui.Text( "Osc. Amplitude:" ); ImGui.SameLine();
+		Vector3 amplitude = Oscillator.Amplitude;
+		if ( ImGui.SliderFloat3( "Oscillator Amplitude", ref amplitude, -20, 20 ) )
+		{
+			Oscillator.Amplitude = amplitude;
+		}
+		ImGui.Text( "Osc. Period:" ); ImGui.SameLine();
+		Vector3 period = Oscillator.Period;
+		if ( ImGui.SliderFloat3( "Oscillator Period", ref period, 0.01f, 5f ) )
+		{
+			Oscillator.Period = period;
+		}
+
+		bool infestationMode = VerletSystem.InfestationMode;
+		if ( ImGui.Checkbox( "INFESTATION MODE", ref infestationMode ) )
+		{
+			VerletSystem.InfestationMode = infestationMode;
+		}
+
+		ImGui.NewLine();
 		ImGui.Text( "For each:" );
 		ImGui.SameLine();
 		if ( ImGui.Button( "Reset" ) )
@@ -115,6 +214,13 @@ public class BenchmarkUI : Component
 		}
 	}
 
+	private Vector3 GetPositionForRope( int i )
+	{
+		var x = i % 10 * RopeSpacing;
+		var y = i / 10 * RopeSpacing;
+		return RopeContainer.WorldPosition + new Vector3( x, y, 0 );
+	}
+
 	private void AddRope( int count )
 	{
 		for ( int i = 0; i < count; i++ )
@@ -122,10 +228,7 @@ public class BenchmarkUI : Component
 			VerletRope rope;
 			if ( Simulations.Count > 0 )
 			{
-				var x = Simulations.Count % 10 * RopeSpacing;
-				var y = Simulations.Count / 10 * RopeSpacing;
-				var pos = RopeContainer.WorldPosition + new Vector3( x, y, 0 );
-				rope = CreateRope( pos );
+				rope = CreateRope( GetPositionForRope( i ) );
 			}
 			else
 			{
@@ -133,6 +236,7 @@ public class BenchmarkUI : Component
 			}
 			rope.DefaultLength = RopeLength;
 			rope.PointSpacing = PointSpacing;
+			rope.Iterations = Iterations;
 		}
 	}
 

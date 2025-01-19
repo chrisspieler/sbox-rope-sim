@@ -12,6 +12,8 @@ CS
 
 	#include "shared/index.hlsl"
 	#include "shared/verlet.hlsl"
+
+	DynamicCombo( D_INFESTATION, 0..1, Sys( All ) );
 	
 	// Layout
 	int NumPoints < Attribute( "NumPoints" ); >;
@@ -153,10 +155,17 @@ CS
 		uint3 texel = sdf.PositionOsToTexel( pPositionOs );
 		float sd = 0;
 		float3 gradient = sdf.GetGradient( sdTex, texel, sd );
-		if ( sd > PointRadius )
-			return;
+		#if D_INFESTATION
+			pPositionOs += gradient * sd;
+			p.Position = mul( sdf.LocalToWorld, float4( pPositionOs.xyz, 1 ) ).xyz;
+		#else
 
-		pPositionOs += gradient * ( -sd + PointRadius );
+		if ( sd >= PointRadius )
+			return;
+		#endif
+
+		// Eject a bit further out than we are known to be in.
+		pPositionOs += gradient * ( -sd + PointRadius * 2 );
 		p.Position = mul( sdf.LocalToWorld, float4( pPositionOs.xyz, 1 ) ).xyz;
 		Points[pIndex] = p;
 	}

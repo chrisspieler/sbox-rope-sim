@@ -79,33 +79,33 @@ public class TextureInfoWidget : ImageWidget
 			drawList.AddRect( SelectedPixelScreenPos, SelectedPixelScreenPos + PixelSize, Color.Green, thickness: 2 );
 		}
 
-		if ( !IsHovered )
-			return;
+		//if ( !IsHovered )
+		//	return;
 
-		if ( HoveredPixel is Vector2Int hovered )
-		{
-			var voxel = new Vector3Int( hovered.x, hovered.y, TextureSlice );
-			var distance = VoxelData[voxel];
-			var distanceText = $"{distance:F3}";
-			var distanceTextSize = ImGui.CalcTextSize( distanceText );
-			var gradient = VoxelData.CalculateGradient( voxel );
-			var gradientText = $"({gradient.x:F3},{gradient.y:F3},{gradient.z:F3})";
-			var gradientTextSize = ImGui.CalcTextSize( gradientText );
-			var textSizeMaxs = distanceTextSize.ComponentMax( gradientTextSize );
-			textSizeMaxs.y *= 2;
+		//if ( HoveredPixel is Vector2Int hovered )
+		//{
+		//	var voxel = new Vector3Int( hovered.x, hovered.y, TextureSlice );
+		//	var distance = VoxelData[voxel];
+		//	var distanceText = $"{distance:F3}";
+		//	var distanceTextSize = ImGui.CalcTextSize( distanceText );
+		//	var gradient = VoxelData.CalculateGradient( voxel );
+		//	var gradientText = $"({gradient.x:F3},{gradient.y:F3},{gradient.z:F3})";
+		//	var gradientTextSize = ImGui.CalcTextSize( gradientText );
+		//	var textSizeMaxs = distanceTextSize.ComponentMax( gradientTextSize );
+		//	textSizeMaxs.y *= 2;
 
-			var popupRect = new Rect( HoveredPixelScreenPos + new Vector2( -textSizeMaxs.x * 0.5f, -textSizeMaxs.y * 2 + 5 ), textSizeMaxs + 10 );
-			var bgCol = ImGui.GetColorU32( ImGuiCol.WindowBg );
-			bgCol.a = 255;
-			var borderCol = ImGui.GetColorU32( ImGuiCol.Border );
-			drawList.AddRectFilled( popupRect.TopLeft, popupRect.BottomRight, bgCol );
-			drawList.AddRect( popupRect.TopLeft, popupRect.BottomRight, borderCol );
-			drawList.AddText( popupRect.Center + Vector2.Down * textSizeMaxs.y * 0.25f, Color.White, distanceText, TextFlag.Center );
-			drawList.AddText( popupRect.Center - Vector2.Down * textSizeMaxs.y * 0.25f, Color.White, gradientText, TextFlag.Center );
-		}
-		if ( HoveredPixel is not null )
-		{
-			drawList.AddRect( HoveredPixelScreenPos, HoveredPixelScreenPos + PixelSize, Color.Gray, thickness: 2);
-		}
+		//	var popupRect = new Rect( HoveredPixelScreenPos + new Vector2( -textSizeMaxs.x * 0.5f, -textSizeMaxs.y * 2 + 5 ), textSizeMaxs + 10 );
+		//	var bgCol = ImGui.GetColorU32( ImGuiCol.WindowBg );
+		//	bgCol.a = 255;
+		//	var borderCol = ImGui.GetColorU32( ImGuiCol.Border );
+		//	drawList.AddRectFilled( popupRect.TopLeft, popupRect.BottomRight, bgCol );
+		//	drawList.AddRect( popupRect.TopLeft, popupRect.BottomRight, borderCol );
+		//	drawList.AddText( popupRect.Center + Vector2.Down * textSizeMaxs.y * 0.25f, Color.White, distanceText, TextFlag.Center );
+		//	drawList.AddText( popupRect.Center - Vector2.Down * textSizeMaxs.y * 0.25f, Color.White, gradientText, TextFlag.Center );
+		//}
+		//if ( HoveredPixel is not null )
+		//{
+		//	drawList.AddRect( HoveredPixelScreenPos, HoveredPixelScreenPos + PixelSize, Color.Gray, thickness: 2);
+		//}
 	}
 }

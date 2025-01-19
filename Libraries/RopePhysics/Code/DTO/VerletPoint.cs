@@ -31,7 +31,7 @@ public struct VerletPoint
 		return new VerletVertex()
 		{
 			Position = new Vector4( Position, 0 ),
-			TexCoord0 = new Vector4( rope.EffectiveRadius * rope.RenderWidthScale, 1f, 0, 0 ),
+			TexCoord0 = new Vector4( rope.EffectiveRadius * 2 * rope.RenderWidthScale, 1f, 0, 0 ),
 			Normal = new Vector4( 0, 0, 1, 0 ),
 			Tangent0 = new Vector4( Position - LastPosition, 0 ),
 			TexCoord1 = rope.Color,

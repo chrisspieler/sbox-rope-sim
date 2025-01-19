@@ -29,7 +29,9 @@ struct SignedDistanceField
 		}
 
 		float4 texData = sdf.Load( int4( texel.xyz, 0 ) );
-		signedDistance = texData.a;
+		float normalized = texData.a;
+		float size = BoundsSizeOs;
+		signedDistance = normalized * size * 2 - size;
 		float3 gradient = texData.rgb;
 		gradient *= 2;
 		gradient -= 1;

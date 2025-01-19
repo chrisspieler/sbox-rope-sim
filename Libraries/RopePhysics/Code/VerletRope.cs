@@ -11,7 +11,7 @@ public partial class VerletRope : VerletComponent
 	public float RadiusFraction { get; set; } = 0.25f;
 
 	[Property] 
-	public float EffectiveRadius => PointSpacing * ( RadiusFraction * 0.5f );
+	public float EffectiveRadius => PointSpacing * RadiusFraction * 0.5f;
 	#endregion
 
 	#region Generation
@@ -98,7 +98,7 @@ public partial class VerletRope : VerletComponent
 			Gizmo.Draw.Color = Color.Green;
 			foreach ( var point in SimData.CpuPoints )
 			{
-				Gizmo.Draw.LineSphere( point.Position, SimData.Radius );
+				Gizmo.Draw.LineSphere( point.Position, SimData.Radius * 2 );
 			}
 		}
 	}

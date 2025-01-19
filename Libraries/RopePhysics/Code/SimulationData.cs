@@ -47,6 +47,7 @@ public class SimulationData
 		}
 	}
 
+	public int RopeIndex { get; set; }
 	public VerletPoint[] CpuPoints { get; private set; }
 	public bool CpuPointsAreDirty { get; private set; }
 	public float SegmentLength { get; }

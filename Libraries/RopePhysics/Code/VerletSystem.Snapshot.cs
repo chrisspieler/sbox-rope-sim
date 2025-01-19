@@ -157,7 +157,9 @@ public partial class VerletSystem
 		if (!mdf.IsOctreeBuilt)
 			return;
 
-		foreach( var sdf in mdf.GetAllVoxels() )
+		var allVoxels = mdf.GetAllVoxels();
+		
+		foreach ( var sdf in allVoxels )
 		{
 			if ( sdf.Data is null )
 				continue;
@@ -170,7 +172,7 @@ public partial class VerletSystem
 				Rotation = gameObjectTx.Rotation,
 				Scale = gameObjectTx.Scale,
 			};
-
+			
 			// DebugOverlaySystem.Current.Box( size * 0.5f, size, transform: voxelTx );
 			var id = HashCode.Combine( mdf.Id, voxel );
 			if ( !meshColliders.ContainsKey( id ) )

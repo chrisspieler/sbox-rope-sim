@@ -57,10 +57,11 @@ public static partial class ImGui
 	{
 		var components = new float[3] { value.x, value.y, value.z };
 		var slider = new Slider<float>( CurrentWindow, label, ref components, min, max, format );
+		var hasChanged = components[0] != value[0] || components[1] != value[1] || components[2] != value[2];
 		value.x = components[0];
 		value.y = components[1];
 		value.z = components[2];
-		return slider.IsActive;
+		return hasChanged;
 	}
 
 	public static bool SliderFloat4( string label, ref Vector4 value, float min, float max, string format = "F3", ImGuiSliderFlags flags = 0 )

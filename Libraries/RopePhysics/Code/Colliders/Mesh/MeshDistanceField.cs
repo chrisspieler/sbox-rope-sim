@@ -72,6 +72,7 @@ public partial class MeshDistanceField
 		OctreeLeafCount = 0;
 
 		SinceBuildStarted = 0;
+		IsBuilding = true;
 		BuildSystem.AddCreateMeshOctreeJob( this );
 	}
 
@@ -92,6 +93,7 @@ public partial class MeshDistanceField
 		var jobRemoved = JumpFloodJobs.Remove( voxel );
 		if ( IsBuilding && jobCount == 1 && jobRemoved )
 		{
+			IsBuilding = false;
 			SinceBuildFinished = 0;
 		}
 
@@ -112,16 +114,16 @@ public partial class MeshDistanceField
 		}
 	}
 
-	public bool IsBuilding
-	{
-		get
-		{
-			if ( ExtractMeshJob.IsActive() || ConvertMeshJob.IsActive() || CreateOctreeJob.IsActive() )
-				return true;
+	public bool IsBuilding { get; set; }
+	//{
+	//	get
+	//	{
+	//		if ( ExtractMeshJob.IsActive() || ConvertMeshJob.IsActive() || CreateOctreeJob.IsActive() )
+	//			return true;
 
-			return JumpFloodJobs.Count > 0;
-		}
-	}
+	//		return JumpFloodJobs.Count > 0;
+	//	}
+	//}
 	#endregion
 
 	public int OctreeSize => Octree?.Size ?? -1;
