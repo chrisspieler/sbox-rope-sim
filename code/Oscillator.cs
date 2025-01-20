@@ -9,7 +9,7 @@ public class Oscillator : Component
 
 	protected override void OnFixedUpdate()
 	{
-		var frequency = 1f / Period * MathF.PI;
+		var frequency = 1f / Period.Clamp( 0.01f, 10f ) * MathF.PI;
 		var progress = new Vector3
 		{
 			x = MathF.Sin( Time.Now * frequency.x ),
