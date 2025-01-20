@@ -153,20 +153,15 @@
       "__guid": "d3f0b40c-c5d6-4b9d-82bc-82196372ea00",
       "Flags": 0,
       "Name": "Colliders",
-      "Position": "-70.30905,24.63407,32",
+      "Position": "0,24.63407,32",
       "Enabled": true,
       "Children": [
-        {
-          "__guid": "7cbbded4-32cb-4215-a370-63cdc0a90502",
-          "Flags": 0,
-          "Name": "None",
-          "Enabled": true
-        },
         {
           "__guid": "379abbe9-9fb1-443c-b041-e8b3e7a58639",
           "Flags": 0,
           "Name": "Sphere",
-          "Position": "70.30905,-24.63407,0",
+          "Position": "0,-24.63407,0",
+          "Enabled": true,
           "Components": [
             {
               "__type": "Sandbox.ModelRenderer",
@@ -215,10 +210,15 @@
           ]
         },
         {
+          "__guid": "7cbbded4-32cb-4215-a370-63cdc0a90502",
+          "Flags": 0,
+          "Name": "None"
+        },
+        {
           "__guid": "2041dcdb-55e4-4ba6-850f-3c1b246d5210",
           "Flags": 0,
           "Name": "Terry",
-          "Position": "70.30905,-24.63407,-40.99774",
+          "Position": "0,-24.63407,-40.99774",
           "Rotation": "0,0,1,-0.00000004371139",
           "Tags": "mdf_model",
           "Components": [
@@ -276,8 +276,8 @@
           "__type": "Duccsoft.VerletCloth",
           "__guid": "d3ae2571-dd55-4dbc-9a22-baeb56ff93b8",
           "Bounds": {
-            "Mins": "-187.8433,-126.2838,-65.97854",
-            "Maxs": "-57.84331,-115.7333,83.15524"
+            "Mins": "-187.8433,-126.951,-65.5412",
+            "Maxs": "-57.84331,-114.9786,83.15524"
           },
           "ClothResolution": 16,
           "DebugDrawPoints": false,
@@ -289,7 +289,7 @@
           "FixedEnd": false,
           "FixedStart": true,
           "Iterations": 20,
-          "LastRopePointPosition": "-67.83513,-120.9894,-41.0377",
+          "LastRopePointPosition": "-67.94444,-120.996,-41.11852",
           "Material": null,
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,

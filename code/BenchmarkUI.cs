@@ -63,6 +63,11 @@ public class BenchmarkUI : Component
 	
 	private readonly CircularBuffer<float> DeltaTimes = new( 60 );
 
+	protected override void OnStart()
+	{
+		AddRope( 25 );
+	}
+
 	protected override void OnEnabled()
 	{
 		RopeContainer ??= GameObject;
@@ -99,11 +104,13 @@ public class BenchmarkUI : Component
 			}
 			if ( SelectedColliderGameObject.Name != "None" )
 			{
+				ImGui.Text( "Position:" ); ImGui.SameLine();
 				Vector3 pos = SelectedColliderGameObject.LocalPosition * new Vector3( 1f, -1f, 1f );
 				if ( ImGui.SliderFloat3( "Position", ref pos, -50f, 50f, "F2" ) )
 				{
 					SelectedColliderGameObject.LocalPosition = pos * new Vector3( 1f, -1f, 1f );
 				}
+				ImGui.Text( "Rotation:" ); ImGui.SameLine();
 				Vector3 angles = SelectedColliderGameObject.WorldRotation.Angles().AsVector3();
 				if ( ImGui.SliderFloat3( "Rotation", ref angles, -179f, 179f, "F2" ) )
 				{
