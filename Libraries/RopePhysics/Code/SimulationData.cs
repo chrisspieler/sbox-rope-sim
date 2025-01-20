@@ -80,14 +80,63 @@ public class SimulationData
 	public CollisionSnapshot Collisions { get; set; } = new();
 
 	// Gpu inputs
-	internal GpuBuffer<VerletPoint> GpuPoints { get; set; }
+	internal GpuBuffer<VerletPoint> GpuPoints 
+	{
+		get
+		{
+			if ( !_gpuPoints.IsValid() )
+			{
+				_gpuPoints = new( CpuPoints.Length );
+			}
+			return _gpuPoints;
+		}
+	}
+	private GpuBuffer<VerletPoint> _gpuPoints;
 	public int PendingPointUpdates => PointUpdateQueue.Count;
 	internal Dictionary<int, VerletPointUpdate> PointUpdateQueue { get; } = [];
-	internal GpuBuffer<VerletPointUpdate> GpuPointUpdates { get; set; }
+	internal GpuBuffer<VerletPointUpdate> GpuPointUpdates 
+	{ 
+		get
+		{
+			if ( !_gpuPointUpdates.IsValid() )
+			{
+				_gpuPointUpdates = new( 1024 );
+			}
+			return _gpuPointUpdates;
+		}
+	}
+	private GpuBuffer<VerletPointUpdate> _gpuPointUpdates;
 
 	// Gpu outputs
-	internal GpuBuffer<VerletVertex> ReadbackVertices { get; set; }
-	internal GpuBuffer<uint> ReadbackIndices { get; set; }
+	internal GpuBuffer<VerletVertex> ReadbackVertices
+	{
+		get
+		{
+			var vertexCount = PointGridDims.y > 1 ? CpuPoints.Length : CpuPoints.Length + 2;
+			if ( !_readbackVertices.IsValid() || _readbackVertices.ElementCount != vertexCount )
+			{
+				_readbackVertices = new GpuBuffer<VerletVertex>( vertexCount, GpuBuffer.UsageFlags.Vertex | GpuBuffer.UsageFlags.Structured );
+			}
+			return _readbackVertices;
+		}
+	}
+	private GpuBuffer<VerletVertex> _readbackVertices;
+	internal GpuBuffer<uint> ReadbackIndices 
+	{ 
+		get
+		{
+			int numQuads = (PointGridDims.x - 1) * (PointGridDims.y - 1);
+			// Two tris per quad, three indices per tri.
+			var numIndices = 6 * (numQuads + PointGridDims.x - 1);
+			numIndices = Math.Max( 6, numIndices );
+			if ( !_readbackIndices.IsValid() || _readbackIndices.ElementCount != numIndices )
+			{
+				_readbackIndices = new( numIndices, GpuBuffer.UsageFlags.Index | GpuBuffer.UsageFlags.Structured );
+			}
+			return _readbackIndices;
+		}
+	}
+	private GpuBuffer<uint> _readbackIndices;
 
 
 	public Vector2Int IndexToPointCoord( int index )
@@ -105,7 +154,7 @@ public class SimulationData
 
 	public void StorePointsToGpu()
 	{
-		if ( GpuPoints is null )
+		if ( !GpuPoints.IsValid() )
 		{
 			InitializeGpu();
 			return;
@@ -117,31 +166,16 @@ public class SimulationData
 
 	public void InitializeGpu()
 	{
-		PointUpdateQueue.Clear();
 		DestroyGpuData();
-		GpuPoints = new GpuBuffer<VerletPoint>( CpuPoints.Length );
+		
 		GpuPoints.SetData( CpuPoints );
-		var vertexCount = PointGridDims.y > 1 ? CpuPoints.Length : CpuPoints.Length + 2;
-		ReadbackVertices = new GpuBuffer<VerletVertex>( vertexCount, GpuBuffer.UsageFlags.Vertex | GpuBuffer.UsageFlags.Structured );
-		var readbackBuffer = new GpuBuffer<VerletBounds>( 1, GpuBuffer.UsageFlags.Structured );
-		var initialBounds = new VerletBounds()
-		{
-			Mins = new Vector4( float.PositiveInfinity ),
-			Maxs = new Vector4( float.NegativeInfinity ),
-		};
-		readbackBuffer.SetData( [initialBounds] );
-		int numQuads = (PointGridDims.x - 1) * (PointGridDims.y - 1);
-		// Two tris per quad, three indices per tri.
-		var numIndices = 6 * ( numQuads + PointGridDims.x - 1 );
-		numIndices = Math.Max( 6, numIndices );
-		ReadbackIndices = new GpuBuffer<uint>( numIndices, GpuBuffer.UsageFlags.Index | GpuBuffer.UsageFlags.Structured );
 
-		Bounds = BBox.FromPositionAndSize( Transform.Position, 128f );
+		RecalculateCpuPointBounds();
 	}
 
 	public void LoadPointsFromGpu()
 	{
-		if ( !ReadbackVertices.IsValid() )
+		if ( !ReadbackVertices.IsValid() || !GpuPoints.IsValid() )
 			return;
 
 		PointUpdateQueue.Clear();
@@ -181,11 +215,10 @@ public class SimulationData
 
 	public void DestroyGpuData()
 	{
-		GpuPoints?.Dispose();
 		PointUpdateQueue.Clear();
-		GpuPoints = null;
+
+		GpuPoints?.Dispose();
 		GpuPointUpdates?.Dispose();
-		GpuPointUpdates = null;
 	}
 
 	public void AnchorToStart( Vector3? firstPos )

@@ -70,7 +70,7 @@ public partial class VerletSystem
 	private void GpuUpdateSingle( VerletComponent verlet )
 	{
 		SimulationData simData = verlet.SimData;
-		if ( !verlet.IsValid() || simData is null )
+		if ( !verlet.IsValid() || simData is null || !simData.GpuPoints.IsValid() )
 			return;
 
 		simData.Transform = verlet.WorldTransform;
@@ -102,7 +102,7 @@ public partial class VerletSystem
 		{
 			simData.StorePointsToGpu();
 		}
-		simData.GpuPointUpdates ??= new GpuBuffer<VerletPointUpdate>( 1024, GpuBuffer.UsageFlags.Structured );
+		
 		if ( simData.PendingPointUpdates > 0 )
 		{
 			VerletPointUpdate[] updateQueue = simData.PointUpdateQueue.Values.ToArray();
