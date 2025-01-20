@@ -164,6 +164,8 @@ public partial class VerletSystem
 			if ( sdf.Data is null )
 				continue;
 
+			Log.Info( "WHAT?" );
+			sdf.Data.DataTexture.MarkUsed();
 			var voxel = sdf.Position;
 			var size = sdf.Data.Bounds.Size.x;
 			var voxelTx = new Transform()
