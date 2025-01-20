@@ -71,33 +71,38 @@ public class CollisionSnapshot
 
 	public void ApplyColliderAttributes( RenderAttributes attributes )
 	{
-		var sphereColliders = SphereColliders.Values.Take( MAX_SPHERE_COLLIDERS ).Select( c => c.AsGpu() ).ToArray();
+		var sphereColliders = SphereColliders.Values.Take( MAX_SPHERE_COLLIDERS )
+			.Select( c => c.AsGpu() )
+			.ToArray();
 		attributes.Set( "NumSphereColliders", sphereColliders.Length );
 		if ( sphereColliders.Length > 0 )
 		{
 			GpuSphereColliders.SetData( sphereColliders, 0 );
 			attributes.Set( "SphereColliders", GpuSphereColliders );
 		}
-		var boxColliders = BoxColliders.Values.Take( MAX_BOX_COLLIDERS ).Select( c => c.AsGpu() ).ToArray();
+		var boxColliders = BoxColliders.Values.Take( MAX_BOX_COLLIDERS )
+			.Select( c => c.AsGpu() )
+			.ToArray();
 		attributes.Set( "NumBoxColliders", boxColliders.Length );
 		if ( boxColliders.Length > 0 )
 		{
 			GpuBoxColliders.SetData( boxColliders, 0 );
 			attributes.Set( "BoxColliders", GpuBoxColliders );
 		}
-		var capsuleColliders = CapsuleColliders.Values.Take( MAX_CAPSULE_COLLIDERS ).Select( c => c.AsGpu() ).ToArray();
+		var capsuleColliders = CapsuleColliders.Values.Take( MAX_CAPSULE_COLLIDERS )
+			.Select( c => c.AsGpu() )
+			.ToArray();
 		attributes.Set( "NumCapsuleColliders", capsuleColliders.Length );
 		if ( capsuleColliders.Length > 0 )
 		{
 			GpuCapsuleColliders.SetData( capsuleColliders, 0 );
 			attributes.Set( "CapsuleColliders", GpuCapsuleColliders );
 		}
-		var meshColliders = MeshColliders.Values.Take( MAX_MESH_COLLIDERS ).Select( c => c.AsGpu() ).ToArray();
+		var meshColliders = MeshColliders.Values.Take( MAX_MESH_COLLIDERS )
+			.Select( c => c.AsGpu() )
+			.ToArray();
 		attributes.Set( "NumMeshColliders", meshColliders.Length );
-		if ( meshColliders.Length > 0 )
-		{
-			GpuMeshColliders.SetData( meshColliders, 0 );
-			attributes.Set( "MeshColliders", GpuMeshColliders );
-		}
+		GpuMeshColliders.SetData( meshColliders, 0 );
+		attributes.Set( "MeshColliders", GpuMeshColliders );
 	}
 }

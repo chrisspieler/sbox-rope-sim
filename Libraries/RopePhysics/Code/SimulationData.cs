@@ -79,7 +79,6 @@ public class SimulationData
 	public BBox Bounds { get; set; }
 	public CollisionSnapshot Collisions { get; set; } = new();
 
-	// Gpu inputs
 	internal GpuBuffer<VerletPoint> GpuPoints 
 	{
 		get
@@ -91,6 +90,7 @@ public class SimulationData
 			return _gpuPoints;
 		}
 	}
+
 	private GpuBuffer<VerletPoint> _gpuPoints;
 	public int PendingPointUpdates => PointUpdateQueue.Count;
 	internal Dictionary<int, VerletPointUpdate> PointUpdateQueue { get; } = [];

@@ -57,10 +57,11 @@ public partial class VerletSystem
 		EnsureGpuReadbackBuffer();
 		foreach( (int i, VerletComponent verlet ) in GpuSimulateQueue.Index() )
 		{
-			if ( verlet?.SimData is null )
+			var simData = verlet?.SimData;
+			if ( simData is null )
 				continue;
 
-			verlet.SimData.RopeIndex = i;
+			simData.RopeIndex = i;
 			GpuUpdateSingle( verlet );
 		}
 		GpuReadbackBounds();
@@ -115,8 +116,7 @@ public partial class VerletSystem
 	{
 		var xThreads = simData.PointGridDims.x;
 		var yThreads = simData.PointGridDims.y;
-		
-		using var scope = PerfLog.Scope( $"GPU Simulate {xThreads}x{yThreads}, {simData.GpuPoints.ElementCount} of size {simData.GpuPoints.ElementSize}, updates {simData.GpuPointUpdates.ElementCount} of size {simData.GpuPointUpdates.ElementSize}" );
+				
 		FastTimer simTimer = FastTimer.StartNew();
 
 		RenderAttributes attributes = new();
@@ -125,8 +125,7 @@ public partial class VerletSystem
 
 		// Choose rope or cloth
 		attributes.SetComboEnum( "D_SHAPE_TYPE", shapeType );
-		// Choose whether the rope/cloth should collide with things
-		attributes.SetCombo( "D_COLLISION", true );
+		// Funny Venom effect
 		attributes.SetCombo( "D_INFESTATION", InfestationMode );
 
 		// Layout

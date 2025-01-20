@@ -1,7 +1,6 @@
 ﻿using Duccsoft;
 using Duccsoft.ImGui;
 using Sandbox.Utility;
-using System;
 
 namespace Sandbox;
 

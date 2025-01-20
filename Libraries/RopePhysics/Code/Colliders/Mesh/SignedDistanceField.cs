@@ -15,9 +15,22 @@ public partial class SignedDistanceField
 	// Assume square bounds for now.
 	public float TexelSize => Bounds.Size.x / TextureSize;
 	public int[] Data { get; internal set; }
-	public Texture DataTexture { get; internal set; }
+	public Texture DataTexture 
+	{
+		get => _dataTexture;
+		internal set
+		{
+			if ( value != _dataTexture )
+			{
+				SinceTextureUpdated = 0f;
+			}
+			_dataTexture = value;
+		}
+	}
+	private Texture _dataTexture;
 	public int DataSize => TextureSize * TextureSize * TextureSize * 16;
 	public DebugData Debug { get; set; }
+	public RealTimeSince SinceTextureUpdated;
 
 	public Vector3Int PositionToTexel( Vector3 localPos )
 	{

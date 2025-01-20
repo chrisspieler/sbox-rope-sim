@@ -15,7 +15,7 @@ CS
 
 	DynamicCombo( D_INFESTATION, 0..1, Sys( All ) );
 
-	static const int MAX_POINT_UPDATES = 1024;
+	#define MAX_POINT_UPDATES 1024
 
 	// Layout
 	int NumPoints < Attribute( "NumPoints" ); >;
@@ -173,23 +173,22 @@ CS
 		Points[pIndex] = p;
 	}
 
-	static const int MAX_SPHERE_COLLIDERS = 16;
-	static const int MAX_BOX_COLLIDERS = 16;
-	static const int MAX_CAPSULE_COLLIDERS = 16;
-	static const int MAX_MESH_COLLIDERS = 256;
+	#define MAX_SPHERE_COLLIDERS 16
+	#define MAX_BOX_COLLIDERS 16
+	#define MAX_CAPSULE_COLLIDERS 16
+	#define MAX_MESH_COLLIDERS 256
 
 	// Colliders
-	int NumSphereColliders < Attribute( "NumSphereColliders" ); >;
+	int NumSphereColliders < Attribute( "NumSphereColliders" ); Default( 0 ); >;
 	RWStructuredBuffer<SphereCollider> SphereColliders < Attribute( "SphereColliders" ); >;
-	int NumBoxColliders < Attribute( "NumBoxColliders" ); >;
+	int NumBoxColliders < Attribute( "NumBoxColliders" ); Default( 0 ); >;
 	RWStructuredBuffer<BoxCollider> BoxColliders < Attribute( "BoxColliders" ); >;
-	int NumCapsuleColliders < Attribute( "NumCapsuleColliders" ); >;
+	int NumCapsuleColliders < Attribute( "NumCapsuleColliders" ); Default( 0 ); >;
 	RWStructuredBuffer<CapsuleCollider> CapsuleColliders < Attribute( "CapsuleColliders" ); >;
-	int NumMeshColliders < Attribute( "NumMeshColliders" ); >;
+	int NumMeshColliders < Attribute( "NumMeshColliders" ); Default( 0 ); >;
 	RWStructuredBuffer<SignedDistanceField> MeshColliders < Attribute( "MeshColliders" ); >;
 
 	DynamicCombo( D_SHAPE_TYPE, 0..1, Sys( All ) );
-	DynamicCombo( D_COLLISION, 0..1, Sys( All ) );
 
 	void ApplyUpdates( int DTid )
 	{
@@ -479,6 +478,7 @@ CS
 	void ResolveMeshCollisions( int pIndex )
 	{
 		int numColliders = min( NumMeshColliders, MAX_MESH_COLLIDERS );
+
 		for( int i = 0; i < numColliders; i++ )
 		{
 			SignedDistanceField sdf = MeshColliders[i];
@@ -499,21 +499,24 @@ CS
 		VerletPoint p = Points[pIndex];
 
 		ApplyForces( pIndex, deltaTime );
-		
+
 		for ( int i = 0; i < Iterations; i++ )
 		{
-			#if D_SHAPE_TYPE == 1
+			GroupMemoryBarrierWithGroupSync();
+
+			if ( NumColumns > 1 )
+			{
 				ApplyClothSegmentConstraints( pIndex );
 				ConstrainToClothAnchor( pIndex );
-			#else
+			}
+			else 
+			{
 				ApplyRopeSegmentConstraints( pIndex );
 				ConstrainToRopeAnchor( pIndex );
-			#endif
+			}
 
-				GroupMemoryBarrierWithGroupSync();
-			#if D_COLLISION
-				ResolveCollisions( pIndex );
-			#endif
+			GroupMemoryBarrierWithGroupSync();
+			ResolveCollisions( pIndex );
 		}
 	}
 
@@ -524,11 +527,11 @@ CS
 	#endif
 	void MainCs( uint3 id : SV_DispatchThreadID )
 	{
-		#if D_SHAPE_TYPE == 1
-			int pIndex = Convert2DIndexTo1D( id.xy, NumColumns );
-		#else
-			int pIndex = id.x;
-		#endif
+		int pIndex = id.x;
+		if ( NumColumns > 1 )
+		{
+			pIndex = Convert2DIndexTo1D( id.xy, NumColumns );
+		}
 
 		if ( pIndex >= NumPoints )
 			return;
@@ -538,7 +541,6 @@ CS
 		{
 			ApplyUpdates( pIndex );
 		}
-
 		GroupMemoryBarrierWithGroupSync();
 		
 		VerletPoint p = Points[pIndex];
