@@ -57,7 +57,9 @@ public class BenchmarkUI : Component
 	private float RopeWidth = 1f;
 	private float RopeLength = 96f;
 	private float PointSpacing = 4f;
+	private float TimeStepSize = 0.01f;
 	private int Iterations = 20;
+	private float SlackCompensation = 0.2f;
 	
 	private readonly CircularBuffer<float> DeltaTimes = new( 60 );
 
@@ -69,156 +71,232 @@ public class BenchmarkUI : Component
 	protected override void OnUpdate()
 	{
 		DeltaTimes.PushBack( Time.Delta );
-		ImGui.SetNextWindowPos( Screen.Size * 0.25f * ImGuiStyle.UIScale );
-		if ( ImGui.Begin( "Performance Benchmark") )
+		
+		PaintSelectColliderWindow();
+		PaintStatsWindow();
+		PaintRopeArrayWindow();
+		PaintRopeParametersWindow();
+		if ( Oscillator.Enabled )
 		{
-			PaintWindow();
+			PaintOscillatorWindow();
+		}
+	}
+
+	private void PaintSelectColliderWindow()
+	{
+		ImGui.SetNextWindowPos( Screen.Size * new Vector2( 0.475f, 0.05f ) );
+		if ( ImGui.Begin( "Select Collider" ) )
+		{
+			if ( ImGui.Button( " < " ) )
+			{
+				SelectedColliderIndex--;
+			}
+			ImGui.SameLine();
+			ImGui.Text( $"{SelectedColliderGameObject?.Name ?? "None"}" ); ImGui.SameLine();
+			if ( ImGui.Button( " > " ) )
+			{
+				SelectedColliderIndex++;
+			}
+			if ( SelectedColliderGameObject.Name != "None" )
+			{
+				Vector3 pos = SelectedColliderGameObject.LocalPosition * new Vector3( 1f, -1f, 1f );
+				if ( ImGui.SliderFloat3( "Position", ref pos, -50f, 50f, "F2" ) )
+				{
+					SelectedColliderGameObject.LocalPosition = pos * new Vector3( 1f, -1f, 1f );
+				}
+				Vector3 angles = SelectedColliderGameObject.WorldRotation.Angles().AsVector3();
+				if ( ImGui.SliderFloat3( "Rotation", ref angles, -179f, 179f, "F2" ) )
+				{
+					SelectedColliderGameObject.WorldRotation = new Angles( angles );
+				}
+			}
+			if ( SelectedColliderGameObject is not null && SelectedColliderGameObject.Tags.Has( "mdf_model" ) )
+			{
+				bool infestationMode = VerletSystem.InfestationMode;
+				if ( ImGui.Checkbox( "INFESTATION MODE", ref infestationMode ) )
+				{
+					VerletSystem.InfestationMode = infestationMode;
+				}
+			}
 		}
 		ImGui.End();
 	}
 
-	private void PaintWindow()
+	private void PaintStatsWindow()
 	{
-		ImGui.Text( $"FPS: {1 / DeltaTimes.Average():F1}" );
-		ImGui.Text( $"CPU Capture Snapshots: {VerletSystem.Current.AverageTotalCaptureSnapshotTime:F3}ms" );
-		ImGui.Text( $"GPU Simulation: {VerletSystem.Current.AverageTotalGpuSimulationTime:F3}ms" );
-		ImGui.Text( $"GPU Store Points: {VerletSystem.Current.AverageTotalGpuStorePointsTime:F3}ms" );
-		ImGui.Text( $"GPU Build Mesh: {VerletSystem.Current.AverageTotalGpuBuildMeshTimes:F3}ms" );
-		ImGui.Text( $"GPU Readback Time: {VerletSystem.Current.AverageTotalGpuReadbackTime:F3}ms" );
-		if ( ImGui.Button( " < " ) )
+		ImGui.SetNextWindowPos( Screen.Size * new Vector2( 0.8f, 0.05f ) );
+		if ( ImGui.Begin( "Stats" ) )
 		{
-			SelectedColliderIndex--;
+			ImGui.Text( $"FPS: {1 / DeltaTimes.Average():F1}" );
+			ImGui.Text( $"CPU Capture Snapshots: {VerletSystem.Current.AverageTotalCaptureSnapshotTime:F3}ms" );
+			ImGui.Text( $"GPU Simulation: {VerletSystem.Current.AverageTotalGpuSimulationTime:F3}ms" );
+			ImGui.Text( $"GPU Store Points: {VerletSystem.Current.AverageTotalGpuStorePointsTime:F3}ms" );
+			ImGui.Text( $"GPU Build Mesh: {VerletSystem.Current.AverageTotalGpuBuildMeshTimes:F3}ms" );
+			ImGui.Text( $"GPU Readback Time: {VerletSystem.Current.AverageTotalGpuReadbackTime:F3}ms" );
 		}
-		ImGui.SameLine();
-		ImGui.Text( $"{SelectedColliderGameObject?.Name ?? "None"}" ); ImGui.SameLine();
-		if ( ImGui.Button( " > " ) )
-		{
-			SelectedColliderIndex++;
-		}
-		ImGui.Text( $"Rope Count: {Simulations.Count}" ); ImGui.SameLine();
-		if ( ImGui.Button( " - ") )
-		{
-			RemoveRope( 1 );
-		}
-		ImGui.SameLine();
-		if ( ImGui.Button( " + (1)" ) )
-		{
-			AddRope( 1 );
-		}
-		ImGui.SameLine();
-		if ( ImGui.Button( " + (5)" ) )
-		{
-			AddRope( 5 );
-		}
-		ImGui.SameLine();
-		if ( ImGui.Button( " + (25)" ) )
-		{
-			AddRope( 25 );
-		}
-		ImGui.Text( $"Points per rope: {Simulations.FirstOrDefault()?.PointCount ?? 0}" );
+		ImGui.End();
+	}
 
-		
-
-		ImGui.Text( "Length:" ); ImGui.SameLine();
-		float ropeLength = RopeLength;
-		if ( ImGui.SliderFloat( "Rope Length", ref ropeLength, 10f, 500f ) )
+	private void PaintRopeArrayWindow()
+	{
+		ImGui.SetNextWindowPos( Screen.Size * 0.05f );
+		if ( ImGui.Begin( "Rope Array" ) )
 		{
-			RopeLength = ropeLength;
-			foreach( var verlet in Simulations )
+			ImGui.Text( $"Rope Count: {Simulations.Count}" ); ImGui.SameLine();
+			if ( ImGui.Button( " - " ) )
 			{
-				verlet.DefaultLength = RopeLength;
+				RemoveRope( 1 );
 			}
-			ResetAllSims();
-		}
-		ImGui.Text( "Rope Width:" ); ImGui.SameLine();
-		float ropeWidth = RopeWidth;
-		if ( ImGui.SliderFloat( "Rope Width", ref ropeWidth, 0.25f, 4f ) )
-		{
-			RopeWidth = ropeWidth;
-			foreach( var verlet in Simulations )
+			ImGui.SameLine();
+			if ( ImGui.Button( " + (1)" ) )
 			{
-				if ( verlet is not VerletRope rope )
-					continue;
-
-				rope.RadiusFraction = RopeWidth / PointSpacing;
+				AddRope( 1 );
 			}
-		}
-		ImGui.Text( "Ropes Per Row:" ); ImGui.SameLine();
-		int ropesPerRow = RopesPerRow;
-		if ( ImGui.SliderInt( "Ropes Per Row", ref ropesPerRow, 1, 300 ) )
-		{
-			RopesPerRow = ropesPerRow;
-			ResetRopePositions();
-		}
-		ImGui.Text( "Rope Spacing:" ); ImGui.SameLine();
-		float ropeSpacing = RopeSpacing;
-		if ( ImGui.SliderFloat( "Rope Spacing", ref ropeSpacing, 1f, 8f ) )
-		{
-			RopeSpacing = ropeSpacing;
-			ResetRopePositions();
-		}
-		ImGui.Text( "Point Spacing:" ); ImGui.SameLine();
-		float pointSpacing = PointSpacing;
-		if ( ImGui.SliderFloat( "Point Spacing", ref pointSpacing, 0.5f, 25f ) )
-		{
-			PointSpacing = pointSpacing;
-			foreach ( var verlet in Simulations )
+			ImGui.SameLine();
+			if ( ImGui.Button( " + (5)" ) )
 			{
-				if ( verlet is not VerletRope rope )
-					continue;
-
-				rope.RadiusFraction = RopeWidth / PointSpacing;
-				rope.PointSpacing = PointSpacing;
+				AddRope( 5 );
 			}
-			ResetAllSims();
-		}
+			ImGui.SameLine();
+			if ( ImGui.Button( " + (25)" ) )
+			{
+				AddRope( 25 );
+			}
+			ImGui.Text( "Pivot Position:" ); ImGui.SameLine();
+			Vector3 maxDistance = new Vector3( 30f, 100f, 60f );
+			Vector3 containerPos = RopePivot.WorldPosition / maxDistance;
+			if ( ImGui.SliderFloat3( "Oscillator Position", ref containerPos, -1f, 1f, "F2" ) )
+			{
+				RopePivot.WorldPosition = containerPos * maxDistance;
+			}
+			ImGui.Text( "Ropes Per Row:" ); ImGui.SameLine();
+			int ropesPerRow = RopesPerRow;
+			if ( ImGui.SliderInt( "Ropes Per Row", ref ropesPerRow, 1, 300 ) )
+			{
+				RopesPerRow = ropesPerRow;
+				ResetRopePositions();
+			}
+			ImGui.Text( "Rope Spacing:" ); ImGui.SameLine();
+			float ropeSpacing = RopeSpacing;
+			if ( ImGui.SliderFloat( "Rope Spacing", ref ropeSpacing, RopeWidth, 8f ) )
+			{
+				RopeSpacing = ropeSpacing;
+				ResetRopePositions();
+			}
+			bool oscillate = Oscillator.Enabled;
+			if ( ImGui.Checkbox( "Oscillate Position", ref oscillate ) )
+			{
+				Oscillator.Enabled = oscillate;
+			}
+			ImGui.NewLine();
 
-		ImGui.Text( "Iterations:" ); ImGui.SameLine();
-		int iterations = Iterations;
-		if ( ImGui.SliderInt( "Iterations", ref iterations, 1, 20 ) )
-		{
-			Iterations = iterations;
-			UpdateAllRopeIterations();
-		}
 
-		ImGui.NewLine();
-		ImGui.Text( "Position:" ); ImGui.SameLine();
-		Vector3 containerPos = RopePivot.WorldPosition * new Vector3( 1, -1, 1 );
-		if ( ImGui.SliderFloat3( "Oscillator Position", ref containerPos, -100, 100 ) )
-		{
-			RopePivot.WorldPosition = containerPos * new Vector3( 1, -1, 1 );
+			ImGui.Text( "For each:" );
+			ImGui.SameLine();
+			if ( ImGui.Button( "Reset" ) )
+			{
+				ResetAllSims();
+			}
+			ImGui.SameLine();
+			if ( ImGui.Button( "Delete" ) )
+			{
+				DeleteAllSims();
+			}
 		}
-		ImGui.Text( "Osc. Amplitude:" ); ImGui.SameLine();
-		Vector3 amplitude = Oscillator.Amplitude;
-		if ( ImGui.SliderFloat3( "Oscillator Amplitude", ref amplitude, -20, 20 ) )
-		{
-			Oscillator.Amplitude = amplitude;
-		}
-		ImGui.Text( "Osc. Period:" ); ImGui.SameLine();
-		Vector3 period = Oscillator.Period;
-		if ( ImGui.SliderFloat3( "Oscillator Period", ref period, 0.01f, 5f ) )
-		{
-			Oscillator.Period = period;
-		}
+		ImGui.End();
+	}
 
-		bool infestationMode = VerletSystem.InfestationMode;
-		if ( ImGui.Checkbox( "INFESTATION MODE", ref infestationMode ) )
+	private void PaintRopeParametersWindow()
+	{
+		ImGui.SetNextWindowPos( Screen.Size * new Vector2( 0.05f, 0.30f ) );
+		if ( ImGui.Begin( "Rope Parameters" ) )
 		{
-			VerletSystem.InfestationMode = infestationMode;
-		}
+			ImGui.Text( "Rope Width:" ); ImGui.SameLine();
+			float ropeWidth = RopeWidth;
+			if ( ImGui.SliderFloat( "Rope Width", ref ropeWidth, 0.05f, 4f ) )
+			{
+				RopeWidth = ropeWidth;
+				foreach ( var verlet in Simulations )
+				{
+					if ( verlet is not VerletRope rope )
+						continue;
 
-		ImGui.NewLine();
-		ImGui.Text( "For each:" );
-		ImGui.SameLine();
-		if ( ImGui.Button( "Reset" ) )
-		{
-			ResetAllSims();
+					rope.RadiusFraction = RopeWidth / PointSpacing;
+				}
+			}
+			ImGui.Text( $"Points per rope: {Simulations.FirstOrDefault()?.PointCount ?? 0}" );
+			ImGui.Text( "Length:" ); ImGui.SameLine();
+			float ropeLength = RopeLength;
+			if ( ImGui.SliderFloat( "Rope Length", ref ropeLength, 10f, 500f ) )
+			{
+				RopeLength = ropeLength;
+				foreach ( var verlet in Simulations )
+				{
+					verlet.DefaultLength = RopeLength;
+				}
+				ResetAllSims();
+			}
+			ImGui.Text( "Point Spacing:" ); ImGui.SameLine();
+			float pointSpacing = PointSpacing;
+			if ( ImGui.SliderFloat( "Point Spacing", ref pointSpacing, 0.5f, 25f ) )
+			{
+				PointSpacing = pointSpacing;
+				foreach ( var verlet in Simulations )
+				{
+					if ( verlet is not VerletRope rope )
+						continue;
+
+					rope.RadiusFraction = RopeWidth / PointSpacing;
+					rope.PointSpacing = PointSpacing;
+				}
+				ResetAllSims();
+			}
+			ImGui.Text( "Time Step Size:" ); ImGui.SameLine();
+			if ( ImGui.SliderFloat( "Time Step Size", ref TimeStepSize, 0.001f, 0.1f ) )
+			{
+				foreach( var verlet in Simulations )
+				{
+					verlet.TimeStep = TimeStepSize;
+				}
+			}
+			ImGui.Text( "Iterations:" ); ImGui.SameLine();
+			int iterations = Iterations;
+			if ( ImGui.SliderInt( "Iterations", ref iterations, 1, 20 ) )
+			{
+				Iterations = iterations;
+				UpdateAllRopeIterations();
+			}
+			ImGui.Text( "Slack Compensation:" ); ImGui.SameLine();
+			if ( ImGui.SliderFloat( "Slack Compensation", ref SlackCompensation, 0f, 2f ) )
+			{
+				foreach( var rope in Simulations )
+				{
+					rope.Stretchiness = 1f - SlackCompensation;
+				}
+			}
 		}
-		ImGui.SameLine();
-		if ( ImGui.Button( "Delete" ) )
+		ImGui.End();
+	}
+
+	private void PaintOscillatorWindow()
+	{
+		ImGui.SetNextWindowPos( Screen.Size * new Vector2( 0.4f, 0.75f ) );
+		if ( ImGui.Begin( "Oscillator" ) )
 		{
-			DeleteAllSims();
+			ImGui.Text( "Osc. Amplitude:" ); ImGui.SameLine();
+			Vector3 amplitude = Oscillator.Amplitude;
+			if ( ImGui.SliderFloat3( "Oscillator Amplitude", ref amplitude, -50, 50 ) )
+			{
+				Oscillator.Amplitude = amplitude;
+			}
+			ImGui.Text( "Osc. Period:" ); ImGui.SameLine();
+			Vector3 period = Oscillator.Period;
+			if ( ImGui.SliderFloat3( "Oscillator Period", ref period, 0.01f, 5f ) )
+			{
+				Oscillator.Period = period;
+			}
 		}
+		ImGui.End();
 	}
 
 	private Vector3 GetPositionForRope( int i )
@@ -226,8 +304,8 @@ public class BenchmarkUI : Component
 		var width = RopesPerRow * RopeSpacing - 1;
 		var length = Simulations.Count / RopesPerRow * RopeSpacing;
 		var height = RopeLength;
-		var bounds = BBox.FromPositionAndSize( RopeContainer.WorldPosition, new Vector3( length, width, height ) );
-		var startPos = bounds.Mins.WithZ( bounds.Size.z );
+		var bounds = BBox.FromPositionAndSize( RopePivot.WorldPosition, new Vector3( length, width, height ) );
+		var startPos = bounds.Mins.WithZ( bounds.Maxs.z );
 		var x = i / RopesPerRow * RopeSpacing;
 		var y = i % RopesPerRow * RopeSpacing;
 		return startPos + new Vector3( x, y, 0 );
@@ -261,6 +339,8 @@ public class BenchmarkUI : Component
 			rope.DefaultLength = RopeLength;
 			rope.PointSpacing = PointSpacing;
 			rope.Iterations = Iterations;
+			rope.TimeStep = TimeStepSize;
+			rope.Stretchiness = 1f - SlackCompensation;
 		}
 	}
 

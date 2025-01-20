@@ -67,7 +67,7 @@
           },
           "RopePivot": {
             "_type": "gameobject",
-            "go": "2bd4bc94-8409-4fb1-b965-47bf6706a4c3"
+            "go": "fe8b17d1-c101-442e-bec1-e2b07bc6e432"
           }
         },
         {
@@ -90,18 +90,19 @@
       "__guid": "2bd4bc94-8409-4fb1-b965-47bf6706a4c3",
       "Flags": 0,
       "Name": "Rope Array",
-      "Position": "0,0,128",
       "Enabled": true,
       "Children": [
         {
           "__guid": "fe8b17d1-c101-442e-bec1-e2b07bc6e432",
           "Flags": 0,
           "Name": "Rope Pivot",
+          "Position": "0,0,20",
           "Enabled": true,
           "Components": [
             {
               "__type": "Sandbox.Oscillator",
               "__guid": "0556ebd7-3719-42b2-9332-067f11f8f3ff",
+              "__enabled": false,
               "Amplitude": "32,32,0",
               "OnComponentDestroy": null,
               "OnComponentDisabled": null,
@@ -119,7 +120,7 @@
       "__guid": "95533c6b-6976-46ec-a900-5f1cd58d5e57",
       "Flags": 0,
       "Name": "Camera",
-      "Position": "-300,0,100",
+      "Position": "-150,0,20",
       "Tags": "maincamera",
       "Enabled": true,
       "Components": [
@@ -128,7 +129,7 @@
           "__guid": "875f6f1d-a4cd-4cae-ba4e-460f184fe181",
           "BackgroundColor": "0.33333,0.46275,0.52157,1",
           "ClearFlags": "All",
-          "FieldOfView": 60,
+          "FieldOfView": 90,
           "IsMainCamera": true,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
@@ -152,7 +153,7 @@
       "__guid": "d3f0b40c-c5d6-4b9d-82bc-82196372ea00",
       "Flags": 0,
       "Name": "Colliders",
-      "Position": "-70.30905,24.63407,40.99774",
+      "Position": "-70.30905,24.63407,32",
       "Enabled": true,
       "Children": [
         {
@@ -165,7 +166,7 @@
           "__guid": "379abbe9-9fb1-443c-b041-e8b3e7a58639",
           "Flags": 0,
           "Name": "Sphere",
-          "Position": "70.30905,-24.63407,31.00226",
+          "Position": "70.30905,-24.63407,0",
           "Components": [
             {
               "__type": "Sandbox.ModelRenderer",
@@ -275,8 +276,8 @@
           "__type": "Duccsoft.VerletCloth",
           "__guid": "d3ae2571-dd55-4dbc-9a22-baeb56ff93b8",
           "Bounds": {
-            "Mins": "-187.8433,-127.4949,-66.31676",
-            "Maxs": "-57.84329,-111.7241,83.15524"
+            "Mins": "-187.8433,-126.2838,-65.97854",
+            "Maxs": "-57.84331,-115.7333,83.15524"
           },
           "ClothResolution": 16,
           "DebugDrawPoints": false,
@@ -288,7 +289,7 @@
           "FixedEnd": false,
           "FixedStart": true,
           "Iterations": 20,
-          "LastRopePointPosition": "-68.13156,-122.4949,-41.03414",
+          "LastRopePointPosition": "-67.83513,-120.9894,-41.0377",
           "Material": null,
           "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
@@ -303,7 +304,9 @@
             "_type": "gameobject",
             "go": "4c5a79e6-15de-4990-b52a-ce595854918e"
           },
+          "Stretchiness": 0,
           "TimeStep": 0.01,
+          "Tint": "1,1,1,1",
           "Wireframe": false
         }
       ]

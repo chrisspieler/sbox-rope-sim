@@ -1,7 +1,7 @@
 {
   "Title": "Rope Sim",
   "Type": "game",
-  "Org": "ducc",
+  "Org": "duccsoft",
   "Ident": "rope_sim",
   "Schema": 1,
   "IncludeSourceFiles": true,
