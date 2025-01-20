@@ -99,8 +99,12 @@ public class CollisionSnapshot
 			attributes.Set( "CapsuleColliders", GpuCapsuleColliders );
 		}
 		var meshColliders = MeshColliders.Values.Take( MAX_MESH_COLLIDERS )
-			.Select( c => c.AsGpu() )
-			.ToArray();
+			.Select( c =>
+				{
+					c.Sdf.DataTexture.MarkUsed();
+					return c.AsGpu();
+				}
+			).ToArray();
 		attributes.Set( "NumMeshColliders", meshColliders.Length );
 		GpuMeshColliders.SetData( meshColliders, 0 );
 		attributes.Set( "MeshColliders", GpuMeshColliders );
