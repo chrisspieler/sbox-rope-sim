@@ -54,6 +54,69 @@
           "Viewport": "0,0,1,1",
           "ZFar": 10000,
           "ZNear": 10
+        },
+        {
+          "__type": "Sandbox.Tonemapping",
+          "__guid": "d6a81219-49d1-49bb-9d3a-0dbfa67b1493",
+          "__version": 1,
+          "AutoExposureEnabled": false,
+          "ExposureBias": 2,
+          "ExposureCompensation": 0,
+          "ExposureMethod": "RGB",
+          "MaximumExposure": 3,
+          "MinimumExposure": 1,
+          "Mode": "ACES",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "Rate": 1
+        },
+        {
+          "__type": "Sandbox.Bloom",
+          "__guid": "75cee8fe-ff41-41d8-8701-62163f5364f3",
+          "BloomColor": {
+            "blend": "Linear",
+            "color": [
+              {
+                "t": 0,
+                "c": "1,1,1,1"
+              },
+              {
+                "t": 1,
+                "c": "1,1,1,1"
+              }
+            ],
+            "alpha": null
+          },
+          "BloomCurve": [
+            {
+              "x": 0,
+              "y": 0.5,
+              "in": 0,
+              "out": 0,
+              "mode": "Mirrored"
+            },
+            {
+              "x": 1,
+              "y": 1,
+              "in": 0,
+              "out": 0,
+              "mode": "Mirrored"
+            }
+          ],
+          "Mode": "Additive",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "Strength": 1,
+          "Threshold": 0.5,
+          "ThresholdWidth": 0
         }
       ]
     },
@@ -75,8 +138,8 @@
           "OnComponentStart": null,
           "OnComponentUpdate": null,
           "SkyIndirectLighting": true,
-          "SkyMaterial": "materials/skybox/skybox_day_01.vmat",
-          "Tint": "1,1,1,1"
+          "SkyMaterial": "materials/skybox/skybox_dark_01.vmat",
+          "Tint": "0.1814,0.1814,0.1814,1"
         }
       ],
       "Children": [
@@ -84,7 +147,7 @@
           "__guid": "ee5a2a66-e367-4bbe-8e55-43e48e45c0af",
           "Flags": 0,
           "Name": "Sun",
-          "Rotation": "0.04746748,0.1514689,-0.2952494,0.9421421",
+          "Rotation": "-0.06347854,-0.06891111,-0.6745404,0.7322683",
           "Tags": "light_directional,light",
           "Enabled": true,
           "Components": [
@@ -93,7 +156,7 @@
               "__guid": "6b77e5b9-18f1-411b-85e4-75e9b3920804",
               "FogMode": "Enabled",
               "FogStrength": 1,
-              "LightColor": "0.91373,0.98039,1,1",
+              "LightColor": "0.57484,0.64259,0.67907,1",
               "OnComponentDestroy": null,
               "OnComponentDisabled": null,
               "OnComponentEnabled": null,
@@ -101,7 +164,7 @@
               "OnComponentStart": null,
               "OnComponentUpdate": null,
               "Shadows": true,
-              "SkyColor": "0,0,0,0"
+              "SkyColor": "0.38432,0.39679,0.44186,1"
             }
           ]
         }
@@ -443,10 +506,10 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "d39c0e78-82c6-4036-ae57-a299e1f859b1",
           "Bounds": {
-            "Mins": "254.9113,-49,-0.5000838",
-            "Maxs": "278.6696,-40.27149,225"
+            "Mins": "252.6116,-72.68858,-0.3579085",
+            "Maxs": "261.8064,-47,225"
           },
-          "Color": "0.01395,0.01395,0.01395,1",
+          "Color": "0.03137,0.22745,0.28235,1",
           "DebugDrawPoints": false,
           "DefaultLength": 64,
           "EffectiveRadius": 0.5,
@@ -476,7 +539,7 @@
             "_type": "gameobject",
             "go": "1e27d789-0980-4439-82d0-10cf86e4b85c"
           },
-          "Stretchiness": 1,
+          "Stretchiness": 0,
           "TimeStep": 0.001,
           "Wireframe": false
         }
@@ -488,6 +551,31 @@
           "Name": "End Point",
           "Position": "0,-256,0",
           "Enabled": true
+        },
+        {
+          "__guid": "abc7f446-60bb-48c8-b0f5-231293c2faf9",
+          "Flags": 0,
+          "Name": "Light",
+          "Tags": "light_point,light",
+          "Enabled": true,
+          "Components": [
+            {
+              "__type": "Sandbox.PointLight",
+              "__guid": "b501726c-f314-43d8-8c7e-ddfb2f7aca01",
+              "Attenuation": 3.82,
+              "FogMode": "Enabled",
+              "FogStrength": 1,
+              "LightColor": "0.03137,0.22745,0.28235,1",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "Radius": 400,
+              "Shadows": true
+            }
+          ]
         }
       ]
     },

@@ -173,9 +173,9 @@ CS
 		Points[pIndex] = p;
 	}
 
-	#define MAX_SPHERE_COLLIDERS 16
-	#define MAX_BOX_COLLIDERS 16
-	#define MAX_CAPSULE_COLLIDERS 16
+	#define MAX_SPHERE_COLLIDERS 64
+	#define MAX_BOX_COLLIDERS 64
+	#define MAX_CAPSULE_COLLIDERS 64
 	#define MAX_MESH_COLLIDERS 256
 
 	// Colliders
