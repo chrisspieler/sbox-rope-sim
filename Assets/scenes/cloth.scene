@@ -111,7 +111,7 @@
         {
           "__type": "Sandbox.ClothDemo",
           "__guid": "ebcb663a-5aa6-426f-84ba-f043f01f450e",
-          "OrbitCamDistance": 150,
+          "OrbitCamDistance": 300,
           "OrbitCamPositionExpDecay": 8,
           "OrbitCamRotationSmoothTime": 0.5,
           "Cloth": {
@@ -186,8 +186,8 @@
           "__type": "Duccsoft.VerletCloth",
           "__guid": "027c0069-f345-4f0a-b516-d66f8f43a181",
           "Bounds": {
-            "Mins": "-111.0666,-28.93266,-36.95463",
-            "Maxs": "49.00301,-7.354903,89"
+            "Mins": "-111.0666,-60.36064,-36",
+            "Maxs": "49.00301,-15,89"
           },
           "ClothResolution": 32,
           "DebugDrawPoints": false,
