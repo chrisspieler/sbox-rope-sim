@@ -77,6 +77,9 @@ public partial class VerletSystem
 		simData.Transform = verlet.WorldTransform;
 		simData.LastTick ??= Time.Delta;
 
+		if ( simData.LastTick < 0.01666f )
+			return;
+
 		GpuStorePoints( simData );
 		GpuDispatchSimulate( simData, verlet.TimeStep, verlet.MaxTimeStepPerUpdate );
 
