@@ -67,7 +67,6 @@ CS
 	struct BoxCollider
 	{
 		float3 Size;
-		int Padding;
 		float4x4 LocalToWorld;
 		float4x4 WorldToLocal;
 
@@ -104,10 +103,9 @@ CS
 
 	struct CapsuleCollider
 	{
-		float3 Start;
 		float Radius;
+		float3 Start;
 		float3 End;
-		int Padding;
 		float4x4 LocalToWorld;
 		float4x4 WorldToLocal;
 
@@ -173,9 +171,9 @@ CS
 		Points[pIndex] = p;
 	}
 
-	#define MAX_SPHERE_COLLIDERS 64
-	#define MAX_BOX_COLLIDERS 64
-	#define MAX_CAPSULE_COLLIDERS 64
+	#define MAX_SPHERE_COLLIDERS 256
+	#define MAX_BOX_COLLIDERS 256
+	#define MAX_CAPSULE_COLLIDERS 256
 	#define MAX_MESH_COLLIDERS 256
 
 	// Colliders

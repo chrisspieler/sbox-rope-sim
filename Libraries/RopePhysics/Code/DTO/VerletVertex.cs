@@ -3,7 +3,7 @@
 public struct VerletVertex
 {
 	[VertexLayout.Position]
-	public Vector4 Position;
+	public Vector3 Position;
 	[VertexLayout.TexCoord( 0 )]
 	public Vector4 TexCoord0;
 	[VertexLayout.Normal]

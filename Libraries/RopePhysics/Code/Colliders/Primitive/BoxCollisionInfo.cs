@@ -18,7 +18,6 @@ public struct BoxCollisionInfo
 public struct GpuBoxCollisionInfo
 {
 	public Vector3 Size;
-	public int Padding;
 	public Matrix LocalToWorld;
 	public Matrix WorldToLocal;
 }

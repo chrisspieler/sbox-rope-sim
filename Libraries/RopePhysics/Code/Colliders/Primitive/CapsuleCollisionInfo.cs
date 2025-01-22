@@ -20,10 +20,9 @@ public struct CapsuleCollisionInfo
 
 public struct GpuCapsuleCollisionInfo()
 {
-	public Vector3 Start;
 	public float Radius;
+	public Vector3 Start;
 	public Vector3 End;
-	int Padding;
 	public Matrix LocalToWorld;
 	public Matrix WorldToLocal;
 }

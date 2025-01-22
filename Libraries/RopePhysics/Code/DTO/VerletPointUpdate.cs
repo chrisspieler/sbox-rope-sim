@@ -11,7 +11,6 @@ public struct VerletPointUpdate
 	public int PointIndex;
 	public VerletPointUpdateFlags UpdateFlags;
 	public VerletPointFlags PointFlags;
-	private Vector2 Padding;
 
 	public static VerletPointUpdate All( int index, Vector3 position, VerletPointFlags pointFlags )
 	{

@@ -22,7 +22,6 @@ public struct GpuMeshCollisionInfo
 	public int SdfTextureIndex;
 	public int TextureSize;
 	public float BoundsSizeOs;
-	public float Padding;
 	public Matrix LocalToWorld;
 	public Matrix WorldToLocal;
 }

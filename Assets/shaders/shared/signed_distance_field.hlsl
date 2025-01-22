@@ -3,7 +3,6 @@ struct SignedDistanceField
 	int SdfTextureIndex;
 	int TextureSize;
 	float BoundsSizeOs;
-	float Padding;
 	float4x4 LocalToWorld;
 	float4x4 WorldToLocal;
 

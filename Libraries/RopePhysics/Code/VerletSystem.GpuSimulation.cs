@@ -79,20 +79,20 @@ public partial class VerletSystem
 
 		GpuStorePoints( simData );
 		GpuDispatchSimulate( simData, verlet.TimeStep, verlet.MaxTimeStepPerUpdate );
-		if ( verlet is VerletRope rope )
+
+		if ( verlet.EnableRendering )
 		{
-			GpuDispatchBuildRopeMesh( rope );
-		}
-		else if ( verlet is VerletCloth cloth )
-		{
-			GpuDispatchBuildClothMesh( cloth );
-		}
-		else
-		{
-			return;
+			if ( verlet is VerletRope rope )
+			{
+				GpuDispatchBuildRopeMesh( rope );
+			}
+			else if ( verlet is VerletCloth cloth )
+			{
+				GpuDispatchBuildClothMesh( cloth );
+			}
+			GpuDispatchCalculateMeshBounds( simData );
 		}
 
-		GpuDispatchCalculateMeshBounds( simData );
 		GpuPostSimCleanup( simData );
 	}
 

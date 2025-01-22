@@ -71,117 +71,46 @@
     {
       "__guid": "fb8dd0a3-dcb2-4f2e-8cae-3508cdb0295f",
       "Flags": 0,
-      "Name": "Demo",
-      "Position": "512,0,0",
+      "Name": "Rope",
+      "Position": "511.9999,16,96",
       "Enabled": true,
       "Components": [
         {
-          "__type": "MdfTextureViewer",
-          "__guid": "b965b0ad-4c83-4f9a-9451-350660c8d0a4"
-        }
-      ]
-    },
-    {
-      "__guid": "5148ff26-e6cd-49f3-8b0c-9a29446c0ac3",
-      "Flags": 0,
-      "Name": "Verlet",
-      "Position": "512,0,0",
-      "Enabled": true,
-      "Components": [
-        {
-          "__type": "Sandbox.VerletDemo",
-          "__guid": "946c0674-ec85-4579-92de-c7b99408538f",
-          "CollisionExclude": "",
-          "CollisionInclude": "",
-          "DuplicateOffset": "8,4,16",
-          "Duplicates": "1,0,1",
+          "__type": "Duccsoft.VerletRope",
+          "__guid": "30bf7171-3c03-4f44-9f4a-092165ad7f1e",
+          "Bounds": {
+            "Mins": "486.6314,-0.2280691,-22.46873",
+            "Maxs": "512.9999,18.12119,97"
+          },
+          "Color": "0,1,0.06667,1",
+          "DebugDrawPoints": false,
+          "DefaultLength": 128,
+          "EffectiveRadius": 0.32375,
+          "EnableCollision": false,
+          "EnableRendering": true,
+          "EndTarget": null,
+          "FirstRopePointPosition": "511.9999,16,96",
           "FixedEnd": false,
           "FixedStart": true,
-          "FollowMouse": true,
+          "Iterations": 20,
+          "LastRopePointPosition": "512.0063,56.15517,-31.97876",
+          "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
-          "OscillateEnd": false,
-          "OscillateEndAmplitude": "0,100",
-          "OscillateEndOffset": "100,0",
-          "OscillateEndPeriod": 1,
-          "RopeTarget": null,
-          "ShowWindow": true
-        },
-        {
-          "__type": "Duccsoft.RopeRenderer",
-          "__guid": "5d737508-241a-498e-938a-d16ab262f9a1",
-          "Line": {
-            "_type": "component",
-            "component_id": "bbc04ca0-1dca-4424-bf10-34a849e8b722",
-            "go": "5148ff26-e6cd-49f3-8b0c-9a29446c0ac3",
-            "component_type": "LineRenderer"
-          }
-        },
-        {
-          "__type": "Sandbox.LineRenderer",
-          "__guid": "bbc04ca0-1dca-4424-bf10-34a849e8b722",
-          "Additive": false,
-          "CastShadows": true,
-          "Color": {
-            "blend": "Linear",
-            "color": [
-              {
-                "t": 0.5,
-                "c": "1,1,1,1"
-              }
-            ],
-            "alpha": []
+          "PointSpacing": 2.59,
+          "RadiusFraction": 0.25,
+          "RenderWidthScale": 1,
+          "SimulateOnGPU": true,
+          "StartTarget": {
+            "_type": "gameobject",
+            "go": "fb8dd0a3-dcb2-4f2e-8cae-3508cdb0295f"
           },
-          "DepthFeather": 0,
-          "EndCap": "Triangle",
-          "Face": "Camera",
-          "FogStrength": 1,
-          "Lighting": false,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Opaque": true,
-          "Points": [],
-          "RenderOptions": {
-            "GameLayer": true,
-            "OverlayLayer": false,
-            "BloomLayer": false,
-            "AfterUILayer": false
-          },
-          "SplineBias": 0,
-          "SplineContinuity": 0,
-          "SplineInterpolation": 5,
-          "SplineTension": -0.2,
-          "StartCap": "Triangle",
-          "Texturing": {
-            "Texture": "textures/rope_color.vtex",
-            "WorldSpace": true,
-            "UnitsPerTexture": 50,
-            "Scale": 1,
-            "Offset": 0,
-            "Scroll": 0
-          },
-          "UseVectorPoints": true,
-          "VectorPoints": [],
-          "Width": {
-            "rangey": "0,0.5",
-            "frames": [
-              {
-                "x": 0.5,
-                "y": 5,
-                "in": 0,
-                "out": 0,
-                "mode": "Mirrored"
-              }
-            ]
-          },
+          "Stretchiness": 0,
+          "TimeStep": 0.01,
           "Wireframe": false
         }
       ]

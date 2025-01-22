@@ -330,7 +330,7 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 		{
 			var point = SimData.CpuPoints[i];
 			var x = i % SimData.PointGridDims.x;
-			var y = i / SimData.PointGridDims.y;
+			var y = i / SimData.PointGridDims.x;
 			Log.Info( $"({x},{y}) anchor: {point.IsAnchor}, pos{point.Position}, lastPos: {point.LastPosition}" );
 		}
 

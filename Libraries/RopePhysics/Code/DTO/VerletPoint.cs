@@ -9,10 +9,9 @@ public struct VerletPoint
 		Flags = flags;
 	}
 
-	public Vector3 Position;
 	public VerletPointFlags Flags;
+	public Vector3 Position;
 	public Vector3 LastPosition;
-	public int Padding;
 
 	public bool IsAnchor
 	{

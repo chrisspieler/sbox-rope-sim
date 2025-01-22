@@ -77,17 +77,6 @@ public partial class SignedDistanceField
 		{
 			// TODO: Get all pixel data if needed.
 			return 0;
-			int x = texel.x.Clamp( 0, TextureSize - 1 );
-			int y = texel.y.Clamp( 0, TextureSize - 1 );
-			int z = texel.z.Clamp( 0, TextureSize - 1 );
-			int i = Index3DTo1D( x, y, z, TextureSize );
-			int packed = Data[i / 4];
-			int shift = (i % 4) * 8;
-			byte udByte = (byte)((packed >> shift) & 0xFF);
-			float sdByte = (float)udByte - 128;
-			// Non-uniform bounds will not be supported in the future - assume VoxelGridDims^3 cube!
-			var maxDistance = TextureSize * 0.5f;
-			return sdByte.Remap( -128, 127, -maxDistance, maxDistance );
 		}
 	}
 

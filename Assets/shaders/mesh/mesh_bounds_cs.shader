@@ -13,9 +13,9 @@ CS
 	// !! THIS MUST MATCH THE SIZE OF VerletPoint IN shared/verlet.hlsl !!
 	struct MeshPoint
 	{
+		int Padding;
 		float3 Position;
-		float Padding;
-		float4 Padding2;
+		float3 Padding2;
 	};
 
 	struct VerletBounds

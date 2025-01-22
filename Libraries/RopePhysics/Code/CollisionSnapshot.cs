@@ -2,9 +2,9 @@
 
 public class CollisionSnapshot
 {
-	public const int MAX_SPHERE_COLLIDERS = 64;
-	public const int MAX_BOX_COLLIDERS = 64;
-	public const int MAX_CAPSULE_COLLIDERS = 64;
+	public const int MAX_SPHERE_COLLIDERS = 256;
+	public const int MAX_BOX_COLLIDERS = 256;
+	public const int MAX_CAPSULE_COLLIDERS = 256;
 	public const int MAX_MESH_COLLIDERS = 256;
 
 	public Dictionary<int, SphereCollisionInfo> SphereColliders { get; } = [];
