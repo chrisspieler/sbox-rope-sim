@@ -168,11 +168,11 @@ public class ClothDemo : Component
 		{
 			Cloth.ClothResolution = resolution;
 		}
-		ImGui.Text( "Time Step Size:" ); ImGui.SameLine();
-		float timeStepSize = Cloth.TimeStep;
-		if ( ImGui.SliderFloat( "TimeStep", ref timeStepSize, 0.001f, 0.32f ) )
+		ImGui.Text( "Tick Rate:" ); ImGui.SameLine();
+		int tickRate = (int)(1f / Cloth.FixedTimeStep);
+		if ( ImGui.SliderInt( "TimeStep", ref tickRate, 12, 240 ) )
 		{
-			Cloth.TimeStep = timeStepSize;
+			Cloth.FixedTimeStep = 1f / tickRate;
 		}
 		ImGui.Text( "Stretchiness:" ); ImGui.SameLine();
 		float stretchiness = Cloth.Stretchiness;

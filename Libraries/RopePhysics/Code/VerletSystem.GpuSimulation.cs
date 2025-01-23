@@ -77,11 +77,11 @@ public partial class VerletSystem
 		simData.Transform = verlet.WorldTransform;
 		simData.LastTick ??= Time.Delta;
 
-		if ( simData.LastTick < 0.01666f )
+		if ( simData.LastTick < verlet.FixedTimeStep )
 			return;
 
 		GpuStorePoints( simData );
-		GpuDispatchSimulate( simData, verlet.TimeStep, verlet.MaxTimeStepPerUpdate );
+		GpuDispatchSimulate( simData, verlet.FixedTimeStep );
 
 		if ( verlet.EnableRendering )
 		{
@@ -115,7 +115,7 @@ public partial class VerletSystem
 		PerSimGpuStorePointsTimes.Add( timer.ElapsedMilliSeconds );
 	}
 
-	private void GpuDispatchSimulate( SimulationData simData, float timeStep, float maxTotalTimeSteps )
+	private void GpuDispatchSimulate( SimulationData simData, float fixedTimeStep )
 	{
 		var xThreads = simData.PointGridDims.x;
 		var yThreads = simData.PointGridDims.y;
@@ -147,8 +147,7 @@ public partial class VerletSystem
 		attributes.Set( "Gravity", simData.Gravity );
 		// Delta
 		attributes.Set( "DeltaTime", simData.LastTick.Value.Relative );
-		attributes.Set( "TimeStepSize", timeStep );
-		attributes.Set( "MaxTimeStepPerUpdate", maxTotalTimeSteps );
+		attributes.Set( "FixedTimeStep", fixedTimeStep );
 		attributes.Set( "Translation", simData.Translation );
 		// Colliders
 		simData.Collisions.ApplyColliderAttributes( attributes );

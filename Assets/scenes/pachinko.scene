@@ -769,19 +769,19 @@
       "__guid": "1e27d789-0980-4439-82d0-10cf86e4b85c",
       "Flags": 0,
       "Name": "Rope",
-      "Position": "256,16,192",
+      "Position": "256,64,224",
       "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletRope",
           "__guid": "d39c0e78-82c6-4036-ae57-a299e1f859b1",
           "Bounds": {
-            "Mins": "249.3605,-181.2437,0.5",
-            "Maxs": "263.635,35.68648,193"
+            "Mins": "252.6392,-374.4547,124.2492",
+            "Maxs": "257,65,225"
           },
           "Color": "0.03137,0.22745,0.28235,1",
           "DebugDrawPoints": false,
-          "DefaultLength": 128,
+          "DefaultLength": 264,
           "EffectiveRadius": 1.5,
           "EnableCollision": true,
           "EnableRendering": true,
@@ -789,12 +789,12 @@
             "_type": "gameobject",
             "go": "7548821a-9269-4d2f-a353-1e0492740255"
           },
-          "FirstRopePointPosition": "256,16,192",
+          "FirstRopePointPosition": "256,64,224",
           "FixedEnd": false,
           "FixedStart": true,
-          "Iterations": 20,
-          "LastRopePointPosition": "256,-496,192",
-          "MaxTimeStepPerUpdate": 0.1,
+          "FixedTimeStep": 0.02,
+          "Iterations": 80,
+          "LastRopePointPosition": "256,-448,224",
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -810,7 +810,6 @@
             "go": "1e27d789-0980-4439-82d0-10cf86e4b85c"
           },
           "Stretchiness": 1,
-          "TimeStep": 0.001,
           "Wireframe": false
         }
       ],
@@ -859,7 +858,7 @@
         {
           "__type": "Sandbox.BoxCollider",
           "__guid": "d80065a7-1859-49b6-98a0-2a476b8f276f",
-          "Center": "0,0,0",
+          "Center": "33.33411,0,-517.0181",
           "Friction": null,
           "IsTrigger": false,
           "OnComponentDestroy": null,
@@ -872,7 +871,7 @@
           "OnObjectTriggerExit": null,
           "OnTriggerEnter": null,
           "OnTriggerExit": null,
-          "Scale": "350,1024,32",
+          "Scale": "2654.715,1024,1066.036",
           "Static": false,
           "Surface": null,
           "SurfaceVelocity": "0,0,0"

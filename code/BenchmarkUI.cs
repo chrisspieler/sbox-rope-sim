@@ -57,7 +57,7 @@ public class BenchmarkUI : Component
 	private float RopeWidth = 1f;
 	private float RopeLength = 96f;
 	private float PointSpacing = 4f;
-	private float TimeStepSize = 0.01f;
+	private int PhysicsTickRate = 60;
 	private int Iterations = 20;
 	private float SlackCompensation = 0.2f;
 	
@@ -258,12 +258,12 @@ public class BenchmarkUI : Component
 				}
 				ResetAllSims();
 			}
-			ImGui.Text( "Time Step Size:" ); ImGui.SameLine();
-			if ( ImGui.SliderFloat( "Time Step Size", ref TimeStepSize, 0.001f, 0.1f ) )
+			ImGui.Text( "Physics Tick Rate:" ); ImGui.SameLine();
+			if ( ImGui.SliderInt( "Physics Tick Rate", ref PhysicsTickRate, 12, 240 ) )
 			{
 				foreach( var verlet in Simulations )
 				{
-					verlet.TimeStep = TimeStepSize;
+					verlet.FixedTimeStep = 1f / PhysicsTickRate;
 				}
 			}
 			ImGui.Text( "Iterations:" ); ImGui.SameLine();
@@ -346,7 +346,7 @@ public class BenchmarkUI : Component
 			rope.DefaultLength = RopeLength;
 			rope.PointSpacing = PointSpacing;
 			rope.Iterations = Iterations;
-			rope.TimeStep = TimeStepSize;
+			rope.FixedTimeStep = 1f / PhysicsTickRate;
 			rope.Stretchiness = 1f - SlackCompensation;
 		}
 	}

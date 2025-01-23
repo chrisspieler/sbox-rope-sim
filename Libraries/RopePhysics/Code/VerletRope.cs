@@ -119,8 +119,7 @@ public partial class VerletRope : VerletComponent
 		other.FixedStart = FixedStart;
 		other.EndTarget = EndTarget;
 		// Simulation
-		other.TimeStep = TimeStep;
-		other.MaxTimeStepPerUpdate = MaxTimeStepPerUpdate;
+		other.FixedTimeStep = FixedTimeStep;
 		other.PointSpacing = PointSpacing;
 		other.RadiusFraction = RadiusFraction;
 		other.Iterations = Iterations;

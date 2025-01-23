@@ -36,9 +36,8 @@ CS
 	float RopeTextureCoord < Attribute( "RopeTextureCoord" ); Default( 1.0 ); >;
 	float4 RopeTint < Attribute( "RopeTint"); Default4( 0.0, 0.0, 0.0, 1.0 ); >;
 	// Delta
-	float DeltaTime < Attribute( "DeltaTime" ); >;
-	float TimeStepSize < Attribute( "TimeStepSize"); Default( 0.01 ); >;
-	float MaxTimeStepPerUpdate < Attribute( "MaxTimeStepPerUpdate" ); Default( 0.1 ); >;
+	float DeltaTime < Attribute( "DeltaTime" ); Default( 0.01666 ); >;
+	float FixedTimeStep < Attribute( "FixedTimeStep" ); Default( 0.02 ); >;
 	float3 Translation < Attribute( "Translation" ); >;
 
 	struct SphereCollider
@@ -77,24 +76,23 @@ CS
 			float3 halfSize = Size * 0.5f;
 			float3 scale = 1;
 			float3 pointDepth = halfSize - abs( pPositionOs );
-			float radius = PointRadius;
 
-			if ( pointDepth.x <= -radius || pointDepth.y <= -radius || pointDepth.z <= -radius )
+			if ( pointDepth.x <= -PointRadius || pointDepth.y <= -PointRadius || pointDepth.z <= -PointRadius )
 				return;
 
 			float3 pointScaled = pointDepth * scale;
 			float3 signs = sign( pPositionOs );
 			if ( pointScaled.x < pointScaled.y && pointScaled.x < pointScaled.z )
 			{
-				pPositionOs.x = halfSize.x * signs.x + radius * signs.x;
+				pPositionOs.x = halfSize.x * signs.x + PointRadius * signs.x;
 			}
 			else if ( pointScaled.y < pointScaled.x && pointScaled.y < pointScaled.z )
 			{
-				pPositionOs.y = halfSize.y * signs.y + radius * signs.y;
+				pPositionOs.y = halfSize.y * signs.y + PointRadius * signs.y;
 			}
 			else
 			{
-				pPositionOs.z = halfSize.z * signs.z + radius * signs.z;
+				pPositionOs.z = halfSize.z * signs.z + PointRadius * signs.z;
 			}
 			p.Position = mul( LocalToWorld, float4( pPositionOs.xyz, 1 ) ).xyz;
 			Points[pIndex] = p;
@@ -227,7 +225,7 @@ CS
 
 		float3 temp = p.Position;
 		float3 delta = p.Position - p.LastPosition;
-		delta *= 1 - ( 0.95 * deltaTime );
+		delta *= 1 - ( 0.9 * deltaTime );
 		p.Position += delta;
 		p.Position += Gravity * ( deltaTime * deltaTime );
 		p.LastPosition = temp;
@@ -547,13 +545,15 @@ CS
 			ApplyTransform( pIndex, p );
 		}
 
-		float totalTime = min( DeltaTime, MaxTimeStepPerUpdate );
-		float timeStepSize = max( TimeStepSize, 0.01 );
-		while( totalTime >= 0 )
+		double tickRate = max( FixedTimeStep, 0.001 );
+		double totalTime = min( DeltaTime, 0.1 );
+
+		while( totalTime > 0 )
 		{
-			float deltaTime = min( timeStepSize, totalTime );
-			Simulate( pIndex, deltaTime );
-			totalTime -= timeStepSize;
+			GroupMemoryBarrierWithGroupSync();
+			double timeStep = min( totalTime, tickRate );
+			Simulate( pIndex, (float)timeStep );
+			totalTime -= timeStep;
 		}
 	}
 }

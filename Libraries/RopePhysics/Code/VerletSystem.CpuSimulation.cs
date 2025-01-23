@@ -12,10 +12,10 @@ public partial class VerletSystem
 		CpuApplyTransform( verlet );
 
 		float totalTime = Time.Delta;
-		totalTime = MathF.Min( totalTime, verlet.MaxTimeStepPerUpdate );
+		totalTime = MathF.Min( totalTime, verlet.FixedTimeStep );
 		while ( totalTime >= 0 )
 		{
-			var deltaTime = MathF.Min( verlet.TimeStep, totalTime );
+			var deltaTime = MathF.Min( verlet.FixedTimeStep, totalTime );
 			CpuApplyForces( simData, deltaTime );
 			for ( int i = 0; i < simData.Iterations; i++ )
 			{
@@ -25,7 +25,7 @@ public partial class VerletSystem
 					ResolveCollisions( simData );
 				}
 			}
-			totalTime -= verlet.TimeStep;
+			totalTime -= verlet.FixedTimeStep;
 		}
 
 		simData.LastTransform = simData.Transform;

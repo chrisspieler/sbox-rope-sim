@@ -150,11 +150,8 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	}
 	private bool _simulateOnGpu = true;
 
-	[Property]
-	public float TimeStep { get; set; } = 0.01f;
-
-	[Property]
-	public float MaxTimeStepPerUpdate { get; set; } = 0.1f;
+	[Property, Range( 0.004f, 0.1f, 0.001f)]
+	public float FixedTimeStep { get; set; } = 0.016f;
 
 	[Property, ReadOnly, JsonIgnore]
 	public float SegmentLength => SimData?.SegmentLength ?? 1f;
@@ -231,6 +228,7 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 		SimData = CreateSimData();
 		SimData.Transform = WorldTransform;
 		SimData.LastTransform = WorldTransform;
+		SimData.AnchorMaxDistanceFactor = _stretchiness;
 		SimData.AnchorToStart( FixedStart ? StartPosition : null );
 		SimData.AnchorToEnd( FixedEnd ? EndPosition : null );
 		CreateRenderer();
