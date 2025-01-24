@@ -39,9 +39,9 @@ public class VerletCloth : VerletComponent
 			return;
 
 		Gizmo.Draw.Color = Color.Green;
-		for ( int i = 0; i < SimData.CpuPoints.Length; i++ )
+		for ( int i = 0; i < SimData.Points.Length; i++ )
 		{
-			var point = SimData.CpuPoints[i];
+			var point = SimData.Points[i];
 			Gizmo.Draw.LineSphere( new Sphere( point.Position, Radius ) );
 		}
 	}
@@ -118,11 +118,12 @@ public class VerletCloth : VerletComponent
 
 	private void UpdateModelGPU()
 	{
-		if ( SimData?.ReadbackVertices?.IsValid() != true )
+		var gpuData = SimData?.GpuData;
+		if ( gpuData?.ReadbackVertices?.IsValid() != true )
 			return;
 
-		_so.Vertices = SimData.ReadbackVertices;
-		_so.Indices = SimData.ReadbackIndices;
+		_so.Vertices = gpuData.ReadbackVertices;
+		_so.Indices = gpuData.ReadbackIndices;
 		_so.Bounds = SimData.Bounds;
 	}
 

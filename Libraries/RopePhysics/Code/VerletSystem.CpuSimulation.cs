@@ -6,8 +6,6 @@ public partial class VerletSystem
 	{
 		SimulationData simData = verlet.SimData;
 		simData.Transform = verlet.WorldTransform;
-		// If we're simulating on the CPU, we aren't going to need to transfer any points to the GPU.
-		simData.ClearPendingPointUpdates();
 
 		CpuApplyTransform( verlet );
 
@@ -28,17 +26,17 @@ public partial class VerletSystem
 			totalTime -= verlet.FixedTimeStep;
 		}
 
-		simData.LastTransform = simData.Transform;
+		simData.PostSimulationCleanup();
 
-		verlet.UpdateCpuVertexBuffer( simData.CpuPoints );
-		simData.RecalculateCpuPointBounds();
+		verlet.UpdateCpuVertexBuffer( simData.Points );
+		simData.RecalculateBounds();
 
 	}
 
 	private static void CpuApplyTransform( VerletComponent verlet )
 	{
 		var simData = verlet.SimData;
-		var points = simData.CpuPoints;
+		var points = simData.Points;
 		for ( int i = 0; i < points.Length; i++ )
 		{
 			VerletPoint p = points[i];
@@ -53,7 +51,7 @@ public partial class VerletSystem
 	private static void CpuApplyForces( SimulationData simData, float deltaTime )
 	{
 		var gravity = simData.Gravity;
-		var points = simData.CpuPoints;
+		var points = simData.Points;
 
 
 		for ( int y = 0; y < simData.PointGridDims.y; y++ )
@@ -81,7 +79,7 @@ public partial class VerletSystem
 
 	private static void CpuApplyConstraints( SimulationData simData )
 	{
-		var points = simData.CpuPoints;
+		var points = simData.Points;
 
 		void ApplySegmentConstraint( int pIndex, int qIndex )
 		{

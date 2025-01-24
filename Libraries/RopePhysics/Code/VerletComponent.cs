@@ -7,6 +7,7 @@ namespace Duccsoft;
 public abstract class VerletComponent : Component, Component.ExecuteInEditor
 {
 	public SimulationData SimData { get; protected set; }
+	public GpuSimulationData GpuData => SimData?.GpuData;
 
 	#region Anchors
 	[Property]
@@ -140,11 +141,11 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 			_simulateOnGpu = value;
 			if ( value )
 			{
-				SimData?.StorePointsToGpu();
+				GpuData?.StorePointsToGpu();
 			}
 			else
 			{
-				SimData?.LoadPointsFromGpu();
+				GpuData?.LoadPointsFromGpu();
 			}
 		}
 	}
@@ -175,13 +176,13 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	{
 		get
 		{
-			if ( SimulateOnGPU && SimData?.GpuPoints.IsValid() == true )
+			if ( SimulateOnGPU && GpuData?.GpuPoints.IsValid() == true )
 			{
-				return SimData.GpuPoints.ElementCount;
+				return GpuData.GpuPoints.ElementCount;
 			}
-			else if ( SimData?.CpuPoints is not null )
+			else if ( SimData?.Points is not null )
 			{
-				return SimData.CpuPoints.Length;
+				return SimData.Points.Length;
 			}
 			else
 			{
@@ -236,7 +237,7 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 
 	protected virtual void DestroySimData() 
 	{
-		SimData?.DestroyGpuData();
+		GpuData?.DestroyGpuData();
 		SimData = null;
 	}
 
@@ -265,7 +266,7 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 		}
 	}
 	private CircularBuffer<double> _debugTimes = new CircularBuffer<double>( 25 );
-	[Property, ReadOnly, JsonIgnore] public int GpuPendingUpdates => SimData?.PendingPointUpdates ?? 0;
+	[Property, ReadOnly, JsonIgnore] public int GpuPendingUpdates => GpuData?.PendingPointUpdates ?? 0;
 
 	protected override void DrawGizmos()
 	{
@@ -314,19 +315,19 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 		var timer = FastTimer.StartNew();
 		if ( SimulateOnGPU )
 		{
-			SimData.LoadPointsFromGpu();
+			GpuData.LoadPointsFromGpu();
 		}
 
 		var elapsedMilliseconds = timer.ElapsedMilliSeconds;
-		if ( SimData?.CpuPoints == null )
+		if ( SimData?.Points == null )
 		{
 			Log.Info( $"null points" );
 			return;
 		}
 
-		for ( int i = 0; i < SimData.CpuPoints.Length; i++ )
+		for ( int i = 0; i < SimData.Points.Length; i++ )
 		{
-			var point = SimData.CpuPoints[i];
+			var point = SimData.Points[i];
 			var x = i % SimData.PointGridDims.x;
 			var y = i / SimData.PointGridDims.x;
 			Log.Info( $"({x},{y}) anchor: {point.IsAnchor}, pos{point.Position}, lastPos: {point.LastPosition}" );
@@ -334,7 +335,7 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 
 		if ( SimulateOnGPU )
 		{
-			Log.Info( $"Got {SimData.CpuPoints?.Length ?? 0} points from GPU in {elapsedMilliseconds:F3}ms" );
+			Log.Info( $"Got {SimData.Points?.Length ?? 0} points from GPU in {elapsedMilliseconds:F3}ms" );
 		}
 	}
 }

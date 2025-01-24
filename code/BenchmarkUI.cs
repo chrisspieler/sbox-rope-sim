@@ -119,10 +119,10 @@ public class BenchmarkUI : Component
 			}
 			if ( SelectedColliderGameObject is not null && SelectedColliderGameObject.Tags.Has( "mdf_model" ) )
 			{
-				bool infestationMode = VerletSystem.InfestationMode;
+				bool infestationMode = GpuSimulationData.InfestationMode;
 				if ( ImGui.Checkbox( "INFESTATION MODE", ref infestationMode ) )
 				{
-					VerletSystem.InfestationMode = infestationMode;
+					GpuSimulationData.InfestationMode = infestationMode;
 				}
 			}
 		}

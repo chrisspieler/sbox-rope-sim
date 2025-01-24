@@ -96,7 +96,7 @@ public partial class VerletRope : VerletComponent
 		if ( DebugDrawPoints )
 		{
 			Gizmo.Draw.Color = Color.Green;
-			foreach ( var point in SimData.CpuPoints )
+			foreach ( var point in SimData.Points )
 			{
 				Gizmo.Draw.LineSphere( point.Position, SimData.Radius * 2 );
 			}
@@ -148,7 +148,6 @@ public partial class VerletRope : VerletComponent
 		var pointCount = CalculatePointCount( startPos, endPos );
 		var points = RopeGenerator.Generate( startPos, endPos, pointCount, out float segmentLength );
 		var simData = new SimulationData( physics, points, new Vector2Int( pointCount, 1 ), segmentLength );
-		simData.InitializeGpu();
 		return simData;
 	}
 
@@ -195,7 +194,7 @@ public partial class VerletRope : VerletComponent
 
 		if ( SimulateOnGPU )
 		{
-			_so.Vertices = SimData.ReadbackVertices;
+			_so.Vertices = SimData.GpuData.ReadbackVertices;
 		}
 
 		_so.RenderingEnabled = true;

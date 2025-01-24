@@ -1,15 +1,19 @@
 ﻿namespace Duccsoft;
 
-public class SimulationData
+public class SimulationData : IDataSize
 {
 	public SimulationData( PhysicsWorld physics, VerletPoint[] points, Vector2Int resolution, float segmentLength )
 	{
 		Physics = physics;
-		CpuPoints = points;
+		Points = points;
 		PointGridDims = resolution;
 		SegmentLength = segmentLength;
+
+		GpuData = new( this );
+		GpuData.InitializeGpu();
 	}
 
+	public GpuSimulationData GpuData { get; }
 	public int SimulationIndex { get; set; } = -1;
 	public RealTimeSince? LastTick { get; internal set; }
 	public Vector3 Gravity { get; set; } = Vector3.Down * 800f;
@@ -30,8 +34,8 @@ public class SimulationData
 	{
 		get
 		{
-			if ( CpuPoints.Length > 0 )
-				return CpuPoints[0].Position;
+			if ( Points.Length > 0 )
+				return Points[0].Position;
 
 			return Vector3.Zero;
 		}
@@ -40,16 +44,16 @@ public class SimulationData
 	{
 		get
 		{
-			if ( CpuPoints.Length > 0 )
-				return CpuPoints[^1].Position;
+			if ( Points.Length > 0 )
+				return Points[^1].Position;
 
 			return Vector3.Down * 32f;
 		}
 	}
 
 	public int RopeIndex { get; set; }
-	public VerletPoint[] CpuPoints { get; private set; }
-	public bool CpuPointsAreDirty { get; private set; }
+	public VerletPoint[] Points { get; private set; }
+	public bool ShouldCopyToGpu { get; set; }
 	public float SegmentLength { get; }
 	public Vector2Int PointGridDims { get; }
 	public Transform Transform { get; set; }
@@ -79,65 +83,7 @@ public class SimulationData
 	public BBox Bounds { get; set; }
 	public CollisionSnapshot Collisions { get; set; } = new();
 
-	internal GpuBuffer<VerletPoint> GpuPoints 
-	{
-		get
-		{
-			if ( !_gpuPoints.IsValid() )
-			{
-				_gpuPoints = new( CpuPoints.Length );
-			}
-			return _gpuPoints;
-		}
-	}
-
-	private GpuBuffer<VerletPoint> _gpuPoints;
-	public int PendingPointUpdates => PointUpdateQueue.Count;
-	internal Dictionary<int, VerletPointUpdate> PointUpdateQueue { get; } = [];
-	internal GpuBuffer<VerletPointUpdate> GpuPointUpdates 
-	{ 
-		get
-		{
-			if ( !_gpuPointUpdates.IsValid() )
-			{
-				_gpuPointUpdates = new( 1024 );
-			}
-			return _gpuPointUpdates;
-		}
-	}
-	private GpuBuffer<VerletPointUpdate> _gpuPointUpdates;
-
-	// Gpu outputs
-	internal GpuBuffer<VerletVertex> ReadbackVertices
-	{
-		get
-		{
-			var vertexCount = PointGridDims.y > 1 ? CpuPoints.Length : CpuPoints.Length + 2;
-			if ( !_readbackVertices.IsValid() || _readbackVertices.ElementCount != vertexCount )
-			{
-				_readbackVertices = new GpuBuffer<VerletVertex>( vertexCount, GpuBuffer.UsageFlags.Vertex | GpuBuffer.UsageFlags.Structured );
-			}
-			return _readbackVertices;
-		}
-	}
-	private GpuBuffer<VerletVertex> _readbackVertices;
-	internal GpuBuffer<uint> ReadbackIndices 
-	{ 
-		get
-		{
-			int numQuads = (PointGridDims.x - 1) * (PointGridDims.y - 1);
-			// Two tris per quad, three indices per tri.
-			var numIndices = 6 * (numQuads + PointGridDims.x - 1);
-			numIndices = Math.Max( 6, numIndices );
-			if ( !_readbackIndices.IsValid() || _readbackIndices.ElementCount != numIndices )
-			{
-				_readbackIndices = new( numIndices, GpuBuffer.UsageFlags.Index | GpuBuffer.UsageFlags.Structured );
-			}
-			return _readbackIndices;
-		}
-	}
-	private GpuBuffer<uint> _readbackIndices;
-
+	public long DataSize => throw new NotImplementedException();
 
 	public Vector2Int IndexToPointCoord( int index )
 	{
@@ -150,77 +96,6 @@ public class SimulationData
 	public int PointCoordToIndex( int x, int y ) => y * PointGridDims.x + x;
 	public int PointCoordToIndex( Vector2Int pointCoord ) => pointCoord.y * PointGridDims.x + pointCoord.x;
 
-	public void ClearPendingPointUpdates() => PointUpdateQueue.Clear();
-
-	public void StorePointsToGpu()
-	{
-		if ( !GpuPoints.IsValid() )
-		{
-			InitializeGpu();
-			return;
-		}
-		PointUpdateQueue.Clear();
-		GpuPoints.SetData( CpuPoints );
-		CpuPointsAreDirty = false;
-	}
-
-	public void InitializeGpu()
-	{
-		DestroyGpuData();
-		
-		GpuPoints.SetData( CpuPoints );
-
-		RecalculateCpuPointBounds();
-	}
-
-	public void LoadPointsFromGpu()
-	{
-		if ( !ReadbackVertices.IsValid() || !GpuPoints.IsValid() )
-			return;
-
-		PointUpdateQueue.Clear();
-
-		using var scope = PerfLog.Scope( $"Vertex readback with {CpuPoints.Length} points and {Iterations} iterations" );
-
-		if ( CpuPoints.Length != GpuPoints.ElementCount )
-		{
-			CpuPoints = new VerletPoint[GpuPoints.ElementCount];
-		}
-		
-		var vertices = new VerletVertex[ReadbackVertices.ElementCount];
-		ReadbackVertices.GetData( vertices );
-		int indexOffset = 0;
-		int indexStart = 0;
-		int indexMax = vertices.Length;
-		if ( PointGridDims.y == 1 )
-		{
-			indexOffset = -1;
-			indexStart = 1;
-			indexMax = vertices.Length - 1;
-		}
-		for ( int i = indexStart; i < indexMax; i++ )
-		{
-			var pIndex = i + indexOffset;
-
-			var vtx = vertices[i];
-			var p = CpuPoints[pIndex];
-			CpuPoints[pIndex] = p with
-			{
-				Position = vtx.Position,
-				LastPosition = vtx.Position - vtx.Tangent0,
-			};
-		}
-		CpuPointsAreDirty = false;
-	}
-
-	public void DestroyGpuData()
-	{
-		PointUpdateQueue.Clear();
-
-		GpuPoints?.Dispose();
-		GpuPointUpdates?.Dispose();
-	}
-
 	public void AnchorToStart( Vector3? firstPos )
 	{
 		if ( firstPos == FixedFirstPosition )
@@ -229,7 +104,7 @@ public class SimulationData
 		AnchorToNth( firstPos, 0, false, true, false );
 
 		FixedFirstPosition = firstPos;
-		CpuPointsAreDirty = true;
+		ShouldCopyToGpu = true;
 	}
 
 	public void AnchorToEnd( Vector3? pos )
@@ -240,7 +115,7 @@ public class SimulationData
 		AnchorToNth( pos, PointGridDims.x - 1, false, false, true );
 
 		FixedLastPosition = pos;
-		CpuPointsAreDirty = true;
+		ShouldCopyToGpu = true;
 	}
 
 	private void AnchorToNth( Vector3? startPos, int n, bool anchorMiddle, bool startLocal, bool endLocal )
@@ -251,7 +126,7 @@ public class SimulationData
 			int i = y * PointGridDims.x + n;
 			if ( startPos is null )
 			{
-				CpuPoints[i] = CpuPoints[i] with 
+				Points[i] = Points[i] with 
 				{ 
 					IsAnchor = false, 
 					IsRopeLocal = false, 
@@ -273,7 +148,7 @@ public class SimulationData
 			}
 
 			Vector3 anchorPos = yRay.Project( y * SegmentLength );
-			CpuPoints[i] = CpuPoints[i] with
+			Points[i] = Points[i] with
 			{
 				Position = anchorPos,
 				LastPosition = anchorPos,
@@ -288,13 +163,13 @@ public class SimulationData
 
 	private void SetPointPosition( int i, Vector3 position )
 	{
-		VerletPoint p = CpuPoints[i] with 
+		VerletPoint p = Points[i] with 
 		{ 
 			Position = position, 
 			LastPosition = position 
 		};
-		CpuPoints[i] = p;
-		PointUpdateQueue[i] = VerletPointUpdate.Position( i, position );
+		Points[i] = p;
+		GpuData.QueuePointPositionUpdate( i, position );
 	}
 
 	public void SetPointFlags( Vector2Int coord, VerletPointFlags flags )
@@ -302,21 +177,21 @@ public class SimulationData
 
 	private void SetPointFlags( int i, VerletPointFlags flags )
 	{
-		VerletPoint p = CpuPoints[i] with
+		VerletPoint p = Points[i] with
 		{
 			Flags = flags,
 		};
-		CpuPoints[i] = p;
-		PointUpdateQueue[i] = VerletPointUpdate.Flags( i, flags );
+		Points[i] = p;
+		GpuData.QueuePointFlagUpdate( i, flags );
 	}
 
-	public void RecalculateCpuPointBounds()
+	public void RecalculateBounds()
 	{
 		BBox collisionBounds = default;
 
-		for ( int i = 0; i < CpuPoints.Length; i++ )
+		for ( int i = 0; i < Points.Length; i++ )
 		{
-			var point = CpuPoints[i];
+			var point = Points[i];
 			var pointBounds = BBox.FromPositionAndSize( point.Position, CollisionSearchRadius );
 			if ( i == 0 )
 			{
@@ -329,5 +204,16 @@ public class SimulationData
 		}
 
 		Bounds = collisionBounds;
+	}
+
+	internal void PostSimulationCleanup()
+	{
+		// Assume that if we just now ticked the simulation, all pending updates and collisions were applied.
+		GpuData.ClearPendingPointUpdates();
+		Collisions.Clear();
+
+		// Prepare for next delta time and translation.
+		LastTick = 0;
+		LastTransform = Transform;
 	}
 }

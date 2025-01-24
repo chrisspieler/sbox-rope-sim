@@ -19,7 +19,7 @@ public partial class VerletSystem
 	}
 	public CollisionSnapshot CaptureCollisionSnapshot( SimulationData simData )
 	{
-		if ( simData is null || !simData.Physics.IsValid() || simData?.CpuPoints?.Length < 1 )
+		if ( simData is null || !simData.Physics.IsValid() || simData?.Points?.Length < 1 )
 			return new();
 
 		var timer = FastTimer.StartNew();
