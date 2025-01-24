@@ -2,11 +2,16 @@
 
 public struct VerletPoint
 {
+	public const int DATA_SIZE 
+		= sizeof(int)			// Flags
+		+ sizeof(float) * 3		// Position
+		+ sizeof(float) * 3;	// LastPosition
+
 	public VerletPoint( Vector3 position, Vector3 lastPosition, VerletPointFlags flags = VerletPointFlags.None )
 	{
+		Flags = flags;
 		Position = position;
 		LastPosition = lastPosition;
-		Flags = flags;
 	}
 
 	public VerletPointFlags Flags;
@@ -15,13 +20,13 @@ public struct VerletPoint
 
 	public bool IsAnchor
 	{
-		get => Flags.HasFlag( VerletPointFlags.Anchor );
+		readonly get => Flags.HasFlag( VerletPointFlags.Anchor );
 		set => Flags = Flags.WithFlag( VerletPointFlags.Anchor, value );
 	}
 
 	public bool IsRopeLocal
 	{
-		get => Flags.HasFlag( VerletPointFlags.RopeLocal );
+		readonly get => Flags.HasFlag( VerletPointFlags.RopeLocal );
 		set => Flags = Flags.WithFlag( VerletPointFlags.RopeLocal, value );
 	}
 

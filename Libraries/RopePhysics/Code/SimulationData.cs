@@ -83,7 +83,7 @@ public class SimulationData : IDataSize
 	public BBox Bounds { get; set; }
 	public CollisionSnapshot Collisions { get; set; } = new();
 
-	public long DataSize => throw new NotImplementedException();
+	public long DataSize => Points.Length * VerletPoint.DATA_SIZE;
 
 	public Vector2Int IndexToPointCoord( int index )
 	{

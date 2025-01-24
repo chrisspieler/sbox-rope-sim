@@ -1,6 +1,6 @@
 ﻿namespace Duccsoft;
 
-public class CollisionSnapshot
+public class CollisionSnapshot : IDataSize
 {
 	public const int MAX_SPHERE_COLLIDERS = 256;
 	public const int MAX_BOX_COLLIDERS = 256;
@@ -60,6 +60,38 @@ public class CollisionSnapshot
 	}
 	private GpuBuffer<GpuMeshCollisionInfo> _gpuMeshColliders;
 	public bool ShouldCaptureSnapshot { get; set; } = true;
+
+	public long DataSize
+	{
+		get
+		{
+			long dataSize = 0;
+
+			if ( _gpuSphereColliders is not null )
+			{
+				dataSize += _gpuSphereColliders.ElementCount * _gpuSphereColliders.ElementSize;
+			}
+
+			if ( _gpuBoxColliders is not null )
+			{
+				dataSize += _gpuBoxColliders.ElementCount * _gpuBoxColliders.ElementSize;
+			}
+
+			if ( _gpuCapsuleColliders is not null )
+			{
+				dataSize += _gpuCapsuleColliders.ElementCount * _gpuCapsuleColliders.ElementSize;
+			}
+
+			// SDF textures may be used by multiple different snapshots,
+			// so we don't add their sizes to the collision snapshot size.
+			if ( _gpuMeshColliders is not null )
+			{ 
+				dataSize += _gpuMeshColliders.ElementCount * _gpuMeshColliders.ElementSize;
+			}
+
+			return dataSize;
+		}
+	}
 
 	public void Clear()
 	{

@@ -1,5 +1,6 @@
 ﻿using Duccsoft;
 using Duccsoft.ImGui;
+using Sandbox.Engine;
 using Sandbox.Utility;
 
 namespace Sandbox;
@@ -132,10 +133,10 @@ public class BenchmarkUI : Component
 	private void PaintStatsWindow()
 	{
 		ImGui.SetNextWindowPos( Screen.Size * new Vector2( 0.8f, 0.05f ) );
-		if ( ImGui.Begin( "Stats" ) )
+		if ( ImGui.Begin( "Performance Stats" ) )
 		{
-			ImGui.Text( $"FPS: {1 / DeltaTimes.Average():F1}" );
-			ImGui.Text( $"CPU Capture Snapshots: {VerletSystem.Current.AverageTotalCaptureSnapshotTime:F3}ms" );
+			ImGui.Text( $"VRAM: {VerletSystem.Current.TotalGpuDataSize.FormatBytes()} FPS: {1 / DeltaTimes.Average():F1}" );
+			ImGui.Text( $"CPU Physics Trace: {VerletSystem.Current.AverageTotalCaptureSnapshotTime:F3}ms" );
 			ImGui.Text( $"GPU Simulation: {VerletSystem.Current.AverageTotalGpuSimulationTime:F3}ms" );
 			ImGui.Text( $"GPU Store Points: {VerletSystem.Current.AverageTotalGpuStorePointsTime:F3}ms" );
 			ImGui.Text( $"GPU Build Mesh: {VerletSystem.Current.AverageTotalGpuBuildMeshTimes:F3}ms" );

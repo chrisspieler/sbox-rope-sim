@@ -14,6 +14,8 @@ public partial class VerletSystem
 	private List<double> PerSimGpuCalculateBoundsTimes = [];
 	private List<double> PerSimGpuStorePointsTimes = [];
 
+	public long TotalGpuDataSize { get; private set; }
+
 	private void InitializeGpu()
 	{
 		GpuSimulateSceneObject ??= new SceneCustomObject( Scene.SceneWorld )
@@ -39,15 +41,20 @@ public partial class VerletSystem
 
 		EnsureGpuReadbackBuffer();
 
+		TotalGpuDataSize = 0;
+
 		foreach( (int i, VerletComponent verlet ) in GpuSimulateQueue.Index() )
 		{
 			var simData = verlet?.SimData;
 			if ( simData is null )
 				continue;
 
+			TotalGpuDataSize += simData.GpuData.DataSize;
+
 			simData.RopeIndex = i;
 			GpuUpdateSingle( verlet );
 		}
+
 		GpuReadbackBounds();
 		GpuSimulateQueue.Clear();
 	}

@@ -14,7 +14,41 @@ public partial class GpuSimulationData : IDataSize
 	}
 
 	public SimulationData CpuData { get; }
-	public long DataSize => throw new NotImplementedException();
+	public long DataSize
+	{
+		get
+		{
+			long dataSize = 0;
+
+			// Assume for now that zero or one collision snapshots are used per GPU simulation.
+			if ( CpuData.Collisions is CollisionSnapshot snapshot )
+			{
+				dataSize += snapshot.DataSize;
+			}
+
+			if ( _gpuPoints is not null )
+			{
+				dataSize += _gpuPoints.ElementCount * _gpuPoints.ElementSize;
+			}
+
+			if ( _gpuPointUpdates is not null )
+			{
+				dataSize += _gpuPointUpdates.ElementCount * _gpuPointUpdates.ElementSize;
+			}
+
+			if ( _readbackVertices is not null )
+			{
+				dataSize += _readbackVertices.ElementCount * _readbackVertices.ElementSize;
+			}
+
+			if ( _readbackIndices is not null )
+			{
+				dataSize += _readbackIndices.ElementCount * _readbackIndices.ElementSize;
+			}
+			
+			return dataSize;
+		}
+	}
 
 	#region Simulation State
 	public int PointCount => CpuData.Points.Length;
@@ -188,9 +222,9 @@ public partial class GpuSimulationData : IDataSize
 	}
 	private GpuBuffer<uint> _readbackIndices;
 
-	private ComputeShader VerletRopeMeshCs;
-	private ComputeShader VerletClothMeshCs;
-	private ComputeShader MeshBoundsCs;
+	private readonly ComputeShader VerletRopeMeshCs;
+	private readonly ComputeShader VerletClothMeshCs;
+	private readonly ComputeShader MeshBoundsCs;
 
 	internal void DispatchBuildRopeMesh( float width, Color tint )
 	{
@@ -245,7 +279,7 @@ public partial class GpuSimulationData : IDataSize
 		Cloth = 1,
 	}
 
-	private ComputeShader VerletIntegrationCs;
+	private readonly ComputeShader VerletIntegrationCs;
 
 	internal void DispatchSimulate( float fixedTimeStep )
 	{
