@@ -79,8 +79,8 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "30bf7171-3c03-4f44-9f4a-092165ad7f1e",
           "Bounds": {
-            "Mins": "486.6314,-0.2280691,-22.46873",
-            "Maxs": "512.9999,18.12119,97"
+            "Mins": "510.9999,15,-28.86032",
+            "Maxs": "513.162,61.64671,97"
           },
           "Color": "0,1,0.06667,1",
           "DebugDrawPoints": false,
@@ -92,9 +92,9 @@
           "FirstRopePointPosition": "511.9999,16,96",
           "FixedEnd": false,
           "FixedStart": true,
+          "FixedTimeStep": 0.016,
           "Iterations": 20,
-          "LastRopePointPosition": "512.0063,56.15517,-31.97876",
-          "MaxTimeStepPerUpdate": 0.1,
+          "LastRopePointPosition": "511.9999,16,-32",
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -110,7 +110,6 @@
             "go": "fb8dd0a3-dcb2-4f2e-8cae-3508cdb0295f"
           },
           "Stretchiness": 0,
-          "TimeStep": 0.01,
           "Wireframe": false
         }
       ]

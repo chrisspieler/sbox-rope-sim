@@ -1,6 +1,6 @@
 ﻿namespace Duccsoft;
 
-public struct MeshCollisionInfo
+public struct MeshCollisionInfo : IGpuCollider<GpuMeshCollisionInfo>
 {
 	public int Id;
 	public SignedDistanceField Sdf;

@@ -179,15 +179,15 @@
       "__guid": "539a31bc-b852-494a-bda0-152512c7d9a6",
       "Flags": 0,
       "Name": "Cloth",
-      "Position": "-112,-32,128",
+      "Position": "-111.9999,-64,128",
       "Enabled": true,
       "Components": [
         {
           "__type": "Duccsoft.VerletCloth",
           "__guid": "027c0069-f345-4f0a-b516-d66f8f43a181",
           "Bounds": {
-            "Mins": "-113.7558,-50.88992,-36",
-            "Maxs": "47.06961,-27.97478,129"
+            "Mins": "-112.9999,-86.15559,-36",
+            "Maxs": "47.06966,-58.34621,129"
           },
           "ClothResolution": 32,
           "DebugDrawPoints": false,
@@ -198,12 +198,12 @@
             "_type": "gameobject",
             "go": "31c9aefa-5ab5-49a6-a3c5-630d84837651"
           },
-          "FirstRopePointPosition": "-112,-32,128",
+          "FirstRopePointPosition": "-111.9999,-64,128",
           "FixedEnd": false,
           "FixedStart": true,
           "FixedTimeStep": 0.016,
           "Iterations": 7,
-          "LastRopePointPosition": "-80,-192,128",
+          "LastRopePointPosition": "-79.99995,-224,128",
           "Material": null,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,

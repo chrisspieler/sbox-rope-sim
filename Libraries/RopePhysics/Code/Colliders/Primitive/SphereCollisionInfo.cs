@@ -1,6 +1,6 @@
 ﻿namespace Duccsoft;
 
-public struct SphereCollisionInfo
+public struct SphereCollisionInfo : IGpuCollider<GpuSphereCollisionInfo>
 {
 	public int Id;
 	public float Radius;

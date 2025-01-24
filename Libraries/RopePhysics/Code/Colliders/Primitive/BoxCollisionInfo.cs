@@ -1,6 +1,6 @@
 ﻿namespace Duccsoft;
 
-public struct BoxCollisionInfo
+public struct BoxCollisionInfo : IGpuCollider<GpuBoxCollisionInfo>
 {
 	public int Id;
 	public Vector3 Size;

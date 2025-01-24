@@ -2,6 +2,8 @@
 
 public class CollisionSnapshot : IDataSize
 {
+	public const int INITIAL_COLLIDER_BUFFER_SIZE = 4;
+
 	public const int MAX_SPHERE_COLLIDERS = 256;
 	public const int MAX_BOX_COLLIDERS = 256;
 	public const int MAX_CAPSULE_COLLIDERS = 256;
@@ -11,13 +13,14 @@ public class CollisionSnapshot : IDataSize
 	public Dictionary<int, BoxCollisionInfo> BoxColliders { get; } = [];
 	public Dictionary<int, CapsuleCollisionInfo> CapsuleColliders { get; } = [];
 	public Dictionary<int, MeshCollisionInfo> MeshColliders { get; } = [];
+
 	public GpuBuffer<GpuSphereCollisionInfo> GpuSphereColliders 
 	{ 
 		get
 		{
 			if ( !_gpuSphereColliders.IsValid() )
 			{
-				_gpuSphereColliders = new( MAX_SPHERE_COLLIDERS );
+				_gpuSphereColliders = new( INITIAL_COLLIDER_BUFFER_SIZE );
 			}
 			return _gpuSphereColliders;
 		}
@@ -29,7 +32,7 @@ public class CollisionSnapshot : IDataSize
 		{
 			if ( !_gpuBoxColliders.IsValid() )
 			{
-				_gpuBoxColliders = new( MAX_BOX_COLLIDERS );
+				_gpuBoxColliders = new( INITIAL_COLLIDER_BUFFER_SIZE );
 			}
 			return _gpuBoxColliders;
 		}
@@ -41,7 +44,7 @@ public class CollisionSnapshot : IDataSize
 		{
 			if ( !_gpuCapsuleColliders.IsValid() )
 			{
-				_gpuCapsuleColliders = new( MAX_CAPSULE_COLLIDERS );
+				_gpuCapsuleColliders = new( INITIAL_COLLIDER_BUFFER_SIZE );
 			}
 			return _gpuCapsuleColliders;
 		}
@@ -53,7 +56,7 @@ public class CollisionSnapshot : IDataSize
 		{
 			if ( !_gpuMeshColliders.IsValid() )
 			{
-				_gpuMeshColliders = new( MAX_MESH_COLLIDERS );
+				_gpuMeshColliders = new( INITIAL_COLLIDER_BUFFER_SIZE );
 			}
 			return _gpuMeshColliders;
 		}
@@ -101,44 +104,47 @@ public class CollisionSnapshot : IDataSize
 		MeshColliders.Clear();
 	}
 
+	private static void EnsureCount<T>( ref GpuBuffer<T> buffer, int count ) where T : unmanaged
+	{
+		if ( !buffer.IsValid() )
+		{
+			buffer = new( count );
+			return;
+		}
+
+		if ( buffer.ElementCount < count )
+		{
+			buffer?.Dispose();
+			buffer = new( count );
+		}
+	}
+
+	private static void ApplyColliderAttribute<T, U>( 
+			RenderAttributes attributes, string numCollidersAttribute, string colliderBufferAttribute,
+			Dictionary<int, U> cpuColliders, int maxColliders, ref GpuBuffer<T> gpuBuffer 
+		) 
+		where T : unmanaged 
+		where U : IGpuCollider<T>
+	{
+		var gpuColliders = cpuColliders.Values
+			.Take( maxColliders )
+			.Select( c => c.AsGpu() )
+			.ToArray();
+		var colliderCount = gpuColliders.Length;
+		attributes.Set( numCollidersAttribute, colliderCount );
+		if ( colliderCount > 0 )
+		{
+			EnsureCount( ref gpuBuffer, colliderCount );
+			gpuBuffer.SetData( gpuColliders, 0 );
+			attributes.Set( colliderBufferAttribute, gpuBuffer );
+		}
+	}
+
 	public void ApplyColliderAttributes( RenderAttributes attributes )
 	{
-		var sphereColliders = SphereColliders.Values.Take( MAX_SPHERE_COLLIDERS )
-			.Select( c => c.AsGpu() )
-			.ToArray();
-		attributes.Set( "NumSphereColliders", sphereColliders.Length );
-		if ( sphereColliders.Length > 0 )
-		{
-			GpuSphereColliders.SetData( sphereColliders, 0 );
-			attributes.Set( "SphereColliders", GpuSphereColliders );
-		}
-		var boxColliders = BoxColliders.Values.Take( MAX_BOX_COLLIDERS )
-			.Select( c => c.AsGpu() )
-			.ToArray();
-		attributes.Set( "NumBoxColliders", boxColliders.Length );
-		if ( boxColliders.Length > 0 )
-		{
-			GpuBoxColliders.SetData( boxColliders, 0 );
-			attributes.Set( "BoxColliders", GpuBoxColliders );
-		}
-		var capsuleColliders = CapsuleColliders.Values.Take( MAX_CAPSULE_COLLIDERS )
-			.Select( c => c.AsGpu() )
-			.ToArray();
-		attributes.Set( "NumCapsuleColliders", capsuleColliders.Length );
-		if ( capsuleColliders.Length > 0 )
-		{
-			GpuCapsuleColliders.SetData( capsuleColliders, 0 );
-			attributes.Set( "CapsuleColliders", GpuCapsuleColliders );
-		}
-		var meshColliders = MeshColliders.Values.Take( MAX_MESH_COLLIDERS )
-			.Select( c =>
-				{
-					c.Sdf.DataTexture.MarkUsed();
-					return c.AsGpu();
-				}
-			).ToArray();
-		attributes.Set( "NumMeshColliders", meshColliders.Length );
-		GpuMeshColliders.SetData( meshColliders, 0 );
-		attributes.Set( "MeshColliders", GpuMeshColliders );
+		ApplyColliderAttribute( attributes, "NumSphereColliders", "SphereColliders", SphereColliders, MAX_SPHERE_COLLIDERS, ref _gpuSphereColliders );
+		ApplyColliderAttribute( attributes, "NumBoxColliders", "BoxColliders", BoxColliders, MAX_BOX_COLLIDERS, ref _gpuBoxColliders );
+		ApplyColliderAttribute( attributes, "NumCapsuleColliders", "CapsuleColliders", CapsuleColliders, MAX_CAPSULE_COLLIDERS, ref _gpuCapsuleColliders );
+		ApplyColliderAttribute( attributes, "NumMeshColliders", "MeshColliders", MeshColliders, MAX_MESH_COLLIDERS, ref _gpuMeshColliders );
 	}
 }
