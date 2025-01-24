@@ -111,6 +111,7 @@ public class ClothDemo : Component
 			PaintClothDemoWindow();
 		}
 		ImGui.End();
+		DebugPanels.StatsWindow();
 	}
 
 	private void PaintClothDemoWindow()

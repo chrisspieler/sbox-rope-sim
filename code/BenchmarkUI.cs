@@ -1,6 +1,5 @@
 ﻿using Duccsoft;
 using Duccsoft.ImGui;
-using Sandbox.Engine;
 using Sandbox.Utility;
 
 namespace Sandbox;
@@ -62,8 +61,6 @@ public class BenchmarkUI : Component
 	private int Iterations = 20;
 	private float SlackCompensation = 0.2f;
 	
-	private readonly CircularBuffer<float> DeltaTimes = new( 60 );
-
 	protected override void OnStart()
 	{
 		AddRope( 25 );
@@ -76,10 +73,8 @@ public class BenchmarkUI : Component
 
 	protected override void OnUpdate()
 	{
-		DeltaTimes.PushBack( Time.Delta );
-		
 		PaintSelectColliderWindow();
-		PaintStatsWindow();
+		DebugPanels.StatsWindow();
 		PaintRopeArrayWindow();
 		PaintRopeParametersWindow();
 		if ( Oscillator.Enabled )
@@ -126,21 +121,6 @@ public class BenchmarkUI : Component
 					GpuSimulationData.InfestationMode = infestationMode;
 				}
 			}
-		}
-		ImGui.End();
-	}
-
-	private void PaintStatsWindow()
-	{
-		ImGui.SetNextWindowPos( Screen.Size * new Vector2( 0.8f, 0.05f ) );
-		if ( ImGui.Begin( "Performance Stats" ) )
-		{
-			ImGui.Text( $"VRAM: {VerletSystem.Current.TotalGpuDataSize.FormatBytes()} FPS: {1 / DeltaTimes.Average():F1}" );
-			ImGui.Text( $"CPU Physics Trace: {VerletSystem.Current.AverageTotalCaptureSnapshotTime:F3}ms" );
-			ImGui.Text( $"GPU Simulation: {VerletSystem.Current.AverageTotalGpuSimulationTime:F3}ms" );
-			ImGui.Text( $"GPU Store Points: {VerletSystem.Current.AverageTotalGpuStorePointsTime:F3}ms" );
-			ImGui.Text( $"GPU Build Mesh: {VerletSystem.Current.AverageTotalGpuBuildMeshTimes:F3}ms" );
-			ImGui.Text( $"GPU Readback Time: {VerletSystem.Current.AverageTotalGpuReadbackTime:F3}ms" );
 		}
 		ImGui.End();
 	}
