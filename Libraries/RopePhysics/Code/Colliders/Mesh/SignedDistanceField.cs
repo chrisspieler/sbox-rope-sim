@@ -1,6 +1,6 @@
 ﻿namespace Duccsoft;
 
-public partial class SignedDistanceField
+public partial class SignedDistanceField : IDataSize
 {
 	public SignedDistanceField( int[] data, int textureDims, BBox bounds )
 	{
@@ -28,7 +28,10 @@ public partial class SignedDistanceField
 		}
 	}
 	private Texture _dataTexture;
-	public int DataSize => TextureSize * TextureSize * TextureSize * 16;
+	public long DataSize 
+		=> TextureSize * TextureSize * TextureSize	// Dimensions
+			* sizeof(float) * 4;					// Texel data size
+
 	public DebugData Debug { get; set; }
 	public RealTimeSince SinceTextureUpdated;
 

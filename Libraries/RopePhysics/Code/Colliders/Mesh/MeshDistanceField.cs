@@ -6,7 +6,7 @@ namespace Duccsoft;
 /// <summary>
 /// Provides a signed distance field that was calculated using the triangles of a <see cref="PhysicsShape"/>.
 /// </summary>
-public partial class MeshDistanceField
+public partial class MeshDistanceField : IDataSize
 {
 	private MeshDistanceField() { }
 	internal MeshDistanceField( MeshDistanceBuildSystem buildSystem, int id, MeshDistanceConfig config = null )
@@ -17,7 +17,7 @@ public partial class MeshDistanceField
 	}
 
 	public int Id { get; }
-	public int DataSize { get; private set; }
+	public long DataSize { get; private set; }
 	// TODO: Read this from the octree itself?
 	public int OctreeLeafCount { get; private set; }
 

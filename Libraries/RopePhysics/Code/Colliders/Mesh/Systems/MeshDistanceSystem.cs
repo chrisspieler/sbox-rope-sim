@@ -9,7 +9,7 @@ public partial class MeshDistanceSystem : GameObjectSystem<MeshDistanceSystem>
 	public static float TexelSize => 1f / TexelPerWorldUnit;
 
 	public int MdfCount => _meshDistanceFields.Count;
-	public int MdfTotalDataSize => _meshDistanceFields.Select( mdf => mdf.Value.DataSize ).Sum();
+	public long MdfTotalDataSize => _meshDistanceFields.Select( mdf => mdf.Value.DataSize ).Sum();
 	private MeshDistanceBuildSystem BuildSystem => MeshDistanceBuildSystem.Current;
 
 	public MeshDistanceSystem( Scene scene ) : base( scene ) { }

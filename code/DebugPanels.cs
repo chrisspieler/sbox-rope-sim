@@ -10,7 +10,10 @@ public static class DebugPanels
 		ImGui.SetNextWindowPos( Screen.Size * new Vector2( 0.8f, 0.05f ) );
 		if ( ImGui.Begin( "Performance Stats" ) )
 		{
-			ImGui.Text( $"VRAM: {VerletSystem.Current.TotalGpuDataSize.FormatBytes()} FPS: {PerformanceSystem.Current.CurrentFramerate:F1}" );
+			long ropeVramUsage = VerletSystem.Current.TotalGpuDataSize;
+			long sdfVramUsage = MeshDistanceSystem.Current.MdfTotalDataSize;
+			long totalVramUsage = ropeVramUsage + sdfVramUsage;
+			ImGui.Text( $"VRAM: {totalVramUsage.FormatBytes()} FPS: {PerformanceSystem.Current.CurrentFramerate:F1}" );
 			ImGui.Text( $"CPU Physics Trace: {VerletSystem.Current.AverageTotalCaptureSnapshotTime:F3}ms" );
 			ImGui.Text( $"GPU Simulation: {VerletSystem.Current.AverageTotalGpuSimulationTime:F3}ms" );
 			ImGui.Text( $"GPU Store Points: {VerletSystem.Current.AverageTotalGpuStorePointsTime:F3}ms" );
