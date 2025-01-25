@@ -6,7 +6,7 @@ public partial class VerletSystem
 {
 	private SceneCustomObject GpuSimulateSceneObject;
 	private readonly HashSet<VerletComponent> GpuSimulateQueue = [];
-	internal GpuBuffer<VerletBounds> GpuReadbackBoundsBuffer { get; private set; }
+	private GpuBuffer<VerletBounds> _gpuReadbackBoundsBuffer;
 
 	private List<double> PerSimGpuReadbackTimes = [];
 	private List<double> PerSimGpuSimulateTimes = [];
@@ -25,21 +25,13 @@ public partial class VerletSystem
 		};
 	}
 
-	private void EnsureGpuReadbackBuffer()
-	{
-		int elementCount = GpuSimulateQueue.Count;
-		if ( !GpuReadbackBoundsBuffer.IsValid() || GpuReadbackBoundsBuffer.ElementCount != elementCount )
-		{
-			GpuReadbackBoundsBuffer = new( elementCount );
-		}
-	}
-
 	private void RenderGpuSimulate( SceneObject so )
 	{
-		if ( GpuSimulateQueue.Count < 1 )
+		int simCount = GpuSimulateQueue.Count;
+		if ( simCount < 1 )
 			return;
 
-		EnsureGpuReadbackBuffer();
+		GpuBufferUtils.EnsureCount( ref _gpuReadbackBoundsBuffer, simCount );
 
 		TotalGpuDataSize = 0;
 
@@ -127,7 +119,7 @@ public partial class VerletSystem
 	private void GpuDispatchCalculateMeshBounds( GpuSimulationData gpuData, float skinSize )
 	{
 		var timer = FastTimer.StartNew();
-		gpuData.DispatchCalculateMeshBounds( GpuReadbackBoundsBuffer, skinSize );
+		gpuData.DispatchCalculateMeshBounds( _gpuReadbackBoundsBuffer, skinSize );
 		PerSimGpuCalculateBoundsTimes.Add( timer.ElapsedMilliSeconds );
 	}
 
@@ -135,8 +127,8 @@ public partial class VerletSystem
 	{
 		var timer = FastTimer.StartNew();
 
-		var readbackBounds = new VerletBounds[GpuReadbackBoundsBuffer.ElementCount];
-		GpuReadbackBoundsBuffer.GetData( readbackBounds );
+		var readbackBounds = new VerletBounds[_gpuReadbackBoundsBuffer.ElementCount];
+		_gpuReadbackBoundsBuffer.GetData( readbackBounds );
 
 		foreach( VerletComponent verlet in GpuSimulateQueue )
 		{

@@ -26,22 +26,22 @@ public partial class GpuSimulationData : IDataSize
 				dataSize += snapshot.DataSize;
 			}
 
-			if ( _gpuPoints is not null )
+			if ( _gpuPoints.IsValid() )
 			{
 				dataSize += _gpuPoints.ElementCount * _gpuPoints.ElementSize;
 			}
 
-			if ( _gpuPointUpdates is not null )
+			if ( _gpuPointUpdates.IsValid() )
 			{
 				dataSize += _gpuPointUpdates.ElementCount * _gpuPointUpdates.ElementSize;
 			}
 
-			if ( _readbackVertices is not null )
+			if ( _readbackVertices.IsValid() )
 			{
 				dataSize += _readbackVertices.ElementCount * _readbackVertices.ElementSize;
 			}
 
-			if ( _readbackIndices is not null )
+			if ( _readbackIndices.IsValid() )
 			{
 				dataSize += _readbackIndices.ElementCount * _readbackIndices.ElementSize;
 			}
@@ -63,17 +63,14 @@ public partial class GpuSimulationData : IDataSize
 	{
 		get
 		{
-			if ( !_gpuPoints.IsValid() )
-			{
-				_gpuPoints = new( PointCount );
-			}
+			GpuBufferUtils.EnsureCount( ref _gpuPoints, PointCount );
 			return _gpuPoints;
 		}
 	}
 
 	public void StorePointsToGpu()
 	{
-		if ( !GpuPoints.IsValid() )
+		if ( !_gpuPoints.IsValid() )
 		{
 			InitializeGpu();
 			return;
@@ -85,11 +82,11 @@ public partial class GpuSimulationData : IDataSize
 
 	public void LoadPointsFromGpu()
 	{
-		if ( !ReadbackVertices.IsValid() || !GpuPoints.IsValid() )
+		if ( !_readbackVertices.IsValid() || !_gpuPoints.IsValid() )
 			return;
 
 		PointUpdateQueue.Clear();
-
+		
 		using var scope = PerfLog.Scope( $"Vertex readback with {PointCount} points and {CpuData.Iterations} iterations" );
 
 		var vertices = new RopeVertex[ReadbackVertices.ElementCount];
@@ -133,9 +130,9 @@ public partial class GpuSimulationData : IDataSize
 	public void DestroyGpuData()
 	{
 		PointUpdateQueue.Clear();
-		
-		_gpuPoints?.Dispose();
-		_gpuPointUpdates?.Dispose();
+
+		GpuBufferUtils.EnsureDisposedAndNull( ref _gpuPoints );
+		GpuBufferUtils.EnsureDisposedAndNull( ref _gpuPointUpdates );
 	}
 	#endregion
 
@@ -151,10 +148,7 @@ public partial class GpuSimulationData : IDataSize
 	{
 		get
 		{
-			if ( !_gpuPointUpdates.IsValid() )
-			{
-				_gpuPointUpdates = new( MAX_POINT_UPDATES );
-			}
+			GpuBufferUtils.EnsureCount( ref _gpuPointUpdates, MAX_POINT_UPDATES );
 			return _gpuPointUpdates;
 		}
 	}
@@ -194,10 +188,7 @@ public partial class GpuSimulationData : IDataSize
 		get
 		{
 			var vertexCount = ColumnCount > 1 ? PointCount : PointCount + 2;
-			if ( !_readbackVertices.IsValid() || _readbackVertices.ElementCount != vertexCount )
-			{
-				_readbackVertices = new GpuBuffer<RopeVertex>( vertexCount, GpuBuffer.UsageFlags.Vertex | GpuBuffer.UsageFlags.Structured );
-			}
+			GpuBufferUtils.EnsureCount( ref _readbackVertices, vertexCount, GpuBuffer.UsageFlags.Vertex | GpuBuffer.UsageFlags.Structured );
 			return _readbackVertices;
 		}
 	}
@@ -213,10 +204,7 @@ public partial class GpuSimulationData : IDataSize
 			// Two tris per quad times three indices per tri equals six indices per quad.
 			var numIndices = 6 * numQuads;
 			numIndices = Math.Max( 6, numIndices );
-			if ( !_readbackIndices.IsValid() || _readbackIndices.ElementCount != numIndices )
-			{
-				_readbackIndices = new( numIndices, GpuBuffer.UsageFlags.Index | GpuBuffer.UsageFlags.Structured );
-			}
+			GpuBufferUtils.EnsureCount( ref _readbackIndices, numIndices, GpuBuffer.UsageFlags.Index | GpuBuffer.UsageFlags.Structured );
 			return _readbackIndices;
 		}
 	}
@@ -260,7 +248,7 @@ public partial class GpuSimulationData : IDataSize
 
 		attributes.Set( "NumPoints", PointCount );
 		attributes.Set( "Points", GpuPoints );
-		attributes.Set( "SkinSize", 1f );
+		attributes.Set( "SkinSize", skinSize );
 
 		attributes.Set( "BoundsIndex", CpuData.RopeIndex );
 		attributes.Set( "Bounds", globalBoundsBuffer );

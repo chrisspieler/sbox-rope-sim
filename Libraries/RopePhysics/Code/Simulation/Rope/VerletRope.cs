@@ -215,12 +215,8 @@ public partial class VerletRope : VerletComponent
 		if ( !_so.IsValid() )
 			return;
 
-		int vertexCount = points.Length + 2;
-		if ( !_so.Vertices.IsValid() || _so.Vertices.ElementCount != vertexCount )
-		{
-			_so.Vertices ??= new GpuBuffer<RopeVertex>( vertexCount, GpuBuffer.UsageFlags.Vertex );
-		}
-		var vertices = new RopeVertex[vertexCount];
+		_so.VertexCount = points.Length + 2;
+		var vertices = new RopeVertex[_so.VertexCount];
 		vertices[0] = points[0].AsRopeVertex( this );
 		BBox bounds = BBox.FromPositionAndSize( points[0].Position, 4f );
 		if ( points.Length > 2 )

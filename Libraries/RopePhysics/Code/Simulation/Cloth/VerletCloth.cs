@@ -129,7 +129,7 @@ public class VerletCloth : VerletComponent
 
 	public override void UpdateCpuVertexBuffer( VerletPoint[] points )
 	{
-
+		// TODO: Dispatch a shader to build the cloth mesh.
 	}
 	#endregion
 }

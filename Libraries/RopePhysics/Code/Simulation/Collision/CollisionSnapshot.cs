@@ -18,10 +18,7 @@ public class CollisionSnapshot : IDataSize
 	{ 
 		get
 		{
-			if ( !_gpuSphereColliders.IsValid() )
-			{
-				_gpuSphereColliders = new( INITIAL_COLLIDER_BUFFER_SIZE );
-			}
+			GpuBufferUtils.EnsureMinCount( ref _gpuSphereColliders, INITIAL_COLLIDER_BUFFER_SIZE );
 			return _gpuSphereColliders;
 		}
 	}
@@ -30,10 +27,7 @@ public class CollisionSnapshot : IDataSize
 	{ 
 		get
 		{
-			if ( !_gpuBoxColliders.IsValid() )
-			{
-				_gpuBoxColliders = new( INITIAL_COLLIDER_BUFFER_SIZE );
-			}
+			GpuBufferUtils.EnsureMinCount( ref _gpuBoxColliders, INITIAL_COLLIDER_BUFFER_SIZE );
 			return _gpuBoxColliders;
 		}
 	}
@@ -42,10 +36,7 @@ public class CollisionSnapshot : IDataSize
 	{ 
 		get
 		{
-			if ( !_gpuCapsuleColliders.IsValid() )
-			{
-				_gpuCapsuleColliders = new( INITIAL_COLLIDER_BUFFER_SIZE );
-			}
+			GpuBufferUtils.EnsureMinCount( ref _gpuCapsuleColliders, INITIAL_COLLIDER_BUFFER_SIZE );
 			return _gpuCapsuleColliders;
 		}
 	}
@@ -54,10 +45,7 @@ public class CollisionSnapshot : IDataSize
 	{
 		get
 		{
-			if ( !_gpuMeshColliders.IsValid() )
-			{
-				_gpuMeshColliders = new( INITIAL_COLLIDER_BUFFER_SIZE );
-			}
+			GpuBufferUtils.EnsureMinCount( ref _gpuMeshColliders, INITIAL_COLLIDER_BUFFER_SIZE );
 			return _gpuMeshColliders;
 		}
 	}
@@ -70,24 +58,24 @@ public class CollisionSnapshot : IDataSize
 		{
 			long dataSize = 0;
 
-			if ( _gpuSphereColliders is not null )
+			if ( _gpuSphereColliders.IsValid() )
 			{
 				dataSize += _gpuSphereColliders.ElementCount * _gpuSphereColliders.ElementSize;
 			}
 
-			if ( _gpuBoxColliders is not null )
+			if ( _gpuBoxColliders.IsValid() )
 			{
 				dataSize += _gpuBoxColliders.ElementCount * _gpuBoxColliders.ElementSize;
 			}
 
-			if ( _gpuCapsuleColliders is not null )
+			if ( _gpuCapsuleColliders.IsValid() )
 			{
 				dataSize += _gpuCapsuleColliders.ElementCount * _gpuCapsuleColliders.ElementSize;
 			}
 
 			// SDF textures may be used by multiple different snapshots,
 			// so we don't add their sizes to the collision snapshot size.
-			if ( _gpuMeshColliders is not null )
+			if ( _gpuMeshColliders.IsValid() )
 			{ 
 				dataSize += _gpuMeshColliders.ElementCount * _gpuMeshColliders.ElementSize;
 			}
@@ -102,21 +90,8 @@ public class CollisionSnapshot : IDataSize
 		BoxColliders.Clear();
 		CapsuleColliders.Clear();
 		MeshColliders.Clear();
-	}
 
-	private static void EnsureCount<T>( ref GpuBuffer<T> buffer, int count ) where T : unmanaged
-	{
-		if ( !buffer.IsValid() )
-		{
-			buffer = new( count );
-			return;
-		}
-
-		if ( buffer.ElementCount < count )
-		{
-			buffer?.Dispose();
-			buffer = new( count );
-		}
+		// Don't clear the GPU buffers. We can just overwrite the data already there.
 	}
 
 	private static void ApplyColliderAttribute<T, U>( 
@@ -134,7 +109,7 @@ public class CollisionSnapshot : IDataSize
 		attributes.Set( numCollidersAttribute, colliderCount );
 		if ( colliderCount > 0 )
 		{
-			EnsureCount( ref gpuBuffer, colliderCount );
+			GpuBufferUtils.EnsureCount( ref gpuBuffer, colliderCount );
 			gpuBuffer.SetData( gpuColliders, 0 );
 			attributes.Set( colliderBufferAttribute, gpuBuffer );
 		}

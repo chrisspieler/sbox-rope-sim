@@ -195,7 +195,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "a7c06f93-0168-4c32-ae15-838b8e7f849a",
           "Bounds": {
-            "Mins": "46.00538,-33,-0.28207",
+            "Mins": "46.00538,-33,-7.481993",
             "Maxs": "48.00538,33,17"
           },
           "Color": "0,0,0,1",
@@ -211,9 +211,9 @@
           "FirstRopePointPosition": "47.00538,32,16",
           "FixedEnd": true,
           "FixedStart": true,
+          "FixedTimeStep": 0.016,
           "Iterations": 15,
           "LastRopePointPosition": "47.00538,-32,16",
-          "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -229,7 +229,6 @@
             "go": "ad433f3c-b0e3-499c-9114-a30ec805a008"
           },
           "Stretchiness": 0,
-          "TimeStep": 0.01,
           "Wireframe": false
         }
       ],
@@ -254,7 +253,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "4b863253-4fb6-4f83-9372-6eee061ccb73",
           "Bounds": {
-            "Mins": "46.00538,-33,-2.352539",
+            "Mins": "46.00538,-33,-9.491687",
             "Maxs": "48.00538,33,15"
           },
           "Color": "0,0,0,1",
@@ -270,9 +269,9 @@
           "FirstRopePointPosition": "47.00538,32,14",
           "FixedEnd": true,
           "FixedStart": true,
+          "FixedTimeStep": 0.016,
           "Iterations": 15,
           "LastRopePointPosition": "47.00538,-32,14",
-          "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -288,7 +287,6 @@
             "go": "b4ff0170-a33e-4b40-9e5a-54a10619d4a2"
           },
           "Stretchiness": 0,
-          "TimeStep": 0.01,
           "Wireframe": false
         }
       ],
@@ -313,7 +311,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "e0a4cbf2-80e8-4d78-951c-c21c6f9a7e72",
           "Bounds": {
-            "Mins": "46.00538,-33,1.658438",
+            "Mins": "46.00538,-33,-5.493015",
             "Maxs": "48.00538,33,19"
           },
           "Color": "0,0,0,1",
@@ -329,9 +327,9 @@
           "FirstRopePointPosition": "47.00538,32,18",
           "FixedEnd": true,
           "FixedStart": true,
+          "FixedTimeStep": 0.016,
           "Iterations": 15,
           "LastRopePointPosition": "47.00538,-32,18",
-          "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -347,7 +345,6 @@
             "go": "77271cf4-a57c-499e-b05b-f7b0bc8c0e36"
           },
           "Stretchiness": 0,
-          "TimeStep": 0.01,
           "Wireframe": false
         }
       ],
@@ -372,7 +369,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "b9148a2f-4037-4f6a-a8bc-2edca73c2683",
           "Bounds": {
-            "Mins": "46.00538,-33,3.616207",
+            "Mins": "46.00538,-33,-3.732533",
             "Maxs": "48.00538,33,21"
           },
           "Color": "0,0,0,1",
@@ -388,9 +385,9 @@
           "FirstRopePointPosition": "47.00538,32,20",
           "FixedEnd": true,
           "FixedStart": true,
+          "FixedTimeStep": 0.016,
           "Iterations": 15,
           "LastRopePointPosition": "47.00538,-32,20",
-          "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -406,7 +403,6 @@
             "go": "07983a85-702c-49ec-94fb-639393ad635e"
           },
           "Stretchiness": 0,
-          "TimeStep": 0.01,
           "Wireframe": false
         }
       ],
@@ -431,7 +427,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "5cccdb65-62f8-494b-a73f-50eaf0e6fe55",
           "Bounds": {
-            "Mins": "46.00538,-33,-6.331365",
+            "Mins": "46.00538,-33,-13.73221",
             "Maxs": "48.00538,33,11"
           },
           "Color": "0,0,0,1",
@@ -447,9 +443,9 @@
           "FirstRopePointPosition": "47.00538,32,10",
           "FixedEnd": true,
           "FixedStart": true,
+          "FixedTimeStep": 0.016,
           "Iterations": 15,
           "LastRopePointPosition": "47.00538,-32,10",
-          "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -465,7 +461,6 @@
             "go": "2d6143c3-06c2-4df5-9737-b2f9cb87a224"
           },
           "Stretchiness": 0,
-          "TimeStep": 0.01,
           "Wireframe": false
         }
       ],
@@ -490,7 +485,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "c97b5ba2-b3e4-4914-a83b-38e175bf5613",
           "Bounds": {
-            "Mins": "46.00538,-33,-8.307066",
+            "Mins": "46.00538,-33,-15.54174",
             "Maxs": "48.00538,33,9"
           },
           "Color": "0,0,0,1",
@@ -506,9 +501,9 @@
           "FirstRopePointPosition": "47.00538,32,8",
           "FixedEnd": true,
           "FixedStart": true,
+          "FixedTimeStep": 0.016,
           "Iterations": 15,
           "LastRopePointPosition": "47.00538,-32,8",
-          "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -524,7 +519,6 @@
             "go": "0dfefba8-11d0-4398-8992-f66470f57ffd"
           },
           "Stretchiness": 0,
-          "TimeStep": 0.01,
           "Wireframe": false
         }
       ],
@@ -549,7 +543,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "96363128-d71c-4a05-8930-c1089d719c75",
           "Bounds": {
-            "Mins": "46.00538,-33,-4.306131",
+            "Mins": "46.00538,-33,-11.49479",
             "Maxs": "48.00538,33,13"
           },
           "Color": "0,0,0,1",
@@ -565,9 +559,9 @@
           "FirstRopePointPosition": "47.00538,32,12",
           "FixedEnd": true,
           "FixedStart": true,
+          "FixedTimeStep": 0.016,
           "Iterations": 15,
           "LastRopePointPosition": "47.00538,-32,12",
-          "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -583,7 +577,6 @@
             "go": "9fb56a53-546a-402f-938d-acfc0d782333"
           },
           "Stretchiness": 0,
-          "TimeStep": 0.01,
           "Wireframe": false
         }
       ],
@@ -608,7 +601,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "d803cecf-4cbb-4a2f-bd57-882dd00f86c8",
           "Bounds": {
-            "Mins": "47,-1,-20.51546",
+            "Mins": "47,-1,-24.41333",
             "Maxs": "49,1,33"
           },
           "Color": "0,0,0,1",
@@ -621,9 +614,9 @@
           "FirstRopePointPosition": "48,0,32",
           "FixedEnd": false,
           "FixedStart": true,
+          "FixedTimeStep": 0.016,
           "Iterations": 20,
           "LastRopePointPosition": "48,0,-16",
-          "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -639,7 +632,6 @@
             "go": "1fcf01df-0765-48dc-8877-829961f26561"
           },
           "Stretchiness": 0,
-          "TimeStep": 0.01,
           "Wireframe": false
         }
       ]
@@ -655,7 +647,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "e470aa03-6855-4dae-8daa-e230297338a2",
           "Bounds": {
-            "Mins": "49,-1,-20.40645",
+            "Mins": "49,-1,-24.41277",
             "Maxs": "51,1,33"
           },
           "Color": "0,0,0,1",
@@ -668,9 +660,9 @@
           "FirstRopePointPosition": "50,0,32",
           "FixedEnd": false,
           "FixedStart": true,
+          "FixedTimeStep": 0.016,
           "Iterations": 20,
           "LastRopePointPosition": "50,0,-16",
-          "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -686,7 +678,6 @@
             "go": "a9b108a5-3987-487a-92b8-07ef2c8ecfb3"
           },
           "Stretchiness": 0,
-          "TimeStep": 0.01,
           "Wireframe": false
         }
       ]
@@ -702,7 +693,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "e06a6415-38f2-4c45-870e-dd3d3414e1ca",
           "Bounds": {
-            "Mins": "45,-1,-20.47285",
+            "Mins": "45,-1,-24.19764",
             "Maxs": "47,1,33"
           },
           "Color": "0,0,0,1",
@@ -715,9 +706,9 @@
           "FirstRopePointPosition": "46,0,32",
           "FixedEnd": false,
           "FixedStart": true,
+          "FixedTimeStep": 0.016,
           "Iterations": 20,
           "LastRopePointPosition": "46,0,-16",
-          "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -733,7 +724,6 @@
             "go": "c6e42b1c-effc-4e34-83f2-e794c4980de5"
           },
           "Stretchiness": 0,
-          "TimeStep": 0.01,
           "Wireframe": false
         }
       ]
@@ -749,7 +739,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "a5243c50-23d4-43b3-b61f-1f20e273a7a8",
           "Bounds": {
-            "Mins": "49,1,-20.47288",
+            "Mins": "49,1,-24.41333",
             "Maxs": "51,3,33"
           },
           "Color": "0,0,0,1",
@@ -762,9 +752,9 @@
           "FirstRopePointPosition": "50,2,32",
           "FixedEnd": false,
           "FixedStart": true,
+          "FixedTimeStep": 0.016,
           "Iterations": 20,
           "LastRopePointPosition": "50,2,-16",
-          "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -780,7 +770,6 @@
             "go": "d6bc13b7-91b4-4d81-8464-5fb6571ff38f"
           },
           "Stretchiness": 0,
-          "TimeStep": 0.01,
           "Wireframe": false
         }
       ]
@@ -796,7 +785,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "ab114479-0578-49ce-9a84-fe2a8d55de35",
           "Bounds": {
-            "Mins": "45,1,-20.47307",
+            "Mins": "45,1,-24.47671",
             "Maxs": "47,3,33"
           },
           "Color": "0,0,0,1",
@@ -809,9 +798,9 @@
           "FirstRopePointPosition": "46,2,32",
           "FixedEnd": false,
           "FixedStart": true,
+          "FixedTimeStep": 0.016,
           "Iterations": 20,
           "LastRopePointPosition": "46,2,-16",
-          "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -827,7 +816,6 @@
             "go": "93d3df05-30e8-493a-b7ea-99e5d13edb43"
           },
           "Stretchiness": 0,
-          "TimeStep": 0.01,
           "Wireframe": false
         }
       ]
@@ -843,7 +831,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "6e203cf5-c558-4332-be58-65f82e30377a",
           "Bounds": {
-            "Mins": "49,-3,-20.38752",
+            "Mins": "49,-3,-24.4771",
             "Maxs": "51,-1,33"
           },
           "Color": "0,0,0,1",
@@ -856,9 +844,9 @@
           "FirstRopePointPosition": "50,-2,32",
           "FixedEnd": false,
           "FixedStart": true,
+          "FixedTimeStep": 0.016,
           "Iterations": 20,
           "LastRopePointPosition": "50,-2,-16",
-          "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -874,7 +862,6 @@
             "go": "2a8364e3-d909-49e8-843c-8b3acf1a449f"
           },
           "Stretchiness": 0,
-          "TimeStep": 0.01,
           "Wireframe": false
         }
       ]
@@ -890,7 +877,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "7365b115-951b-41c4-b8fb-59d1a279ca12",
           "Bounds": {
-            "Mins": "45,-3,-20.4733",
+            "Mins": "45,-3,-24.47801",
             "Maxs": "47,-1,33"
           },
           "Color": "0,0,0,1",
@@ -903,9 +890,9 @@
           "FirstRopePointPosition": "46,-2,32",
           "FixedEnd": false,
           "FixedStart": true,
+          "FixedTimeStep": 0.016,
           "Iterations": 20,
           "LastRopePointPosition": "46,-2,-16",
-          "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -921,7 +908,6 @@
             "go": "07378953-6215-4220-b1b9-ce1a5f82c064"
           },
           "Stretchiness": 0,
-          "TimeStep": 0.01,
           "Wireframe": false
         }
       ]
@@ -937,7 +923,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "399222c3-5352-42ae-bcbe-c1d19b694b96",
           "Bounds": {
-            "Mins": "47,1,-20.38818",
+            "Mins": "47,1,-24.47184",
             "Maxs": "49,3,33"
           },
           "Color": "0,0,0,1",
@@ -950,9 +936,9 @@
           "FirstRopePointPosition": "48,2,32",
           "FixedEnd": false,
           "FixedStart": true,
+          "FixedTimeStep": 0.016,
           "Iterations": 20,
           "LastRopePointPosition": "48,2,-16",
-          "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -968,7 +954,6 @@
             "go": "611b12fa-31c4-45c6-bc94-d5cfde91c66a"
           },
           "Stretchiness": 0,
-          "TimeStep": 0.01,
           "Wireframe": false
         }
       ]
@@ -984,7 +969,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "64699d75-9a09-4e13-9777-6916735fbd80",
           "Bounds": {
-            "Mins": "47,-3,-20.47387",
+            "Mins": "47,-3,-24.47727",
             "Maxs": "49,-1,33"
           },
           "Color": "0,0,0,1",
@@ -997,9 +982,9 @@
           "FirstRopePointPosition": "48,-2,32",
           "FixedEnd": false,
           "FixedStart": true,
+          "FixedTimeStep": 0.016,
           "Iterations": 20,
           "LastRopePointPosition": "48,-2,-16",
-          "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -1015,7 +1000,6 @@
             "go": "92c09f22-980a-47f2-844c-adce428f2b31"
           },
           "Stretchiness": 0,
-          "TimeStep": 0.01,
           "Wireframe": false
         }
       ]
