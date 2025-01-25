@@ -18,7 +18,7 @@ public class SceneRopeObject : SceneCustomObject
 
 	private static readonly Material LineShader = Material.FromShader( "shaders/line.shader" );
 
-	public GpuBuffer<VerletVertex> Vertices { get; set; }
+	public GpuBuffer<RopeVertex> Vertices { get; set; }
 
 	public Texture LineTexture
 	{

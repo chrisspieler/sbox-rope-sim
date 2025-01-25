@@ -30,9 +30,9 @@ public struct VerletPoint
 		set => Flags = Flags.WithFlag( VerletPointFlags.RopeLocal, value );
 	}
 
-	public readonly VerletVertex AsRopeVertex( VerletRope rope )
+	public readonly RopeVertex AsRopeVertex( VerletRope rope )
 	{
-		return new VerletVertex()
+		return new RopeVertex()
 		{
 			Position = new Vector4( Position, 0 ),
 			TexCoord0 = new Vector4( rope.EffectiveRadius * 2 * rope.RenderWidthScale, 1f, 0, 0 ),

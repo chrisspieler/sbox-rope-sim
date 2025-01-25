@@ -1,6 +1,6 @@
 ﻿namespace Duccsoft;
 
-public struct VerletVertex
+public struct RopeVertex
 {
 	[VertexLayout.Position]
 	public Vector3 Position;

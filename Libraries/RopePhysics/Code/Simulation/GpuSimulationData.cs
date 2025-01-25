@@ -92,7 +92,7 @@ public partial class GpuSimulationData : IDataSize
 
 		using var scope = PerfLog.Scope( $"Vertex readback with {PointCount} points and {CpuData.Iterations} iterations" );
 
-		var vertices = new VerletVertex[ReadbackVertices.ElementCount];
+		var vertices = new RopeVertex[ReadbackVertices.ElementCount];
 		ReadbackVertices.GetData( vertices );
 		int indexOffset = 0;
 		int indexStart = 0;
@@ -189,19 +189,19 @@ public partial class GpuSimulationData : IDataSize
 	#endregion
 
 	#region Mesh Build
-	internal GpuBuffer<VerletVertex> ReadbackVertices
+	internal GpuBuffer<RopeVertex> ReadbackVertices
 	{
 		get
 		{
 			var vertexCount = ColumnCount > 1 ? PointCount : PointCount + 2;
 			if ( !_readbackVertices.IsValid() || _readbackVertices.ElementCount != vertexCount )
 			{
-				_readbackVertices = new GpuBuffer<VerletVertex>( vertexCount, GpuBuffer.UsageFlags.Vertex | GpuBuffer.UsageFlags.Structured );
+				_readbackVertices = new GpuBuffer<RopeVertex>( vertexCount, GpuBuffer.UsageFlags.Vertex | GpuBuffer.UsageFlags.Structured );
 			}
 			return _readbackVertices;
 		}
 	}
-	private GpuBuffer<VerletVertex> _readbackVertices;
+	private GpuBuffer<RopeVertex> _readbackVertices;
 	internal GpuBuffer<uint> ReadbackIndices
 	{
 		get

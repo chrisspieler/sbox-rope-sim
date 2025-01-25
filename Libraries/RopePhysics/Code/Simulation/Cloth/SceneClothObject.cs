@@ -4,7 +4,7 @@ public class SceneClothObject : SceneCustomObject
 {
 	private static readonly Material ClothShader = Material.FromShader( "shaders/cloth.shader" );
 
-	public GpuBuffer<VerletVertex> Vertices { get; set; }
+	public GpuBuffer<RopeVertex> Vertices { get; set; }
 	public GpuBuffer<uint> Indices { get; set; }
 
 	public bool EnableWireframe
