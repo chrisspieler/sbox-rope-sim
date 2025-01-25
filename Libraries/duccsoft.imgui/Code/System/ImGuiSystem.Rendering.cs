@@ -7,6 +7,9 @@ namespace Duccsoft.ImGui;
 
 internal partial class ImGuiSystem
 {
+	[ConVar( "imgui_render" )]
+	public static bool EnableRendering { get; set; } = true;
+
 	public bool UseSceneCamera { get; } = true;
 	public CommandList MainCommandList { get; } = new CommandList( "ImGui Main CommandList" )
 	{
@@ -61,7 +64,7 @@ internal partial class ImGuiSystem
 
 	private void BuildDrawLists()
 	{
-		if ( !Game.IsPlaying )
+		if ( !Game.IsPlaying || !EnableRendering )
 			return;
 
 		MainCommandList.Reset();
