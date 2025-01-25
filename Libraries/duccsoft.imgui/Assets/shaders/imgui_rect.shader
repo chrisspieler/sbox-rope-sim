@@ -81,7 +81,7 @@ PS
 		SamplerState g_sClampSampler < Filter( Point ); AddressU( CLAMP ); AddressV( CLAMP ); >;
 	#endif
 
-	int TextureIndex < Attribute( "TextureIndex" ); SrgbRead( false ); >;
+	int TextureIndex < Attribute( "TextureIndex" ); >;
 
 	float4 BorderImageTint < Default4( 1.0, 1.0, 1.0, 1.0 ); Attribute( "BorderImageTint" ); >;
 
@@ -331,7 +331,7 @@ PS
 
  			// Repeat = 0, RepeatX = 1, RepeatY = 2, NoRepeat = 3, Clamp = 4
 
-			Texture2D tex = GetBindlessTexture2D( TextureIndex + 1 );
+			Texture2D tex = GetBindlessTexture2D( TextureIndex );
 
 			// Select sampler based on the repeat mode - should pick the one that
 			// gives us the least artifacting

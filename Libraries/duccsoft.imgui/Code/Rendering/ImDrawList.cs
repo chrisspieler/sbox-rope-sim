@@ -110,6 +110,7 @@ public class ImDrawList
 		CommandList.SetCombo( "D_TEXTURE_FILTERING", filtering );
 		CommandList.Set( "BgRepeat", -1 );
 		CommandList.Set( "BgAngle", angle );
+		CommandList.Set( "BgTint", tintColor.ToColor() );
 		CommandList.Set( "TextureIndex", texture.Index );
 		var texToRectScale = 1f / (texture.Size / (lowerRight - upperLeft));
 		var offset = uv0 * texture.Size * texToRectScale;
@@ -120,7 +121,7 @@ public class ImDrawList
 		// Border
 		CommandList.Set( "HasBorder", 0 );
 
-		CommandList.DrawQuad( new Rect( upperLeft, lowerRight - upperLeft ), Material.FromShader( "shaders/imgui_rect.shader"), tintColor );
+		CommandList.DrawQuad( new Rect( upperLeft, lowerRight - upperLeft ), Material.FromShader( "shaders/imgui_rect.shader"), Color.Transparent );
 	}
 	#endregion Image
 }
