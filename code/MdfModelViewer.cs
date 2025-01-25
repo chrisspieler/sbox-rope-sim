@@ -350,7 +350,7 @@ public class MdfModelViewer : Component
 		angle = angle.DegreeToRadian();
 		var uv0 = new Vector2( 1f, 0f );
 		var uv1 = new Vector2( 0f, 1f );
-		var texImage = new TextureInfoWidget( ImGui.CurrentWindow, sdfTex, TextureSlice, _copiedTex, new Vector2( 400 ) * ImGuiStyle.UIScale, uv0, uv1, Color.Transparent, ImGui.GetColorU32( ImGuiCol.Border ), Duccsoft.ImGui.Rendering.ImDrawList.ImageTextureFiltering.Point, angle );
+		var texImage = new TextureInfoWidget( ImGui.CurrentWindow, sdfTex, TextureSlice, _copiedTex, new Vector2( 400 ) * ImGuiStyle.UIScale, uv0, uv1, Color.White, ImGui.GetColorU32( ImGuiCol.Border ), Duccsoft.ImGui.Rendering.ImDrawList.ImageTextureFiltering.Point, angle );
 		if ( texImage.SelectedPixel is Vector2Int selected)
 		{
 			_selectedTexel = new Vector3Int( selected.x, selected.y, _textureSlice );
