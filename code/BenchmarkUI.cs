@@ -74,7 +74,6 @@ public class BenchmarkUI : Component
 	protected override void OnUpdate()
 	{
 		PaintSelectColliderWindow();
-		DebugPanels.StatsWindow();
 		PaintRopeArrayWindow();
 		PaintRopeParametersWindow();
 		if ( Oscillator.Enabled )

@@ -149,6 +149,18 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null
+        },
+        {
+          "__type": "Sandbox.DebugPanelToggler",
+          "__guid": "e6394824-dc24-48a7-bd03-d84922887fb4",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "ShowDebugMenu": false,
+          "ShowStatsWindow": true
         }
       ]
     },
@@ -186,8 +198,8 @@
           "__type": "Duccsoft.VerletCloth",
           "__guid": "027c0069-f345-4f0a-b516-d66f8f43a181",
           "Bounds": {
-            "Mins": "-112.9999,-86.15559,-36",
-            "Maxs": "47.06966,-58.34621,129"
+            "Mins": "-112.9999,-74.68577,-35.93242",
+            "Maxs": "47.06971,-54.73053,129"
           },
           "ClothResolution": 32,
           "DebugDrawPoints": false,
@@ -203,7 +215,7 @@
           "FixedStart": true,
           "FixedTimeStep": 0.016,
           "Iterations": 7,
-          "LastRopePointPosition": "-79.99995,-224,128",
+          "LastRopePointPosition": "-79.9999,-224,128",
           "Material": null,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
