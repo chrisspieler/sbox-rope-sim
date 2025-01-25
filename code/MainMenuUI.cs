@@ -53,10 +53,10 @@ public class MainMenuUI : Component
 	}
 	protected override void OnUpdate()
 	{
-		var titleText = new TextRendering.Scope( "Verlet Rope Demo", Color.White, ImGui.GetTextLineHeight() * 5f, "Poppins" );
+		var titleText = new TextRendering.Scope( "Rope Physics Demo", Color.White, ImGui.GetTextLineHeight() * 5f, "Poppins" );
 		Scene.Camera.Hud.DrawText( titleText, new Vector2( Screen.Width / 2, Screen.Height * 0.15f ) );
-		ImGui.SetNextWindowPos( Screen.Size * new Vector2( 0.05f ) * ImGuiStyle.UIScale );
-		if ( ImGui.Begin( "Main Menu - Rope Simulation Demo" ) )
+		ImGui.SetNextWindowPos( Screen.Size * new Vector2( 0.05f, 0.225f ) );
+		if ( ImGui.Begin( "Main Menu - Rope Physics Demo" ) )
 		{
 			PaintWindow();
 		}
