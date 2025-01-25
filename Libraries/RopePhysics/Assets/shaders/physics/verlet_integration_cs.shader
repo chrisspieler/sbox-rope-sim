@@ -66,6 +66,7 @@ CS
 	struct BoxCollider
 	{
 		float3 Size;
+		float3 Scale;
 		float4x4 LocalToWorld;
 		float4x4 WorldToLocal;
 
@@ -74,25 +75,31 @@ CS
 			VerletPoint p = Points[pIndex];
 			float3 pPositionOs = mul( WorldToLocal, float4( p.Position.xyz, 1 ) ).xyz;
 			float3 halfSize = Size * 0.5f;
-			float3 scale = 1;
+			// Figure out how deep the point is inside in the box.
 			float3 pointDepth = halfSize - abs( pPositionOs );
+			float radius = PointRadius + 0.001;
 
-			if ( pointDepth.x <= -PointRadius || pointDepth.y <= -PointRadius || pointDepth.z <= -PointRadius )
+			// If the point is entirely outside one of the axes, continue.
+			if ( pointDepth.x < -radius || pointDepth.y < -radius || pointDepth.z < -radius )
 				return;
 
-			float3 pointScaled = pointDepth * scale;
-			float3 signs = sign( pPositionOs );
+			// Because the collider size is in worldspace, scale up the point we compare against.
+			float3 pointScaled = pointDepth * Scale;
+			// Figure out in what directions to eject the point.
+			float3 signs = float3( sign( pPositionOs.x ), sign( pPositionOs.y ), sign( pPositionOs.z ) );
+			// If the X coordinate of the point is the one nearest the surface of the box...
 			if ( pointScaled.x < pointScaled.y && pointScaled.x < pointScaled.z )
 			{
-				pPositionOs.x = halfSize.x * signs.x + PointRadius * signs.x;
+				// ...place the point directly on the surface of the box.
+				pPositionOs.x = signs.x * ( halfSize.x + radius );
 			}
 			else if ( pointScaled.y < pointScaled.x && pointScaled.y < pointScaled.z )
 			{
-				pPositionOs.y = halfSize.y * signs.y + PointRadius * signs.y;
+				pPositionOs.y = signs.y * ( halfSize.y + radius );
 			}
 			else
 			{
-				pPositionOs.z = halfSize.z * signs.z + PointRadius * signs.z;
+				pPositionOs.z = signs.z * ( halfSize.z + radius );
 			}
 			p.Position = mul( LocalToWorld, float4( pPositionOs.xyz, 1 ) ).xyz;
 			Points[pIndex] = p;

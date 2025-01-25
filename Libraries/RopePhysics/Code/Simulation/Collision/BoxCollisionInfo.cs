@@ -10,6 +10,7 @@ public struct BoxCollisionInfo : IGpuCollider<GpuBoxCollisionInfo>
 		=> new()
 		{
 			Size = Size,
+			Scale = Transform.Scale,
 			LocalToWorld = Transform.GetLocalToWorld(),
 			WorldToLocal = Transform.GetWorldToLocal(),
 		};
@@ -18,6 +19,7 @@ public struct BoxCollisionInfo : IGpuCollider<GpuBoxCollisionInfo>
 public struct GpuBoxCollisionInfo
 {
 	public Vector3 Size;
+	public Vector3 Scale;
 	public Matrix LocalToWorld;
 	public Matrix WorldToLocal;
 }

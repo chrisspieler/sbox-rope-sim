@@ -251,7 +251,7 @@
         {
           "__type": "Sandbox.MeshComponent",
           "__guid": "f686f50d-75fe-47c8-949e-29c0c16d0c25",
-          "Collision": "Mesh",
+          "Collision": "None",
           "Color": "1,1,1,1",
           "Friction": null,
           "HideInGame": false,
@@ -777,7 +777,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "d39c0e78-82c6-4036-ae57-a299e1f859b1",
           "Bounds": {
-            "Mins": "253.2836,-374.5847,120.3373",
+            "Mins": "253.7983,-374.6243,105.7512",
             "Maxs": "257,65,225"
           },
           "Color": "0.03137,0.22745,0.28235,1",
@@ -853,13 +853,13 @@
       "__guid": "aebd58fd-dfa1-43dd-b6df-bbe7365e02bb",
       "Flags": 0,
       "Name": "Floor Collider",
-      "Position": "176,0,-16",
+      "Position": "176,0,-534.25",
       "Enabled": true,
       "Components": [
         {
           "__type": "Sandbox.BoxCollider",
           "__guid": "d80065a7-1859-49b6-98a0-2a476b8f276f",
-          "Center": "33.33411,0,-517.0181",
+          "Center": "0,0,0",
           "Friction": null,
           "IsTrigger": false,
           "OnComponentDestroy": null,
