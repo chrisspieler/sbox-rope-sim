@@ -38,7 +38,7 @@ public class DebugPanelToggler : Component
 
 		if ( ShowStatsWindow )
 		{
-			DebugPanels.StatsWindow();
+			DebugPanels.ShowStats();
 		}
 	}
 }

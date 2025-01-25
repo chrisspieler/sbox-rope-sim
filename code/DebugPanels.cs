@@ -5,7 +5,7 @@ namespace Sandbox;
 
 public static class DebugPanels
 {
-	public static void StatsWindow()
+	public static void ShowStats()
 	{
 		ImGui.SetNextWindowPos( Screen.Size * new Vector2( 0.8f, 0.05f ) );
 		if ( ImGui.Begin( "Performance Stats" ) )
