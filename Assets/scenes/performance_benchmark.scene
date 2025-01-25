@@ -40,6 +40,7 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
+          "Priority": 30,
           "ThumbnailPath": "thumbnails/performance_benchmark.png"
         },
         {
@@ -288,8 +289,8 @@
           "__type": "Duccsoft.VerletCloth",
           "__guid": "d3ae2571-dd55-4dbc-9a22-baeb56ff93b8",
           "Bounds": {
-            "Mins": "-187.8433,-125.9984,-69.24736",
-            "Maxs": "-57.84331,-112.3705,83.15524"
+            "Mins": "-187.8433,-126.1493,-69.278",
+            "Maxs": "-57.84331,-113.807,83.15524"
           },
           "ClothResolution": 16,
           "DebugDrawPoints": false,
@@ -302,7 +303,7 @@
           "FixedStart": true,
           "FixedTimeStep": 0.016,
           "Iterations": 20,
-          "LastRopePointPosition": "-69.82506,-120.5292,-40.95024",
+          "LastRopePointPosition": "-69.75476,-121.0771,-40.95004",
           "Material": null,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
@@ -335,7 +336,8 @@
     "Metadata": {
       "DemoName": "Performance Benchmark",
       "DemoDescription": "See how many ropes your GPU can handle!",
-      "ThumbnailPath": "thumbnails/performance_benchmark.png"
+      "ThumbnailPath": "thumbnails/performance_benchmark.png",
+      "Priority": "30"
     },
     "NavMesh": {
       "Enabled": false,

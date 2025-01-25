@@ -4,7 +4,7 @@ namespace Sandbox;
 
 public class MainMenuUI : Component
 {
-	private record SceneMetadata( SceneFile Scene, string Name, string Description, Texture Thumbnail );
+	private record SceneMetadata( SceneFile Scene, int Priority, string Name, string Description, Texture Thumbnail );
 	private List<SceneMetadata> Metadata { get; set; } = [];
 	private int SelectedSceneIndex
 	{
@@ -29,6 +29,10 @@ public class MainMenuUI : Component
 
 			var demoDescription = scene.GetMetadata( nameof( DemoSceneInformation.DemoDescription ) );
 			var demoThumbnailPath = scene.GetMetadata( nameof( DemoSceneInformation.ThumbnailPath ) );
+			if ( !int.TryParse( scene.GetMetadata( nameof( DemoSceneInformation.Priority ) ), out int priority ) )
+			{
+				priority = 100;
+			}
 			Texture demoThumbnail = null;
 			if ( !string.IsNullOrWhiteSpace( demoThumbnailPath ) )
 			{
@@ -38,8 +42,9 @@ public class MainMenuUI : Component
 			{
 				Log.Info( $"null thumnail for: {demoName}" );
 			}
-			SceneMetadata metadata = new( scene, demoName, demoDescription, demoThumbnail );
+			SceneMetadata metadata = new( scene, priority, demoName, demoDescription, demoThumbnail );
 			Metadata.Add( metadata );
+			Metadata = [.. Metadata.OrderBy( m => m.Priority )];
 		}
 		if ( Metadata.Count > 0 )
 		{

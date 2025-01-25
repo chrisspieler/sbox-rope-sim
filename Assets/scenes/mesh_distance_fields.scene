@@ -19,6 +19,7 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
+          "Priority": 40,
           "ThumbnailPath": "thumbnails/mesh_distance_fields.png"
         }
       ]
@@ -16550,7 +16551,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "3c7eaf1f-e5dd-4800-a19c-ed0c4a65dc2c",
           "Bounds": {
-            "Mins": "-1,-1,-65",
+            "Mins": "-1,-1,-82.21115",
             "Maxs": "1,1,65"
           },
           "Color": "0.33333,0.33333,0.33333,1",
@@ -16566,9 +16567,9 @@
           "FirstRopePointPosition": "0,0,64",
           "FixedEnd": true,
           "FixedStart": true,
+          "FixedTimeStep": 0.016,
           "Iterations": 20,
           "LastRopePointPosition": "0,0,-64",
-          "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -16583,7 +16584,7 @@
             "_type": "gameobject",
             "go": "eb8b29db-0c5f-48c7-bb0e-0b980499f54c"
           },
-          "TimeStep": 0.01,
+          "Stretchiness": 0,
           "Wireframe": false
         }
       ],
@@ -16608,7 +16609,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "797487fd-4e65-4a93-a1af-9e5f3fa37c3b",
           "Bounds": {
-            "Mins": "-1,-49,-1.229786",
+            "Mins": "-1,-49,-10.48717",
             "Maxs": "1,49,25"
           },
           "Color": "0.33488,0.33488,0.33488,1",
@@ -16624,9 +16625,9 @@
           "FirstRopePointPosition": "0,48,24",
           "FixedEnd": true,
           "FixedStart": true,
+          "FixedTimeStep": 0.016,
           "Iterations": 20,
           "LastRopePointPosition": "0,-48,24",
-          "MaxTimeStepPerUpdate": 0.1,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -16641,7 +16642,7 @@
             "_type": "gameobject",
             "go": "1eb69421-fffc-4a8f-ad89-e88b84eb951b"
           },
-          "TimeStep": 0.01,
+          "Stretchiness": 0,
           "Wireframe": false
         }
       ],
@@ -16668,7 +16669,8 @@
     "Metadata": {
       "DemoName": "Mesh Distance Fields",
       "DemoDescription": "Creates volume textures from colliders.",
-      "ThumbnailPath": "thumbnails/mesh_distance_fields.png"
+      "ThumbnailPath": "thumbnails/mesh_distance_fields.png",
+      "Priority": "40"
     },
     "NavMesh": {
       "Enabled": false,

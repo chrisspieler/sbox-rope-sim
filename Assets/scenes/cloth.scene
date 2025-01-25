@@ -106,6 +106,7 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
+          "Priority": 20,
           "ThumbnailPath": "thumbnails/cloth.png"
         },
         {
@@ -198,8 +199,8 @@
           "__type": "Duccsoft.VerletCloth",
           "__guid": "027c0069-f345-4f0a-b516-d66f8f43a181",
           "Bounds": {
-            "Mins": "-112.9999,-74.68577,-35.93242",
-            "Maxs": "47.06971,-54.73053,129"
+            "Mins": "-112.9999,-75.84357,-36",
+            "Maxs": "47.06971,-57.62342,129"
           },
           "ClothResolution": 32,
           "DebugDrawPoints": false,
@@ -933,7 +934,8 @@
     "Metadata": {
       "DemoName": "Cloth",
       "DemoDescription": "Watch cloth interaction with various shapes!",
-      "ThumbnailPath": "thumbnails/cloth.png"
+      "ThumbnailPath": "thumbnails/cloth.png",
+      "Priority": "20"
     },
     "NavMesh": {
       "Enabled": false,

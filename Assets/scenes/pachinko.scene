@@ -19,6 +19,7 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
+          "Priority": 10,
           "ThumbnailPath": "thumbnails/pachinko.png"
         }
       ]
@@ -776,8 +777,8 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "d39c0e78-82c6-4036-ae57-a299e1f859b1",
           "Bounds": {
-            "Mins": "243.6997,36.16264,0.4998736",
-            "Maxs": "261.0406,115.9981,274.4956"
+            "Mins": "253.2836,-374.5847,120.3373",
+            "Maxs": "257,65,225"
           },
           "Color": "0.03137,0.22745,0.28235,1",
           "DebugDrawPoints": false,
@@ -2828,7 +2829,8 @@
     "Metadata": {
       "DemoName": "Pachinko",
       "DemoDescription": "Wrap rope around pins.",
-      "ThumbnailPath": "thumbnails/pachinko.png"
+      "ThumbnailPath": "thumbnails/pachinko.png",
+      "Priority": "10"
     },
     "NavMesh": {
       "Enabled": false,
