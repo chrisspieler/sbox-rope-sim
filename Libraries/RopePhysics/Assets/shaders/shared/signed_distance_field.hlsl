@@ -1,3 +1,5 @@
+SamplerState SdfSampler < Filter( Trilinear ); AddressU( Clamp ); AddressV( Clamp ); AddressW( Clamp ); >;
+
 struct SignedDistanceField
 {
 	int SdfTextureIndex;
@@ -6,38 +8,49 @@ struct SignedDistanceField
 	float4x4 LocalToWorld;
 	float4x4 WorldToLocal;
 
-	uint3 PositionOsToTexel( float3 positionOs )
+	float3 PositionOsToNormal( float3 positionOs )
 	{
-		float3 normalized = positionOs / BoundsSizeOs;
-		return (uint3)( TextureSize * normalized );
+		return positionOs / BoundsSizeOs;
 	}
 
-	float GetSignedDistance( Texture3D sdf, uint3 texel )
+	uint3 PositionOsToTexel( float3 positionOs )
 	{
-		float normalized = sdf.Load( int4( texel.xyz, 0 ) ).a;
+		return (uint3)( TextureSize * PositionOsToNormal( positionOs ) );
+	}
+
+	uint3 GetTexelSize()
+	{
+		return BoundsSizeOs / TextureSize;
+	}
+
+	float3 TexelToPositionOs( uint3 texel )
+	{
+		return (float3)texel / TextureSize * BoundsSizeOs;
+	}
+
+	float3 TexelCenterToPositionOs( uint3 texel )
+	{
+		return TexelToPositionOs( texel ) + GetTexelSize() * 0.5;
+	}
+
+	float GetSignedDistance( Texture3D sdf, float3 localPos )
+	{
+		localPos = PositionOsToNormal( localPos );
+		float normalized = sdf.SampleLevel( SdfSampler, localPos, 0 ).a;
 		float size = BoundsSizeOs;
 		return normalized * size * 2 - size;
 	}
 
-	float3 GetGradient( Texture3D sdf, uint3 texel, out float signedDistance )
+	float3 GetGradient( Texture3D sdf, float3 localPos, out float signedDistance )
 	{
-		if ( any( texel < 0 ) || any( texel > TextureSize ) )
-		{
-			signedDistance = 0;
-			return 0;
-		}
-
-		float4 texData = sdf.Load( int4( texel.xyz, 0 ) );
+		localPos = PositionOsToNormal( localPos );
+		float4 texData = sdf.SampleLevel( SdfSampler, localPos, 0 );
 		float normalized = texData.a;
 		float size = BoundsSizeOs;
 		signedDistance = normalized * size * 2 - size;
 		float3 gradient = texData.rgb;
 		gradient *= 2;
 		gradient -= 1;
-		if ( dot( gradient, gradient ) < 0.001 )
-		{
-			gradient = 0;
-		}
 		return gradient;
 	}
 };

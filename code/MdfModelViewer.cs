@@ -350,37 +350,15 @@ public class MdfModelViewer : Component
 		angle = angle.DegreeToRadian();
 		var uv0 = new Vector2( 1f, 0f );
 		var uv1 = new Vector2( 0f, 1f );
-		var texImage = new TextureInfoWidget( ImGui.CurrentWindow, sdfTex, TextureSlice, _copiedTex, new Vector2( 400 ) * ImGuiStyle.UIScale, uv0, uv1, Color.White, ImGui.GetColorU32( ImGuiCol.Border ), Duccsoft.ImGui.Rendering.ImDrawList.ImageTextureFiltering.Point, angle );
-		if ( texImage.SelectedPixel is Vector2Int selected)
-		{
-			_selectedTexel = new Vector3Int( selected.x, selected.y, _textureSlice );
-		}
-		else if ( _selectedTexel is not null )
-		{
-			texImage.SelectedPixel = new Vector2Int( _selectedTexel.Value.x, _selectedTexel.Value.y );
-		}
-		if ( texImage.HoveredPixel is Vector2Int hovered )
-		{
-			_hoveredTexel = new Vector3Int( hovered.x, hovered.y, _textureSlice );
-		}
-		else
-		{
-			_hoveredTexel = null;
-		}
+		ImGui.Image( _copiedTex, new Vector2( 400 ) * ImGuiStyle.UIScale, uv0, uv1, Color.White, ImGui.GetColorU32( ImGuiCol.Border ), Duccsoft.ImGui.Rendering.ImDrawList.ImageTextureFiltering.Point, angle );
 		var res = sdfTex.TextureSize;
 		ImGui.Text( $"Texture: {res}x{res}x{res}, {sdfTex.DataSize.FormatBytes()}" );
 
 		if ( _selectedTexel is not Vector3Int texel  )
 			return;
 
-		ImGui.Text( $"Selected Texel: {texel}" );
-		//ImGui.Text( $"Signed Distance: {sdfTex[texel]:F3}" );
-		//var gradient = sdfTex.CalculateGradient( texel );
-
-		//ImGui.Text( $"Gradient: {gradient.x:F3},{gradient.y:F3},{gradient.z:F3}" );
 		if ( sdfTex.Debug is not null )
 		{
-			ImGui.Text( $"SeedId: {sdfTex.Debug.GetSeedId( texel )}" );
 			if ( ImGui.Button( "Dump Debug Info" ) )
 			{
 				sdfTex.Debug.DumpAllData();
@@ -487,9 +465,10 @@ public class MdfModelViewer : Component
 
 	private Texture CopyMdfTexture( SignedDistanceField voxelData, int z, SdfSliceDebugVisualization debugMode )
 	{
-		var size = voxelData.TextureSize;
+		int inputSize = voxelData.TextureSize;
+		int outputSize = 256;
 
-		var outputTex = Texture.Create( size, size, ImageFormat.RGBA8888 )
+		var outputTex = Texture.Create( outputSize, outputSize, ImageFormat.RGBA8888 )
 			.WithUAVBinding()
 			.Finish();
 
@@ -500,10 +479,11 @@ public class MdfModelViewer : Component
 		_textureSliceCs.Attributes.SetComboEnum( "D_MODE", debugMode );
 		_textureSliceCs.Attributes.Set( "SdfTextureIndex", voxelData.DataTexture.Index );
 		_textureSliceCs.Attributes.Set( "BoundsSizeOs", voxelData.Bounds.Size.x );
-		_textureSliceCs.Attributes.Set( "TextureSize", voxelData.TextureSize );
+		_textureSliceCs.Attributes.Set( "InputTextureSize", inputSize );
 		_textureSliceCs.Attributes.Set( "ZLayer", z );
+		_textureSliceCs.Attributes.Set( "OutputTextureSize", outputSize );
 		_textureSliceCs.Attributes.Set( "OutputTexture", outputTex );
-		_textureSliceCs.Dispatch( size, size, 1 );
+		_textureSliceCs.Dispatch( outputSize, outputSize, 1 );
 		return outputTex;
 	}
 

@@ -158,9 +158,8 @@ CS
 		if ( any( pPositionOs < 0 ) || any( pPositionOs > sdf.BoundsSizeOs ) )
 			return;
 			
-		uint3 texel = sdf.PositionOsToTexel( pPositionOs );
 		float sd = 0;
-		float3 gradient = sdf.GetGradient( sdTex, texel, sd );
+		float3 gradient = sdf.GetGradient( sdTex, pPositionOs, sd );
 		#if D_INFESTATION
 			pPositionOs += gradient * sd;
 			p.Position = mul( sdf.LocalToWorld, float4( pPositionOs.xyz, 1 ) ).xyz;
@@ -171,7 +170,7 @@ CS
 		#endif
 
 		// Eject a bit further out than we are known to be in.
-		pPositionOs += gradient * ( -sd + PointRadius * 2 );
+		pPositionOs += gradient * ( abs(sd) + PointRadius );
 		p.Position = mul( sdf.LocalToWorld, float4( pPositionOs.xyz, 1 ) ).xyz;
 		Points[pIndex] = p;
 	}

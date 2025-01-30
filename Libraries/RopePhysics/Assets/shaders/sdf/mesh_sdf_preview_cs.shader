@@ -12,15 +12,21 @@ CS
 
 	int SdfTextureIndex < Attribute( "SdfTextureIndex" ); >;
 	float BoundsSizeOs < Attribute( "BoundsSizeOs" ); >;
-	int TextureSize < Attribute( "TextureSize" ); >;
+	int InputTextureSize < Attribute( "InputTextureSize" ); >;
 	int ZLayer < Attribute( "ZLayer" ); >;
+	int OutputTextureSize < Attribute( "OutputTextureSize" ); >;
 	RWTexture2D<float4> OutputTexture < Attribute( "OutputTexture" ); >;
 
 	DynamicCombo( D_MODE, 0..1, Sys( All ) );
 
+	float3 OutputTexelToPositionOs( uint3 texel, SignedDistanceField sdf )
+	{
+		return float3( (float2)texel.xy / OutputTextureSize, (float)ZLayer / InputTextureSize ) * BoundsSizeOs;
+	}
+
 	float3 GetDistanceColor( uint3 voxel, SignedDistanceField sdf, Texture3D sdfTex )
 	{
-		float sdMesh = sdf.GetSignedDistance( sdfTex, voxel );
+		float sdMesh = sdf.GetSignedDistance( sdfTex, OutputTexelToPositionOs( voxel, sdf ) );
 		float3 minColor = float3( 0.5, 0.5, 0.5 );
 		float3 maxColor = float3( 0, 0, 0 );
 		float progressFactor = 2.5;
@@ -39,12 +45,17 @@ CS
 	float3 GetGradientColor( uint3 voxel, SignedDistanceField sdf, Texture3D sdfTex )
 	{
 		float sdMesh = 0;
-		float3 gradient = sdf.GetGradient( sdfTex, voxel, sdMesh );
-		if ( dot( gradient, gradient ) > 0.001 )
-		{
+		float3 gradient = sdf.GetGradient( sdfTex, OutputTexelToPositionOs( voxel, sdf ), sdMesh );
 			gradient += 1;
 			gradient /= 2;
-		}
+		// if ( dot( gradient, gradient ) > 0.001 )
+		// {
+
+		// }
+		// else 
+		// {
+		// 	gradient = normalize( gradient );
+		// }
 		return gradient;
 	}
 
@@ -64,13 +75,13 @@ CS
 	[numthreads( 8, 8, 1 )]
 	void MainCs( uint3 id : SV_DispatchThreadID )
 	{
-		if ( any( id >= TextureSize ) )
+		if ( any( id >= OutputTextureSize ) )
 			return;
 
 		SignedDistanceField sdf;
 		sdf.SdfTextureIndex = SdfTextureIndex;
 		sdf.BoundsSizeOs = BoundsSizeOs;
-		sdf.TextureSize = TextureSize;
+		sdf.TextureSize = InputTextureSize;
 		Texture3D sdfTex = Bindless::GetTexture3D( SdfTextureIndex );
 
 		uint3 voxel = uint3( id.xy, ZLayer );
