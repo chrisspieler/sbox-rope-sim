@@ -5,6 +5,16 @@ namespace Duccsoft;
 
 public partial class VerletSystem : GameObjectSystem<VerletSystem>
 {
+	public enum SimulationScope
+	{
+		None,
+		SimulationSet,
+		All,
+	}
+
+	public SimulationScope SceneSimulationScope { get; set; } = SimulationScope.None;
+	public HashSet<VerletComponent> SimulationSet { get; set; } = [];
+
 	public VerletSystem( Scene scene ) : base( scene )
 	{
 		Listen( Stage.StartUpdate, 0, TickPhysics, "Verlet Tick Physics" );
@@ -56,36 +66,50 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 		PerSimGpuBuildMeshTimes.Clear();
 		PerSimGpuCalculateBoundsTimes.Clear();
 		PerSimGpuReadbackTimes.Clear();
-
 	}
 
 	private void TickPhysics()
 	{
-		// When playing a different scene in the editor, don't simulate this scene.
-		if ( Game.IsPlaying && Scene.IsEditor )
-			return;
-
 		InitializeGpu();
 
 		double totalMilliseconds = 0;
 		var verletComponents = Scene.GetAllComponents<VerletComponent>();
 		foreach( var verlet in verletComponents )
 		{
-			TickSingle( verlet, out double elapsedMilliseconds );
+			var timer = FastTimer.StartNew();
+			if ( ShouldSimulate( verlet ) )
+			{
+				TickSingle( verlet );
+			}
+			double elapsedMilliseconds = timer.ElapsedMilliSeconds;
 			totalMilliseconds += elapsedMilliseconds;
+			verlet.PushDebugTime( elapsedMilliseconds );
 		}
 		SimulationFrameTimes.PushBack( totalMilliseconds );
 	}
 
-	private void TickSingle( VerletComponent verlet, out double elapsedMilliseconds )
+	private bool ShouldSimulate( VerletComponent sim )
 	{
-		if ( !verlet.IsValid() || verlet.SimData is null )
+		if ( sim is null || sim.SimData is null )
+			return false;
+
+		// If we are playing a scene...
+		if ( Game.IsPlaying )
 		{
-			elapsedMilliseconds = 0;
-			return;
+			// ...don't simulate any editor scenes.
+			return !Scene.IsEditor;
 		}
 
-		var timer = FastTimer.StartNew();
+		return SceneSimulationScope switch
+		{
+			SimulationScope.All => true,
+			SimulationScope.SimulationSet => SimulationSet.Contains( sim ),
+			_ => false,
+		};
+	}
+
+	private void TickSingle( VerletComponent verlet )
+	{
 		var simData = verlet.SimData;
 
 		if ( simData.Collisions == null || simData.Collisions.ShouldCaptureSnapshot )
@@ -102,9 +126,5 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 		{
 			CpuSimulate( verlet );
 		}
-
-		elapsedMilliseconds = timer.ElapsedMilliSeconds;
-		verlet.PushDebugTime( elapsedMilliseconds );
-
 	}
 }

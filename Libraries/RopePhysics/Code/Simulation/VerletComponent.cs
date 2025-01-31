@@ -130,7 +130,6 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 			verlet.SimulateOnGPU = simulateOnGpu;
 		}
 	}
-	public static bool SimulateOnGPUConVar { get; set; } = true;
 
 	[Property]
 	public bool SimulateOnGPU
@@ -268,6 +267,8 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	private CircularBuffer<double> _debugTimes = new CircularBuffer<double>( 25 );
 	[Property, ReadOnly, JsonIgnore] public int GpuPendingUpdates => GpuData?.PendingPointUpdates ?? 0;
 
+	private bool _wasSelected;
+
 	protected override void DrawGizmos()
 	{
 		if ( SimData is null )
@@ -279,7 +280,9 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 		var bounds = SimData.Bounds;
 		Gizmo.Hitbox.BBox( bounds );
 
-		if ( !Gizmo.IsSelected )
+		bool isSelected = Gizmo.IsSelected;
+
+		if ( !isSelected )
 		{
 			if ( Gizmo.IsHovered )
 			{
@@ -288,12 +291,26 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 				if ( Gizmo.Pressed.This )
 				{
 					Gizmo.Select();
+					isSelected = true;
 				}
 			}
-			return;
 		}
 
-		if ( !Gizmo.IsSelected )
+		if ( isSelected != _wasSelected )
+		{
+			if ( isSelected )
+			{
+				VerletSystem.Get( Scene ).SimulationSet.Add( this );
+			}
+			else
+			{
+				VerletSystem.Get( Scene ).SimulationSet.Remove( this );
+			}
+		}
+
+		_wasSelected = isSelected;
+
+		if ( !isSelected )
 			return;
 
 		var alpha = Gizmo.IsHovered ? 1f : 0.2f;

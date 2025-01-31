@@ -1,0 +1,388 @@
+{
+  "__guid": "f8f10fb0-46bb-4a87-9530-0004108b737e",
+  "GameObjects": [
+    {
+      "__guid": "2680d5d8-81df-44d9-a7fb-9f799f98fcf2",
+      "Flags": 0,
+      "Name": "Box",
+      "Position": "176,0,-4",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.MeshComponent",
+          "__guid": "1d9cccdf-7292-4431-81a4-c7607dcf8612",
+          "Collision": "Mesh",
+          "Color": "1,1,1,1",
+          "Friction": null,
+          "HideInGame": false,
+          "IsTrigger": false,
+          "Mesh": {
+            "Topology": "H4sIAAAAAAAACl2QCQ7CMAwEp4Qj3NBy/f+laMRGsohUVbFn1+t04ANs+Z0VsM69AwfgBFyAKZ9MPXdgk3qLnsI+Um/h/me9i2ZXfFvYOazafTJN0XRgKZmPyWtfXvYVL73PZRd52WdYPa7xtC8veys7u6t17/7t6Tn0ZtFjvIXZR895zjKjPWf4NiOrGt+ivpXZ3XnozaOndVn9vvVkkTjEAQAA",
+            "Positions": [
+              "-688,-512,4",
+              "336,-512,4",
+              "336,512,4",
+              "-688,512,4",
+              "-688,512,-60",
+              "336,512,-60",
+              "336,-512,-60",
+              "-688,-512,-60"
+            ],
+            "TextureCoord": [
+              "18.5,16",
+              "-13.5,3.875",
+              "18.5,-16",
+              "-16,3.875",
+              "-13.5,-16",
+              "-14.5,3.875",
+              "-13.5,16",
+              "-16,3.875",
+              "18.5,-16",
+              "17.5,5.875",
+              "18.5,16",
+              "16,5.875",
+              "-13.5,16",
+              "18.5,5.875",
+              "-13.5,-16",
+              "16,5.875",
+              "16,3.875",
+              "-13.5,5.875",
+              "-16,5.875",
+              "17.5,3.875",
+              "-16,5.875",
+              "18.5,3.875",
+              "16,3.875",
+              "-14.5,5.875"
+            ],
+            "TextureUAxis": [
+              "1,0,0",
+              "1,0,-0",
+              "0,-1,0",
+              "0,1,0",
+              "-1,0,0",
+              "1,-0,0"
+            ],
+            "TextureVAxis": [
+              "0,-1,0",
+              "0,-1,0",
+              "0,0,-1",
+              "-0,0,-1",
+              "0,0,-1",
+              "-0,0,-1"
+            ],
+            "TextureScale": [
+              "0.25,0.25",
+              "0.25,0.25",
+              "0.25,0.25",
+              "0.25,0.25",
+              "0.25,0.25",
+              "0.25,0.25"
+            ],
+            "TextureOffset": [
+              "320.0001,0",
+              "320.0001,0",
+              "0,496",
+              "0,496",
+              "191.9999,496",
+              "320.0001,496"
+            ],
+            "MaterialIndex": [
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "EdgeFlags": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "Materials": [
+              "materials/dev/reflectivity_30.vmat",
+              "materials/dev/dev_measuregeneric01.vmat"
+            ]
+          },
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "SmoothingAngle": 40,
+          "Static": true,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ]
+    },
+    {
+      "__guid": "073a512d-368e-4fda-90d9-8dc269133ef9",
+      "Flags": 0,
+      "Name": "Sun",
+      "Rotation": "0.06698728,0.25,-0.25,0.9330127",
+      "Tags": "light_directional,light",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.DirectionalLight",
+          "__guid": "903a6996-b528-4684-ac5c-a016236516c5",
+          "FogMode": "Enabled",
+          "FogStrength": 1,
+          "LightColor": "0.91373,0.98039,1,1",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "Shadows": true,
+          "SkyColor": "0,0,0,0"
+        }
+      ]
+    },
+    {
+      "__guid": "08bfed39-7738-4ec6-81d9-65d902febf93",
+      "Flags": 0,
+      "Name": "2D Skybox",
+      "Position": "84.07063,-170.1272,48.13003",
+      "Tags": "skybox",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.SkyBox2D",
+          "__guid": "bbae0335-c97d-4b9e-a78e-dec6153ad73b",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "SkyIndirectLighting": true,
+          "SkyMaterial": "materials/skybox/skybox_day_01.vmat",
+          "Tint": "1,1,1,1"
+        }
+      ]
+    },
+    {
+      "__guid": "ae73d869-158c-4980-9936-9cb630a67be4",
+      "Flags": 0,
+      "Name": "telegraph_pole",
+      "Position": "0,256,0.0000008532505",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "ad8dac48-e3f7-4576-95eb-d5cf4f1b7199",
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
+          "Model": "models/sbox_props/telegraph_pole/telegraph_pole.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.ModelCollider",
+          "__guid": "44be106c-6e81-4018-840e-581981649234",
+          "Friction": null,
+          "IsTrigger": false,
+          "Model": "models/sbox_props/telegraph_pole/telegraph_pole.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "Static": false,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ],
+      "Children": [
+        {
+          "__guid": "94028537-a6b2-495e-b335-0db6a9c20c5c",
+          "Flags": 0,
+          "Name": "Wire",
+          "Position": "0,-7.999939,304",
+          "Enabled": true,
+          "Components": [
+            {
+              "__type": "Duccsoft.VerletRope",
+              "__guid": "be3a8e5a-5aa2-491d-bf48-e62d2ba92958",
+              "Bounds": {
+                "Mins": "-1,-297.1367,268.5094",
+                "Maxs": "1,249.0001,305"
+              },
+              "Color": "0,0,0,1",
+              "DebugDrawPoints": false,
+              "DefaultLength": 128,
+              "EffectiveRadius": 0.5,
+              "EnableCollision": false,
+              "EnableRendering": true,
+              "EndTarget": {
+                "_type": "gameobject",
+                "go": "268b10c2-ad70-4edd-bb14-7aaa81b6055f"
+              },
+              "FirstRopePointPosition": "0,248.0001,304",
+              "FixedEnd": true,
+              "FixedStart": true,
+              "FixedTimeStep": 0.016,
+              "Iterations": 50,
+              "LastRopePointPosition": "0,-312,304",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "PointSpacing": 16,
+              "RadiusFraction": 0.0625,
+              "RenderWidthScale": 1,
+              "SimulateOnGPU": true,
+              "StartTarget": {
+                "_type": "gameobject",
+                "go": "94028537-a6b2-495e-b335-0db6a9c20c5c"
+              },
+              "Stretchiness": 0,
+              "Wireframe": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "__guid": "ce196eaf-47c7-4ed5-bad4-f1df12b51b14",
+      "Flags": 0,
+      "Name": "telegraph_pole (1)",
+      "Position": "0,-320,0",
+      "Enabled": true,
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "3977f0f1-176a-4390-bfcf-b4fd57adeb49",
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
+          "Model": "models/sbox_props/telegraph_pole/telegraph_pole.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.ModelCollider",
+          "__guid": "db85d856-565b-423b-9edb-d9ea2d784e89",
+          "Friction": null,
+          "IsTrigger": false,
+          "Model": "models/sbox_props/telegraph_pole/telegraph_pole.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "Static": false,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        }
+      ],
+      "Children": [
+        {
+          "__guid": "268b10c2-ad70-4edd-bb14-7aaa81b6055f",
+          "Flags": 0,
+          "Name": "End Point",
+          "Position": "0,8.000031,304",
+          "Enabled": true
+        }
+      ]
+    }
+  ],
+  "SceneProperties": {
+    "FixedUpdateFrequency": 50,
+    "MaxFixedUpdates": 5,
+    "NetworkFrequency": 30,
+    "NetworkInterpolation": true,
+    "PhysicsSubSteps": 1,
+    "ThreadedAnimation": true,
+    "TimeScale": 1,
+    "UseFixedUpdate": true,
+    "Metadata": {},
+    "NavMesh": {
+      "Enabled": false,
+      "IncludeStaticBodies": true,
+      "IncludeKeyframedBodies": true,
+      "EditorAutoUpdate": true,
+      "AgentHeight": 64,
+      "AgentRadius": 16,
+      "AgentStepSize": 18,
+      "AgentMaxSlope": 40,
+      "ExcludedBodies": "",
+      "IncludedBodies": ""
+    }
+  },
+  "ResourceVersion": 2,
+  "Title": null,
+  "Description": null,
+  "__references": [
+    "facepunch.telegraph_pole#44050"
+  ],
+  "__version": 2
+}
