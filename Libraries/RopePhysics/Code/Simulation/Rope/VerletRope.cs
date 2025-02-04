@@ -1,3 +1,5 @@
+using Sandbox.Diagnostics;
+
 namespace Duccsoft;
 
 public partial class VerletRope : VerletComponent
@@ -210,28 +212,12 @@ public partial class VerletRope : VerletComponent
 		_so.Flags.CastShadows = true;
 	}
 
-	public override void UpdateCpuVertexBuffer( VerletPoint[] points )
-	{
-		if ( !_so.IsValid() )
-			return;
-
-		_so.VertexCount = points.Length + 2;
-		var vertices = new RopeVertex[_so.VertexCount];
-		vertices[0] = points[0].AsRopeVertex( this );
-		BBox bounds = BBox.FromPositionAndSize( points[0].Position, 4f );
-		if ( points.Length > 2 )
-		{
-			for ( int i = 0; i < points.Length; i++ )
-			{
-				var p = points[i];
-				var vtx = p.AsRopeVertex( this );
-				vertices[i + 1] = vtx;
-				bounds = bounds.AddPoint( p.Position );
-			}
-		}
-		SimData.Bounds = bounds;
-		vertices[^1] = points[^1].AsRopeVertex( this );
-		_so.Vertices.SetData( vertices );
-	}
-	#endregion
+    public override void UpdateGpuMesh()
+    {
+		var timer = FastTimer.StartNew();
+		var width = EffectiveRadius * 2 * RenderWidthScale;
+		GpuData.DispatchBuildRopeMesh( width, Color );
+		System.PerSimGpuBuildMeshTimes.Add( timer.ElapsedMilliSeconds );
+    }
+    #endregion
 }

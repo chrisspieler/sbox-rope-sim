@@ -195,7 +195,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "a7c06f93-0168-4c32-ae15-838b8e7f849a",
           "Bounds": {
-            "Mins": "46.00538,-33,-6.881818",
+            "Mins": "46.00538,-33,0.9851965",
             "Maxs": "48.00538,33,17"
           },
           "Color": "0,0,0,1",
@@ -253,7 +253,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "4b863253-4fb6-4f83-9372-6eee061ccb73",
           "Bounds": {
-            "Mins": "46.00538,-33,-5.29528",
+            "Mins": "46.00538,-33,-1.031383",
             "Maxs": "48.00538,33,15"
           },
           "Color": "0,0,0,1",
@@ -311,7 +311,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "e0a4cbf2-80e8-4d78-951c-c21c6f9a7e72",
           "Bounds": {
-            "Mins": "46.00538,-33,-1.295506",
+            "Mins": "46.00538,-33,2.968011",
             "Maxs": "48.00538,33,19"
           },
           "Color": "0,0,0,1",
@@ -369,7 +369,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "b9148a2f-4037-4f6a-a8bc-2edca73c2683",
           "Bounds": {
-            "Mins": "46.00538,-33,1.260298",
+            "Mins": "46.00538,-33,4.967357",
             "Maxs": "48.00538,33,21"
           },
           "Color": "0,0,0,1",
@@ -427,7 +427,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "5cccdb65-62f8-494b-a73f-50eaf0e6fe55",
           "Bounds": {
-            "Mins": "46.00538,-33,-9.075665",
+            "Mins": "46.00538,-33,-5.03284",
             "Maxs": "48.00538,33,11"
           },
           "Color": "0,0,0,1",
@@ -485,7 +485,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "c97b5ba2-b3e4-4914-a83b-38e175bf5613",
           "Bounds": {
-            "Mins": "46.00538,-33,-10.94022",
+            "Mins": "46.00538,-33,-7.033136",
             "Maxs": "48.00538,33,9"
           },
           "Color": "0,0,0,1",
@@ -543,7 +543,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "96363128-d71c-4a05-8930-c1089d719c75",
           "Bounds": {
-            "Mins": "46.00538,-33,-7.294213",
+            "Mins": "46.00538,-33,-3.033538",
             "Maxs": "48.00538,33,13"
           },
           "Color": "0,0,0,1",
@@ -601,7 +601,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "d803cecf-4cbb-4a2f-bd57-882dd00f86c8",
           "Bounds": {
-            "Mins": "47,-1,-23.46253",
+            "Mins": "47,-1,-24.18468",
             "Maxs": "49,1,33"
           },
           "Color": "0,0,0,1",
@@ -647,7 +647,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "e470aa03-6855-4dae-8daa-e230297338a2",
           "Bounds": {
-            "Mins": "49,-1,-23.84321",
+            "Mins": "49,-1,-24.18397",
             "Maxs": "51,1,33"
           },
           "Color": "0,0,0,1",
@@ -693,7 +693,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "e06a6415-38f2-4c45-870e-dd3d3414e1ca",
           "Bounds": {
-            "Mins": "45,-1,-24.0804",
+            "Mins": "45,-1,-24.18336",
             "Maxs": "47,1,33"
           },
           "Color": "0,0,0,1",
@@ -739,7 +739,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "a5243c50-23d4-43b3-b61f-1f20e273a7a8",
           "Bounds": {
-            "Mins": "49,1,-24.15207",
+            "Mins": "49,1,-24.18287",
             "Maxs": "51,3,33"
           },
           "Color": "0,0,0,1",
@@ -785,7 +785,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "ab114479-0578-49ce-9a84-fe2a8d55de35",
           "Bounds": {
-            "Mins": "45,1,-22.51134",
+            "Mins": "45,1,-24.18215",
             "Maxs": "47,3,33"
           },
           "Color": "0,0,0,1",
@@ -831,7 +831,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "6e203cf5-c558-4332-be58-65f82e30377a",
           "Bounds": {
-            "Mins": "49,-3,-24.15225",
+            "Mins": "49,-3,-24.19174",
             "Maxs": "51,-1,33"
           },
           "Color": "0,0,0,1",
@@ -877,8 +877,8 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "7365b115-951b-41c4-b8fb-59d1a279ca12",
           "Bounds": {
-            "Mins": "0,0,0",
-            "Maxs": "0,0,0"
+            "Mins": "45,-3,-24.19105",
+            "Maxs": "47,-1,33"
           },
           "Color": "0,0,0,1",
           "DebugDrawPoints": false,
@@ -923,7 +923,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "399222c3-5352-42ae-bcbe-c1d19b694b96",
           "Bounds": {
-            "Mins": "47,1,-23.84659",
+            "Mins": "47,1,-24.19024",
             "Maxs": "49,3,33"
           },
           "Color": "0,0,0,1",
@@ -969,7 +969,7 @@
           "__type": "Duccsoft.VerletRope",
           "__guid": "64699d75-9a09-4e13-9777-6916735fbd80",
           "Bounds": {
-            "Mins": "47,-3,-23.84658",
+            "Mins": "47,-3,-24.18951",
             "Maxs": "49,-1,33"
           },
           "Color": "0,0,0,1",

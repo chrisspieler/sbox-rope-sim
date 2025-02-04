@@ -6,8 +6,114 @@ namespace Duccsoft;
 
 public abstract class VerletComponent : Component, Component.ExecuteInEditor
 {
+	public VerletSystem System
+	{
+		get
+		{
+			_system ??= VerletSystem.Get( Scene );
+			return _system;
+		}
+	}
+	private VerletSystem _system;
 	public SimulationData SimData { get; protected set; }
 	public GpuSimulationData GpuData => SimData?.GpuData;
+
+	protected override void OnEnabled()
+	{
+		StartTarget ??= GameObject;
+		CreateSimulation();
+	}
+
+	protected override void OnDisabled() => DestroySimulation();
+
+	private bool _wasSelected;
+
+	protected override void DrawGizmos()
+	{
+		if ( SimData is null )
+			return;
+
+		using var scope = Gizmo.Scope( "VerletComponent" );
+		Gizmo.Transform = Scene.LocalTransform;
+
+		var bounds = SimData.Bounds;
+		Gizmo.Hitbox.BBox( bounds );
+
+		bool isSelected = Gizmo.IsSelected;
+
+		if ( !isSelected )
+		{
+			if ( Gizmo.IsHovered )
+			{
+				Gizmo.Draw.Color = Color.White.WithAlpha( 0.2f );
+				Gizmo.Draw.LineBBox( SimData.Bounds );
+				if ( Gizmo.Pressed.This )
+				{
+					Gizmo.Select();
+					isSelected = true;
+				}
+			}
+		}
+
+		if ( isSelected != _wasSelected )
+		{
+			if ( isSelected )
+			{
+				System.SimulationSet.Add( this );
+			}
+			else
+			{
+				System.SimulationSet.Remove( this );
+			}
+		}
+
+		_wasSelected = isSelected;
+
+		if ( !isSelected )
+			return;
+
+		var alpha = Gizmo.IsHovered ? 1f : 0.2f;
+		Gizmo.Draw.Color = Color.White.WithAlpha( 0.2f );
+		Gizmo.Draw.LineBBox( SimData.Bounds );
+	}
+
+	internal void PushDebugTime( double time )
+	{
+		_debugTimes.PushFront( time );
+	}
+
+	[Button]
+	public void DumpSimData()
+	{
+		if ( SimData is null )
+			return;
+
+		var timer = FastTimer.StartNew();
+		if ( SimulateOnGPU )
+		{
+			GpuData.LoadPointsFromGpu();
+		}
+
+		var elapsedMilliseconds = timer.ElapsedMilliSeconds;
+		if ( SimData?.Points == null )
+		{
+			Log.Info( $"null points" );
+			return;
+		}
+
+		for ( int i = 0; i < SimData.Points.Length; i++ )
+		{
+			var point = SimData.Points[i];
+			var x = i % SimData.PointGridDims.x;
+			var y = i / SimData.PointGridDims.x;
+			Log.Info( $"({x},{y}) anchor: {point.IsAnchor}, pos{point.Position}, lastPos: {point.LastPosition}" );
+		}
+
+		if ( SimulateOnGPU )
+		{
+			Log.Info( $"Got {SimData.Points?.Length ?? 0} points from GPU in {elapsedMilliseconds:F3}ms" );
+		}
+	}
 
 	#region Anchors
 	[Property]
@@ -201,13 +307,6 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	[Property] public bool EnableCollision { get; set; }
 	#endregion
 
-	protected override void OnEnabled()
-	{
-		StartTarget ??= GameObject;
-		CreateSimulation();
-	}
-	protected override void OnDisabled() => DestroySimulation();
-
 	#region Simulation
 
 	[Button]
@@ -244,15 +343,6 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 
 	public void SetPointPosition( Vector2Int pointCoord, Vector3 worldPos ) 
 		=> SimData?.SetPointPosition( pointCoord, worldPos );
-
-#endregion
-	#region Rendering
-	[Property] public bool DebugDrawPoints { get; set; } = false;
-
-	protected virtual void CreateRenderer() { }
-	protected virtual void DestroyRenderer() { }
-	public abstract void UpdateCpuVertexBuffer( VerletPoint[] points );
-	#endregion
 	[Property, ReadOnly, JsonIgnore] public string SimulationCpuTime
 	{
 		get
@@ -265,94 +355,15 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 		}
 	}
 	private CircularBuffer<double> _debugTimes = new CircularBuffer<double>( 25 );
+
 	[Property, ReadOnly, JsonIgnore] public int GpuPendingUpdates => GpuData?.PendingPointUpdates ?? 0;
+#endregion
 
-	private bool _wasSelected;
+	#region Rendering
+	[Property] public bool DebugDrawPoints { get; set; } = false;
 
-	protected override void DrawGizmos()
-	{
-		if ( SimData is null )
-			return;
-
-		using var scope = Gizmo.Scope( "VerletComponent" );
-		Gizmo.Transform = Scene.LocalTransform;
-
-		var bounds = SimData.Bounds;
-		Gizmo.Hitbox.BBox( bounds );
-
-		bool isSelected = Gizmo.IsSelected;
-
-		if ( !isSelected )
-		{
-			if ( Gizmo.IsHovered )
-			{
-				Gizmo.Draw.Color = Color.White.WithAlpha( 0.2f );
-				Gizmo.Draw.LineBBox( SimData.Bounds );
-				if ( Gizmo.Pressed.This )
-				{
-					Gizmo.Select();
-					isSelected = true;
-				}
-			}
-		}
-
-		if ( isSelected != _wasSelected )
-		{
-			if ( isSelected )
-			{
-				VerletSystem.Get( Scene ).SimulationSet.Add( this );
-			}
-			else
-			{
-				VerletSystem.Get( Scene ).SimulationSet.Remove( this );
-			}
-		}
-
-		_wasSelected = isSelected;
-
-		if ( !isSelected )
-			return;
-
-		var alpha = Gizmo.IsHovered ? 1f : 0.2f;
-		Gizmo.Draw.Color = Color.White.WithAlpha( 0.2f );
-		Gizmo.Draw.LineBBox( SimData.Bounds );
-	}
-
-	internal void PushDebugTime( double time )
-	{
-		_debugTimes.PushFront( time );
-	}
-
-	[Button]
-	public void DumpSimData()
-	{
-		if ( SimData is null )
-			return;
-
-		var timer = FastTimer.StartNew();
-		if ( SimulateOnGPU )
-		{
-			GpuData.LoadPointsFromGpu();
-		}
-
-		var elapsedMilliseconds = timer.ElapsedMilliSeconds;
-		if ( SimData?.Points == null )
-		{
-			Log.Info( $"null points" );
-			return;
-		}
-
-		for ( int i = 0; i < SimData.Points.Length; i++ )
-		{
-			var point = SimData.Points[i];
-			var x = i % SimData.PointGridDims.x;
-			var y = i / SimData.PointGridDims.x;
-			Log.Info( $"({x},{y}) anchor: {point.IsAnchor}, pos{point.Position}, lastPos: {point.LastPosition}" );
-		}
-
-		if ( SimulateOnGPU )
-		{
-			Log.Info( $"Got {SimData.Points?.Length ?? 0} points from GPU in {elapsedMilliseconds:F3}ms" );
-		}
-	}
+	protected virtual void CreateRenderer() { }
+	protected virtual void DestroyRenderer() { }
+	public abstract void UpdateGpuMesh();
+	#endregion
 }

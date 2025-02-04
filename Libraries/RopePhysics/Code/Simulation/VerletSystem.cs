@@ -12,7 +12,7 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 		All,
 	}
 
-	public SimulationScope SceneSimulationScope { get; set; } = SimulationScope.None;
+	public SimulationScope SceneSimulationScope { get; set; } = SimulationScope.SimulationSet;
 	public HashSet<VerletComponent> SimulationSet { get; set; } = [];
 
 	public VerletSystem( Scene scene ) : base( scene )
@@ -77,10 +77,7 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 		foreach( var verlet in verletComponents )
 		{
 			var timer = FastTimer.StartNew();
-			if ( ShouldSimulate( verlet ) )
-			{
-				TickSingle( verlet );
-			}
+			TickSingle( verlet );
 			double elapsedMilliseconds = timer.ElapsedMilliSeconds;
 			totalMilliseconds += elapsedMilliseconds;
 			verlet.PushDebugTime( elapsedMilliseconds );
@@ -90,7 +87,7 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 
 	private bool ShouldSimulate( VerletComponent sim )
 	{
-		if ( sim is null || sim.SimData is null )
+		if ( sim is null || sim.SimData is null || !sim.GpuData.GpuPoints.IsValid() )
 			return false;
 
 		// If we are playing a scene...

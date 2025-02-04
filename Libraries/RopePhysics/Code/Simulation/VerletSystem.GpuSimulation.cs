@@ -8,11 +8,11 @@ public partial class VerletSystem
 	private readonly HashSet<VerletComponent> GpuSimulateQueue = [];
 	private GpuBuffer<VerletBounds> _gpuReadbackBoundsBuffer;
 
-	private List<double> PerSimGpuReadbackTimes = [];
-	private List<double> PerSimGpuSimulateTimes = [];
-	private List<double> PerSimGpuBuildMeshTimes = [];
-	private List<double> PerSimGpuCalculateBoundsTimes = [];
-	private List<double> PerSimGpuStorePointsTimes = [];
+	internal List<double> PerSimGpuReadbackTimes = [];
+	internal List<double> PerSimGpuSimulateTimes = [];
+	internal List<double> PerSimGpuBuildMeshTimes = [];
+	internal List<double> PerSimGpuCalculateBoundsTimes = [];
+	internal List<double> PerSimGpuStorePointsTimes = [];
 
 	public long TotalGpuDataSize { get; private set; }
 
@@ -66,26 +66,22 @@ public partial class VerletSystem
 			return;
 
 		GpuApplyUpdatesFromCpu( gpuData );
-		GpuDispatchSimulate( gpuData, verlet.FixedTimeStep );
 
-		if ( verlet.EnableRendering )
+		bool shouldSimulate = ShouldSimulate( verlet ) && simData.LastTick >= verlet.FixedTimeStep;
+
+		if ( shouldSimulate )
 		{
-			if ( verlet is VerletRope rope )
-			{
-				float width = rope.EffectiveRadius * 2 * rope.RenderWidthScale;
-				Color tint = rope.Color;
-				GpuDispatchBuildRopeMesh( gpuData, width, tint );
-			}
-			else if ( verlet is VerletCloth cloth )
-			{
-				Color tint = cloth.Tint;
-				GpuDispatchBuildClothMesh( gpuData, tint );
-			}
-			float boundsSkin = 1f;
-			GpuDispatchCalculateMeshBounds( gpuData, boundsSkin );
+			GpuDispatchSimulate( gpuData, verlet.FixedTimeStep );
+			gpuData.PostSimulationCleanup();
 		}
 
-		gpuData.PostSimulationCleanup();
+		if ( !gpuData.IsMeshBuilt || ( verlet.EnableRendering && shouldSimulate) )
+		{
+			verlet.UpdateGpuMesh();
+			var timer = FastTimer.StartNew();
+			gpuData.DispatchCalculateMeshBounds( _gpuReadbackBoundsBuffer, 1f );
+			PerSimGpuCalculateBoundsTimes.Add( timer.ElapsedMilliSeconds );
+		}
 	}
 
 	private void GpuApplyUpdatesFromCpu( GpuSimulationData gpuData )
@@ -100,27 +96,6 @@ public partial class VerletSystem
 		FastTimer simTimer = FastTimer.StartNew();
 		gpuData.DispatchSimulate( fixedTimeStep );
 		PerSimGpuSimulateTimes.Add( simTimer.ElapsedMilliSeconds );
-	}
-
-	private void GpuDispatchBuildRopeMesh( GpuSimulationData gpuData, float width, Color tint )
-	{
-		var timer = FastTimer.StartNew();
-		gpuData.DispatchBuildRopeMesh( width, tint );
-		PerSimGpuBuildMeshTimes.Add( timer.ElapsedMilliSeconds );
-	}
-
-	private void GpuDispatchBuildClothMesh( GpuSimulationData gpuData, Color tint )
-	{
-		var timer = FastTimer.StartNew();
-		gpuData.DispatchBuildClothMesh( tint );
-		PerSimGpuBuildMeshTimes.Add( timer.ElapsedMilliSeconds );
-	}
-
-	private void GpuDispatchCalculateMeshBounds( GpuSimulationData gpuData, float skinSize )
-	{
-		var timer = FastTimer.StartNew();
-		gpuData.DispatchCalculateMeshBounds( _gpuReadbackBoundsBuffer, skinSize );
-		PerSimGpuCalculateBoundsTimes.Add( timer.ElapsedMilliSeconds );
 	}
 
 	private void GpuReadbackBounds()

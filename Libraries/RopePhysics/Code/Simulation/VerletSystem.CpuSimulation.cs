@@ -28,7 +28,6 @@ public partial class VerletSystem
 
 		simData.PostSimulationCleanup();
 
-		verlet.UpdateCpuVertexBuffer( simData.Points );
 		simData.RecalculateBounds();
 
 	}

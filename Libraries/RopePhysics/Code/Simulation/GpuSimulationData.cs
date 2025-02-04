@@ -209,6 +209,8 @@ public partial class GpuSimulationData : IDataSize
 		}
 	}
 	private GpuBuffer<uint> _readbackIndices;
+	private RealTimeSince? _sinceMeshLastBuilt;
+	public bool IsMeshBuilt => _sinceMeshLastBuilt is not null;
 
 	private readonly ComputeShader VerletRopeMeshCs;
 	private readonly ComputeShader VerletClothMeshCs;
@@ -226,6 +228,7 @@ public partial class GpuSimulationData : IDataSize
 		attributes.Set( "OutputIndices", ReadbackIndices );
 
 		VerletRopeMeshCs.DispatchWithAttributes( attributes, PointCount, 1, 1 );
+		_sinceMeshLastBuilt = 0;
 	}
 
 	internal void DispatchBuildClothMesh( Color tint )
@@ -240,6 +243,7 @@ public partial class GpuSimulationData : IDataSize
 		attributes.Set( "OutputIndices", ReadbackIndices );
 
 		VerletClothMeshCs.DispatchWithAttributes( attributes, RowCount, ColumnCount, 1 );
+		_sinceMeshLastBuilt = 0;
 	}
 
 	internal void DispatchCalculateMeshBounds( GpuBuffer<VerletBounds> globalBoundsBuffer, float skinSize )

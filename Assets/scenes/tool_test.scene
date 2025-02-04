@@ -79,12 +79,12 @@
               "0.25,0.25"
             ],
             "TextureOffset": [
-              "320.0001,0",
-              "320.0001,0",
-              "0,496",
-              "0,496",
-              "191.9999,496",
-              "320.0001,496"
+              "64,0",
+              "64,0",
+              "0,112",
+              "0,112",
+              "64,112",
+              "64,112"
             ],
             "MaterialIndex": [
               1,
@@ -194,7 +194,7 @@
       "__guid": "ae73d869-158c-4980-9936-9cb630a67be4",
       "Flags": 0,
       "Name": "telegraph_pole",
-      "Position": "0,256,0.0000008532505",
+      "Position": "0.0000216626,320,0",
       "Enabled": true,
       "Components": [
         {
@@ -246,15 +246,15 @@
           "__guid": "94028537-a6b2-495e-b335-0db6a9c20c5c",
           "Flags": 0,
           "Name": "Wire",
-          "Position": "0,-7.999939,304",
+          "Position": "0,-8.5,305.25",
           "Enabled": true,
           "Components": [
             {
               "__type": "Duccsoft.VerletRope",
               "__guid": "be3a8e5a-5aa2-491d-bf48-e62d2ba92958",
               "Bounds": {
-                "Mins": "-1,-297.1367,268.5094",
-                "Maxs": "1,249.0001,305"
+                "Mins": "-1,-312.25,261.6968",
+                "Maxs": "1.000022,312.5,306.25"
               },
               "Color": "0,0,0,1",
               "DebugDrawPoints": false,
@@ -266,12 +266,12 @@
                 "_type": "gameobject",
                 "go": "268b10c2-ad70-4edd-bb14-7aaa81b6055f"
               },
-              "FirstRopePointPosition": "0,248.0001,304",
+              "FirstRopePointPosition": "0.0000216626,311.5,305.25",
               "FixedEnd": true,
               "FixedStart": true,
               "FixedTimeStep": 0.016,
               "Iterations": 50,
-              "LastRopePointPosition": "0,-312,304",
+              "LastRopePointPosition": "0,-311.25,305.25",
               "OnComponentDestroy": null,
               "OnComponentDisabled": null,
               "OnComponentEnabled": null,
@@ -349,7 +349,7 @@
           "__guid": "268b10c2-ad70-4edd-bb14-7aaa81b6055f",
           "Flags": 0,
           "Name": "End Point",
-          "Position": "0,8.000031,304",
+          "Position": "0,8.75,305.25",
           "Enabled": true
         }
       ]

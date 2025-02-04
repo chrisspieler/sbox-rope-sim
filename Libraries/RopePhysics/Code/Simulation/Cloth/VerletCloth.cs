@@ -1,4 +1,4 @@
-﻿using Sandbox;
+﻿using Sandbox.Diagnostics;
 
 namespace Duccsoft;
 
@@ -127,9 +127,11 @@ public class VerletCloth : VerletComponent
 		_so.Bounds = SimData.Bounds;
 	}
 
-	public override void UpdateCpuVertexBuffer( VerletPoint[] points )
-	{
-		// TODO: Dispatch a shader to build the cloth mesh.
+    public override void UpdateGpuMesh()
+    {
+		var timer = FastTimer.StartNew();
+		GpuData.DispatchBuildClothMesh( Tint );
+		System.PerSimGpuBuildMeshTimes.Add( timer.ElapsedMilliSeconds );
 	}
-	#endregion
+    #endregion
 }
