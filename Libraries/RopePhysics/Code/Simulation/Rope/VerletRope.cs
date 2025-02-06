@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Sandbox.Diagnostics;
 
 namespace Duccsoft;
@@ -141,7 +142,7 @@ public partial class VerletRope : VerletComponent
 
 		UpdateSimulation();
 	}
-
+	
 	protected override SimulationData CreateSimData()
 	{
 		var physics = Scene.PhysicsWorld;

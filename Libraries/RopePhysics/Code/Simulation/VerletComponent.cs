@@ -256,6 +256,8 @@ public abstract class VerletComponent : Component, Component.ExecuteInEditor
 	}
 	private bool _simulateOnGpu = true;
 
+	[Property, JsonIgnore] public bool IsPaused { get; set; } = false;
+
 	[Property, Range( 0.004f, 0.1f, 0.001f)]
 	public float FixedTimeStep { get; set; } = 0.016f;
 

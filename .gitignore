@@ -12,6 +12,8 @@ bin
 Properties/*
 code/obj/*
 code/Properties/*
+# Rider preferences
+*.user
 
 # Auto-generated asset related files
 .sbox/*

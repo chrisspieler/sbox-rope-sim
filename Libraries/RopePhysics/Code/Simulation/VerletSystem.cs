@@ -87,7 +87,7 @@ public partial class VerletSystem : GameObjectSystem<VerletSystem>
 
 	private bool ShouldSimulate( VerletComponent sim )
 	{
-		if ( sim is null || sim.SimData is null || !sim.GpuData.GpuPoints.IsValid() )
+		if ( sim?.SimData is null || sim.IsPaused || !sim.GpuData.GpuPoints.IsValid() )
 			return false;
 
 		// If we are playing a scene...
