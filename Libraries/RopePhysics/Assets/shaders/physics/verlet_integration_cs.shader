@@ -24,7 +24,7 @@ CS
 	RWStructuredBuffer<VerletPoint> Points < Attribute( "Points" ); >;
 	// Updates
 	int NumPointUpdates < Attribute( "NumPointUpdates" ); Default( 0 ); >;
-	RWStructuredBuffer<VerletPointUpdate> PointUpdates < Attribute ( "PointUpdates" ); >;
+	StructuredBuffer<VerletPointUpdate> PointUpdates < Attribute ( "PointUpdates" ); >;
 	// Simulation
 	int Iterations < Attribute( "Iterations" ); >;
 	float AnchorMaxDistanceFactor < Attribute( "AnchorMaxDistanceFactor" ); Default( 3.0 ); >;
