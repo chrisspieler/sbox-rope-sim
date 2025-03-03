@@ -1,4 +1,6 @@
-﻿namespace Duccsoft;
+﻿using Sandbox.Rendering;
+
+namespace Duccsoft;
 
 public partial class GpuSimulationData : IDataSize
 {
@@ -216,6 +218,9 @@ public partial class GpuSimulationData : IDataSize
 
 	internal void DispatchBuildRopeMesh( float width, Color tint )
 	{
+		Graphics.ResourceBarrierTransition( ReadbackVertices, ResourceState.CopyDestination );
+		Graphics.ResourceBarrierTransition( ReadbackIndices, ResourceState.CopyDestination );
+		
 		RenderAttributes attributes = new();
 		attributes.Set( "NumPoints", PointCount );
 		attributes.Set( "Points", GpuPoints );
@@ -226,11 +231,17 @@ public partial class GpuSimulationData : IDataSize
 		attributes.Set( "OutputIndices", ReadbackIndices );
 
 		VerletRopeMeshCs.DispatchWithAttributes( attributes, PointCount, 1, 1 );
+		
+		Graphics.ResourceBarrierTransition( ReadbackVertices, ResourceState.GenericRead );
+		Graphics.ResourceBarrierTransition( ReadbackIndices, ResourceState.GenericRead );
 	}
 
 	internal void DispatchBuildClothMesh( Color tint )
 	{
 		RenderAttributes attributes = new();
+		
+		Graphics.ResourceBarrierTransition( ReadbackVertices, ResourceState.CopyDestination );
+		Graphics.ResourceBarrierTransition( ReadbackIndices, ResourceState.CopyDestination );
 
 		attributes.Set( "NumPoints", PointCount );
 		attributes.Set( "NumColumns", ColumnCount );
@@ -240,11 +251,16 @@ public partial class GpuSimulationData : IDataSize
 		attributes.Set( "OutputIndices", ReadbackIndices );
 
 		VerletClothMeshCs.DispatchWithAttributes( attributes, RowCount, ColumnCount, 1 );
+		
+		Graphics.ResourceBarrierTransition( ReadbackVertices, ResourceState.GenericRead );
+		Graphics.ResourceBarrierTransition( ReadbackIndices, ResourceState.GenericRead );
 	}
 
 	internal void DispatchCalculateMeshBounds( GpuBuffer<VerletBounds> globalBoundsBuffer, float skinSize )
 	{
 		RenderAttributes attributes = new();
+		
+		Graphics.ResourceBarrierTransition( globalBoundsBuffer, ResourceState.CopyDestination );
 
 		attributes.Set( "NumPoints", PointCount );
 		attributes.Set( "Points", GpuPoints );
@@ -254,6 +270,8 @@ public partial class GpuSimulationData : IDataSize
 		attributes.Set( "Bounds", globalBoundsBuffer );
 
 		MeshBoundsCs.DispatchWithAttributes( attributes, PointCount );
+		
+		Graphics.ResourceBarrierTransition( globalBoundsBuffer, ResourceState.GenericRead );
 	}
 	#endregion
 

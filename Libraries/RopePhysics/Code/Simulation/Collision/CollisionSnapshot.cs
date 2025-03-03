@@ -1,4 +1,6 @@
-﻿namespace Duccsoft;
+﻿using Sandbox.Rendering;
+
+namespace Duccsoft;
 
 public class CollisionSnapshot : IDataSize
 {
@@ -121,5 +123,9 @@ public class CollisionSnapshot : IDataSize
 		ApplyColliderAttribute( attributes, "NumBoxColliders", "BoxColliders", BoxColliders, MAX_BOX_COLLIDERS, ref _gpuBoxColliders );
 		ApplyColliderAttribute( attributes, "NumCapsuleColliders", "CapsuleColliders", CapsuleColliders, MAX_CAPSULE_COLLIDERS, ref _gpuCapsuleColliders );
 		ApplyColliderAttribute( attributes, "NumMeshColliders", "MeshColliders", MeshColliders, MAX_MESH_COLLIDERS, ref _gpuMeshColliders );
+		foreach ( var meshCollider in MeshColliders.Values )
+		{
+			Graphics.ResourceBarrierTransition( meshCollider.Sdf.DataTexture, ResourceState.GenericRead );
+		}
 	}
 }
