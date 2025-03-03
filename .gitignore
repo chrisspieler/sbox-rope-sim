@@ -27,3 +27,6 @@ code/Properties/*
 
 # Exported / standalone games
 Exports/
+
+# Rider user settings
+*.DotSettings.user
