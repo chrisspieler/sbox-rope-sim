@@ -1,4 +1,5 @@
-﻿using Duccsoft.ImGui;
+﻿using System;
+using Duccsoft.ImGui;
 
 namespace Sandbox;
 
@@ -20,7 +21,20 @@ public class MainMenuUI : Component
 
 	protected override void OnStart()
 	{
-		var scenes = ResourceLibrary.GetAll<SceneFile>();
+		try
+		{
+			GetAllSceneMetadata( ResourceLibrary.GetAll<SceneFile>() );
+		}
+		catch ( InvalidOperationException e )
+		{
+			Log.Info( $"Working around issue # 7548" );
+			GetAllSceneMetadata( ResourceLibrary.GetAll<SceneFile>().ToList() );
+			throw;
+		}
+	}
+
+	private void GetAllSceneMetadata( IEnumerable<SceneFile> scenes )
+	{
 		foreach( var scene in scenes )
 		{
 			var demoName = scene.GetMetadata( nameof( DemoSceneInformation.DemoName ) );
@@ -51,6 +65,7 @@ public class MainMenuUI : Component
 			SelectedSceneIndex = 0;
 		}
 	}
+	
 	protected override void OnUpdate()
 	{
 		var titleText = new TextRendering.Scope( "Rope Physics Demo", Color.White, ImGui.GetTextLineHeight() * 5f, "Poppins" );
