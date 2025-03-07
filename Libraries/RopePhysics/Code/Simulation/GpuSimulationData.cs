@@ -218,8 +218,8 @@ public partial class GpuSimulationData : IDataSize
 
 	internal void DispatchBuildRopeMesh( float width, Color tint )
 	{
-		Graphics.ResourceBarrierTransition( ReadbackVertices, ResourceState.CopyDestination );
-		Graphics.ResourceBarrierTransition( ReadbackIndices, ResourceState.CopyDestination );
+		Graphics.ResourceBarrierTransition( ReadbackVertices, ResourceState.CopySource, ResourceState.CopyDestination );
+		Graphics.ResourceBarrierTransition( ReadbackIndices, ResourceState.CopySource, ResourceState.CopyDestination );
 		
 		RenderAttributes attributes = new();
 		attributes.Set( "NumPoints", PointCount );
@@ -232,16 +232,16 @@ public partial class GpuSimulationData : IDataSize
 
 		VerletRopeMeshCs.DispatchWithAttributes( attributes, PointCount, 1, 1 );
 		
-		Graphics.ResourceBarrierTransition( ReadbackVertices, ResourceState.GenericRead );
-		Graphics.ResourceBarrierTransition( ReadbackIndices, ResourceState.GenericRead );
+		Graphics.ResourceBarrierTransition( ReadbackVertices, ResourceState.CopyDestination, ResourceState.CopySource );
+		Graphics.ResourceBarrierTransition( ReadbackIndices,  ResourceState.CopyDestination, ResourceState.CopySource );
 	}
 
 	internal void DispatchBuildClothMesh( Color tint )
 	{
 		RenderAttributes attributes = new();
 		
-		Graphics.ResourceBarrierTransition( ReadbackVertices, ResourceState.CopyDestination );
-		Graphics.ResourceBarrierTransition( ReadbackIndices, ResourceState.CopyDestination );
+		Graphics.ResourceBarrierTransition( ReadbackVertices, ResourceState.CopySource, ResourceState.CopyDestination );
+		Graphics.ResourceBarrierTransition( ReadbackIndices, ResourceState.CopySource, ResourceState.CopyDestination );
 
 		attributes.Set( "NumPoints", PointCount );
 		attributes.Set( "NumColumns", ColumnCount );
@@ -252,15 +252,15 @@ public partial class GpuSimulationData : IDataSize
 
 		VerletClothMeshCs.DispatchWithAttributes( attributes, RowCount, ColumnCount, 1 );
 		
-		Graphics.ResourceBarrierTransition( ReadbackVertices, ResourceState.GenericRead );
-		Graphics.ResourceBarrierTransition( ReadbackIndices, ResourceState.GenericRead );
+		Graphics.ResourceBarrierTransition( ReadbackVertices, ResourceState.CopyDestination, ResourceState.CopySource );
+		Graphics.ResourceBarrierTransition( ReadbackIndices, ResourceState.CopyDestination, ResourceState.CopySource );
 	}
 
 	internal void DispatchCalculateMeshBounds( GpuBuffer<VerletBounds> globalBoundsBuffer, float skinSize )
 	{
 		RenderAttributes attributes = new();
 		
-		Graphics.ResourceBarrierTransition( globalBoundsBuffer, ResourceState.CopyDestination );
+		Graphics.ResourceBarrierTransition( globalBoundsBuffer, ResourceState.CopySource, ResourceState.CopyDestination );
 
 		attributes.Set( "NumPoints", PointCount );
 		attributes.Set( "Points", GpuPoints );
@@ -271,7 +271,7 @@ public partial class GpuSimulationData : IDataSize
 
 		MeshBoundsCs.DispatchWithAttributes( attributes, PointCount );
 		
-		Graphics.ResourceBarrierTransition( globalBoundsBuffer, ResourceState.GenericRead );
+		Graphics.ResourceBarrierTransition( globalBoundsBuffer, ResourceState.CopyDestination, ResourceState.CopySource );
 	}
 	#endregion
 

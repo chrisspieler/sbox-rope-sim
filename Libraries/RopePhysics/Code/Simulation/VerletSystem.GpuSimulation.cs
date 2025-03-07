@@ -33,7 +33,7 @@ public partial class VerletSystem
 			return;
 
 		GpuBufferUtils.EnsureCount( ref _gpuReadbackBoundsBuffer, simCount );
-		Graphics.ResourceBarrierTransition( _gpuReadbackBoundsBuffer, ResourceState.CopyDestination );
+		Graphics.ResourceBarrierTransition( _gpuReadbackBoundsBuffer, ResourceState.CopySource, ResourceState.CopyDestination );
 
 		TotalGpuDataSize = 0;
 
@@ -129,7 +129,7 @@ public partial class VerletSystem
 	{
 		var timer = FastTimer.StartNew();
 
-		Graphics.ResourceBarrierTransition( _gpuReadbackBoundsBuffer, ResourceState.GenericRead );
+		Graphics.ResourceBarrierTransition( _gpuReadbackBoundsBuffer, ResourceState.CopyDestination, ResourceState.CopySource );
 		
 		var readbackBounds = new VerletBounds[_gpuReadbackBoundsBuffer.ElementCount];
 		_gpuReadbackBoundsBuffer.GetData( readbackBounds );
